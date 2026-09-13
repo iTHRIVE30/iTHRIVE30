@@ -2,13 +2,27 @@ import { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-const GOLD = '#D4AF37';
-const BLACK = '#0B0B0B';
-const PIE_COLORS = [
+import { useTheme, useThemedStyles } from '../hooks/useTheme';
+import type { Theme } from '../constants/theme';
+
+/**
+ * Pie slice ramps. The dark ramp is thirteen steps of brand gold, which separates well on
+ * black and turns to mud on ivory - so light mode gets its own eucalypt-family ramp at
+ * equivalent spacing rather than a reuse.
+ */
+const PIE_COLORS_DARK = [
   '#D4AF37', '#8a7433', '#E8C968', '#B98F2E', '#5C4D24',
   '#F0D385', '#A67C00', '#C9A227', '#736024', '#D9B64E',
   '#836619', '#E0BD5E', '#6B5518',
 ];
+
+const PIE_COLORS_LIGHT = [
+  '#5F7355', '#B79447', '#3F5138', '#8A9A6B', '#7A6A38',
+  '#6E8F5E', '#4A5C42', '#C4A96A', '#869174', '#57604F',
+  '#9E8452', '#2F3D2A', '#A8B394',
+];
+
+const pieColors = (t: Theme) => (t.name === 'dark' ? PIE_COLORS_DARK : PIE_COLORS_LIGHT);
 
 export type ChartPoint = { label: string; value: number };
 export type PieSlice = { label: string; value: number; color?: string };
@@ -27,6 +41,7 @@ export function BarChart({
   height?: number;
 }) {
   const max = maxValue ?? Math.max(1, ...data.map((d) => d.value));
+  const styles = useThemedStyles(createStyles);
 
   return (
     <View style={[styles.row, { minHeight: height + 40 }]}>
@@ -58,6 +73,8 @@ export function LineChart({
   height?: number;
 }) {
   const [width, setWidth] = useState(0);
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const max = maxValue ?? Math.max(1, ...data.map((d) => d.value));
 
   if (data.length === 0) {
@@ -91,7 +108,7 @@ export function LineChart({
                   top: midY - 1,
                   width: length,
                   height: 2,
-                  backgroundColor: GOLD,
+                  backgroundColor: t.primary,
                   transform: [{ rotate: `${angle}deg` }],
                 }}
               />
@@ -108,9 +125,9 @@ export function LineChart({
                 width: 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: GOLD,
+                backgroundColor: t.primary,
                 borderWidth: 2,
-                borderColor: BLACK,
+                borderColor: t.ground,
               }}
             />
           ))}
@@ -148,6 +165,9 @@ function describeArc(cx: number, cy: number, r: number, startAngle: number, endA
 }
 
 export function PieChart({ data, size = 170 }: { data: PieSlice[]; size?: number }) {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
+  const ramp = pieColors(t);
   const filtered = data.filter((d) => d.value > 0);
   const total = filtered.reduce((sum, d) => sum + d.value, 0);
 
@@ -166,7 +186,7 @@ export function PieChart({ data, size = 170 }: { data: PieSlice[]; size?: number
     return {
       ...d,
       path: describeArc(r, r, r, startAngle, endAngle),
-      color: d.color || PIE_COLORS[i % PIE_COLORS.length],
+      color: d.color || ramp[i % ramp.length],
       percent: Math.round((d.value / total) * 100),
     };
   });
@@ -193,16 +213,17 @@ export function PieChart({ data, size = 170 }: { data: PieSlice[]; size?: number
   );
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
-  barColumn: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', marginHorizontal: 2 },
-  valueLabel: { color: '#8a7433', fontSize: 9, marginBottom: 2, fontWeight: '700' },
-  track: { width: '100%', maxWidth: 22, backgroundColor: '#1c1c1c', borderRadius: 6, justifyContent: 'flex-end', overflow: 'hidden' },
-  bar: { backgroundColor: GOLD, borderRadius: 6, width: '100%' },
-  xLabel: { color: '#777', fontSize: 9, marginTop: 6 },
-  emptyPieText: { color: '#666', fontSize: 13, fontStyle: 'italic', textAlign: 'center', paddingVertical: 20 },
-  legendRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
-  legendDot: { width: 10, height: 10, borderRadius: 5 },
-  legendLabel: { color: '#ccc', fontSize: 12, flex: 1 },
-  legendPercent: { color: '#8a7433', fontSize: 12, fontWeight: '700' },
-});
+const createStyles = (t: Theme) =>
+  StyleSheet.create({
+    row: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
+    barColumn: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', marginHorizontal: 2 },
+    valueLabel: { color: t.primaryDim, fontSize: 9, marginBottom: 2, fontWeight: '700' },
+    track: { width: '100%', maxWidth: 22, backgroundColor: t.surfaceAlt, borderRadius: 6, justifyContent: 'flex-end', overflow: 'hidden' },
+    bar: { backgroundColor: t.primary, borderRadius: 6, width: '100%' },
+    xLabel: { color: t.muted, fontSize: 9, marginTop: 6 },
+    emptyPieText: { color: t.muted, fontSize: 13, fontStyle: 'italic', textAlign: 'center', paddingVertical: 20 },
+    legendRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
+    legendDot: { width: 10, height: 10, borderRadius: 5 },
+    legendLabel: { color: t.body, fontSize: 12, flex: 1 },
+    legendPercent: { color: t.primaryDim, fontSize: 12, fontWeight: '700' },
+  });

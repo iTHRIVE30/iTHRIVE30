@@ -4,9 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { DailyHeroContent } from '../lib/dailyHero';
 import { LOGO_CGE } from '../lib/brand';
+import { DarkTheme } from '../constants/theme';
 
-const GOLD = '#D4AF37';
-const BLACK = '#0B0B0B';
+// Like the opening sequence, the Daily Hero stays on the brand palette in BOTH themes.
+// Its ground is a dark photo scrim either way, so the light palette's sage primary would
+// sit at roughly 3.4:1 on it - below the 4.5:1 the Eucalypt spec itself insists on for
+// small labels. Gold on the scrim reads at 9:1. Dark ground, dark palette.
+const GOLD = DarkTheme.primary;
+const BLACK = DarkTheme.ground;
 
 /**
  * The once-a-day welcome: the day's picture, the day's challenge quote over it, and a way
@@ -58,15 +63,20 @@ export default function DailyHero({
         <Image source={content.image} style={StyleSheet.absoluteFill} resizeMode="cover" />
       )}
 
-      {/* Scrim: dark at both ends so the logo and the quote stay readable over any photo.
+      {/* Scrim: weighted to the top and bottom bars, and deliberately thin through the
+          middle so the photograph is the hero rather than something behind fog.
+          Readability through the clear band comes from the type's own shadow (see
+          TEXT_SHADOW below), not from more grey - a scrim heavy enough to carry small
+          text everywhere flattens the picture, which is the thing worth looking at.
           Drawn with react-native-svg, which is already a dependency - no gradient library. */}
       <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
         <Defs>
           <LinearGradient id="heroScrim" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={BLACK} stopOpacity="0.92" />
-            <Stop offset="0.34" stopColor={BLACK} stopOpacity="0.45" />
-            <Stop offset="0.62" stopColor={BLACK} stopOpacity="0.72" />
-            <Stop offset="1" stopColor={BLACK} stopOpacity="0.97" />
+            <Stop offset="0" stopColor={BLACK} stopOpacity="0.70" />
+            <Stop offset="0.20" stopColor={BLACK} stopOpacity="0.20" />
+            <Stop offset="0.52" stopColor={BLACK} stopOpacity="0.14" />
+            <Stop offset="0.78" stopColor={BLACK} stopOpacity="0.46" />
+            <Stop offset="1" stopColor={BLACK} stopOpacity="0.88" />
           </LinearGradient>
         </Defs>
         <Rect x="0" y="0" width={width} height={height} fill="url(#heroScrim)" />
@@ -114,24 +124,37 @@ export default function DailyHero({
   );
 }
 
+/**
+ * Carries the legibility the scrim no longer does. A soft, offset drop shadow keeps type
+ * readable over a bright or busy photograph without putting a grey wash across it - the
+ * same trick film posters use. Applied to every piece of text that sits over the picture.
+ */
+const TEXT_SHADOW = {
+  textShadowColor: 'rgba(0,0,0,0.8)',
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 12,
+} as const;
+
 const styles = StyleSheet.create({
   container: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: BLACK, zIndex: 90 },
   content: { flex: 1, paddingHorizontal: 28, paddingTop: 78, paddingBottom: 54, justifyContent: 'space-between' },
   logo: { width: 190, height: 76, alignSelf: 'center' },
 
   middle: { flex: 1, justifyContent: 'center', paddingBottom: 20 },
-  eyebrow: { color: GOLD, fontSize: 11, fontWeight: '800', letterSpacing: 2.2, marginBottom: 18 },
-  quoteMark: { color: GOLD, fontSize: 62, lineHeight: 62, height: 40, fontWeight: '700', opacity: 0.55 },
-  quote: { color: '#fff', fontSize: 26, lineHeight: 36, fontWeight: '600', fontStyle: 'italic' },
+  eyebrow: { color: GOLD, fontSize: 11, fontWeight: '800', letterSpacing: 2.2, marginBottom: 18, ...TEXT_SHADOW },
+  quoteMark: { color: GOLD, fontSize: 62, lineHeight: 62, height: 40, fontWeight: '700', opacity: 0.55, ...TEXT_SHADOW },
+  quote: { color: '#fff', fontSize: 26, lineHeight: 36, fontWeight: '600', fontStyle: 'italic', ...TEXT_SHADOW },
   // Affirmations are the user's own words, so they're set upright rather than as a citation.
   affirmation: { fontStyle: 'normal', fontSize: 28, lineHeight: 38 },
-  attribution: { color: GOLD, fontSize: 13, fontWeight: '700', letterSpacing: 0.6, marginTop: 16 },
+  attribution: { color: GOLD, fontSize: 13, fontWeight: '700', letterSpacing: 0.6, marginTop: 16, ...TEXT_SHADOW },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 26 },
   rule: { width: 26, height: 2, backgroundColor: GOLD },
-  challengeTitle: { color: GOLD, fontSize: 15, fontWeight: '700', flex: 1 },
-  theme: { color: '#b9b9b9', fontSize: 13, marginTop: 6, marginLeft: 36 },
+  challengeTitle: { color: GOLD, fontSize: 15, fontWeight: '700', flex: 1, ...TEXT_SHADOW },
+  theme: { color: '#b9b9b9', fontSize: 13, marginTop: 6, marginLeft: 36, ...TEXT_SHADOW },
 
   button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: GOLD, borderRadius: 14, paddingVertical: 16 },
   buttonText: { color: BLACK, fontSize: 15, fontWeight: '800', letterSpacing: 0.3 },
-  motto: { color: '#7a7a7a', fontSize: 11, letterSpacing: 1.6, textAlign: 'center', marginTop: 16, textTransform: 'uppercase' },
+  // Lifted from #7a7a7a: the bottom of the scrim is lighter now, and mid-grey on a bright
+  // photograph disappears.
+  motto: { color: '#c9c9c9', fontSize: 11, letterSpacing: 1.6, textAlign: 'center', marginTop: 16, textTransform: 'uppercase', ...TEXT_SHADOW },
 });

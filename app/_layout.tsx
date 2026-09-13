@@ -2,15 +2,20 @@
 // (Metro hard-errors on it). expo-router re-exports the theming API itself, and this is the
 // non-deprecated path - the `expo-router/react-navigation` compat shim re-exports the same
 // names but is marked for removal in a future SDK.
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import {
+  DarkTheme as NavDarkTheme,
+  DefaultTheme as NavLightTheme,
+  Stack,
+  ThemeProvider,
+} from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import 'react-native-reanimated';
 
 import SplashLoader from '@/components/SplashLoader';
 import DailyHero from '@/components/DailyHero';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AppThemeProvider, useTheme } from '@/hooks/useTheme';
 import { initMonitoring } from '@/lib/monitoring';
 import {
   DailyHeroContent,
@@ -31,7 +36,16 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 type Phase = 'loading' | 'hero' | 'ready';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  // The theme has to sit outside everything that reads it, including the opening sequence.
+  return (
+    <AppThemeProvider>
+      <RootLayoutInner />
+    </AppThemeProvider>
+  );
+}
+
+function RootLayoutInner() {
+  const theme = useTheme();
   const [phase, setPhase] = useState<Phase>('loading');
   const [hero, setHero] = useState<DailyHeroContent | null>(null);
 
@@ -71,8 +85,25 @@ export default function RootLayout() {
     setPhase('ready');
   }, []);
 
+  // Navigation chrome follows the app theme. Spread the library's own theme rather than
+  // hand-rolling one, so fields it adds in a later SDK still arrive populated.
+  const navTheme = useMemo(() => {
+    const base = theme.name === 'dark' ? NavDarkTheme : NavLightTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        background: theme.ground,
+        card: theme.ground,
+        text: theme.ink,
+        border: theme.border,
+        primary: theme.primary,
+      },
+    };
+  }, [theme]);
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={navTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
@@ -81,7 +112,7 @@ export default function RootLayout() {
       {phase === 'loading' && <SplashLoader onDone={handleLoaderDone} holdUntil={prepare} />}
       {phase === 'hero' && hero && <DailyHero content={hero} onDismiss={handleHeroDismiss} />}
 
-      <StatusBar style="light" />
+      <StatusBar style={theme.name === 'dark' ? 'light' : 'dark'} />
     </ThemeProvider>
   );
 }

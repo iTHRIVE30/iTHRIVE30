@@ -63,9 +63,9 @@ import {
   recordCustomHabitLabel,
   recordDayCompleted,
 } from '../../lib/rewardEvents';
+import { useTheme, useThemedStyles } from '../../hooks/useTheme';
+import type { Theme } from '../../constants/theme';
 
-const GOLD = '#D4AF37';
-const BLACK = '#0B0B0B';
 const STEP_GOAL = 10000;
 const ACTIVITY_TYPES = ['Walk', 'Swim', 'Run', 'Cycling', 'Hike'];
 const DETAIL_HABIT_IDS = ['activity', 'fruit', 'water', 'reading'];
@@ -91,6 +91,8 @@ function formatNoteTimestamp(iso: string): string {
 }
 
 export default function TodayScreen() {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const dayScrollRef = useRef<ScrollView>(null);
 
   const todayKey = getTodayKey();
@@ -479,7 +481,7 @@ export default function TodayScreen() {
               <Text style={styles.levelPickerText} numberOfLines={1}>
                 {activeLevel ? `Level ${activeLevel.level.number} · ${activeLevel.level.name}` : 'Today'}
               </Text>
-              {startedLevels.length > 1 && <Ionicons name="chevron-down" size={14} color={GOLD} />}
+              {startedLevels.length > 1 && <Ionicons name="chevron-down" size={14} color={t.primary} />}
             </Pressable>
 
             {!isCurrentLevel && (
@@ -540,7 +542,7 @@ export default function TodayScreen() {
                     <Ionicons
                       name={selected ? 'radio-button-on' : 'radio-button-off'}
                       size={17}
-                      color={selected ? GOLD : '#666'}
+                      color={selected ? t.primary : t.muted}
                     />
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.pickerRowText, selected && styles.pickerRowTextSelected]}>
@@ -559,13 +561,13 @@ export default function TodayScreen() {
 
         {!isToday && dayHasData[activeDateKey] && (
           <View style={styles.editingBanner}>
-            <Ionicons name="create-outline" size={16} color={GOLD} />
+            <Ionicons name="create-outline" size={16} color={t.primary} />
             <Text style={styles.editingBannerText}>Editing {formatFullDate(activeDateKey)}.</Text>
           </View>
         )}
         {!isToday && !dayHasData[activeDateKey] && (
           <View style={styles.catchUpBanner2}>
-            <Ionicons name="create-outline" size={16} color={BLACK} />
+            <Ionicons name="create-outline" size={16} color={t.ground} />
             <Text style={styles.catchUpBanner2Text}>
               No entry for {formatFullDate(activeDateKey)} yet — fill it in below so it&apos;s not lost.
             </Text>
@@ -579,7 +581,7 @@ export default function TodayScreen() {
           onChangeText={setIntention}
           onBlur={commitIntention}
           placeholder="What is your focus for today?"
-          placeholderTextColor="#666"
+          placeholderTextColor={t.muted}
           multiline
         />
 
@@ -596,7 +598,7 @@ export default function TodayScreen() {
                     {selfiePhotoUri ? (
                       <Image source={{ uri: selfiePhotoUri }} style={styles.selfieThumb} />
                     ) : (
-                      <Ionicons name="camera" size={26} color="#888" />
+                      <Ionicons name="camera" size={26} color={t.secondaryDim} />
                     )}
                     <View style={{ marginLeft: 12, flex: 1 }}>
                       <Text style={[styles.habitLabel, checked[habit.id] && styles.habitLabelChecked]}>{habit.label}</Text>
@@ -608,7 +610,7 @@ export default function TodayScreen() {
                     <Ionicons
                       name={checked[habit.id] ? 'checkmark-circle' : 'ellipse-outline'}
                       size={26}
-                      color={checked[habit.id] ? GOLD : '#888'}
+                      color={checked[habit.id] ? t.primary : t.secondaryDim}
                     />
                     <View style={{ marginLeft: 12, flex: 1 }}>
                       {editingId === habit.id ? (
@@ -620,7 +622,7 @@ export default function TodayScreen() {
                           onSubmitEditing={commitEdit}
                           autoFocus
                           placeholder="Name this habit"
-                          placeholderTextColor="#666"
+                          placeholderTextColor={t.muted}
                         />
                       ) : (
                         <Text style={[styles.habitLabel, checked[habit.id] && styles.habitLabelChecked]}>{habit.label}</Text>
@@ -654,20 +656,20 @@ export default function TodayScreen() {
 
                 {habit.editable && editingId !== habit.id && (
                   <Pressable onPress={() => startEditing(habit)} hitSlop={10}>
-                    <Ionicons name="pencil" size={18} color="#777" />
+                    <Ionicons name="pencil" size={18} color={t.muted} />
                   </Pressable>
                 )}
 
                 {habit.auto && isToday && (
                   <View style={styles.autoBadge}>
-                    <Ionicons name="sync" size={12} color="#8a7433" />
+                    <Ionicons name="sync" size={12} color={t.primaryDim} />
                     <Text style={styles.autoBadgeText}>AUTO</Text>
                   </View>
                 )}
 
                 {hasDetail && (
                   <Pressable onPress={() => toggleExpanded(habit.id)} hitSlop={10} style={{ marginLeft: 8 }}>
-                    <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color="#777" />
+                    <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={t.muted} />
                   </Pressable>
                 )}
               </View>
@@ -694,7 +696,7 @@ export default function TodayScreen() {
                         onChangeText={updateActivityOther}
                         onBlur={commitActivityOther}
                         placeholder="Other (type your own)"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={t.muted}
                       />
                     </>
                   )}
@@ -708,7 +710,7 @@ export default function TodayScreen() {
                         onChangeText={setFruitDetail}
                         onBlur={commitFruitDetail}
                         placeholder="e.g. Banana, apple"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={t.muted}
                       />
                     </>
                   )}
@@ -742,7 +744,7 @@ export default function TodayScreen() {
                         onChangeText={(t) => updateReadingField('bookTitle', t)}
                         onBlur={commitReadingDetail}
                         placeholder="Title"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={t.muted}
                       />
                       <TextInput
                         style={styles.detailInput}
@@ -750,7 +752,7 @@ export default function TodayScreen() {
                         onChangeText={(t) => updateReadingField('bookAuthor', t)}
                         onBlur={commitReadingDetail}
                         placeholder="Author"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={t.muted}
                       />
                       <Text style={[styles.detailLabel, { marginTop: 10 }]}>Or podcast</Text>
                       <TextInput
@@ -759,7 +761,7 @@ export default function TodayScreen() {
                         onChangeText={(t) => updateReadingField('podcastTitle', t)}
                         onBlur={commitReadingDetail}
                         placeholder="Podcast title"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={t.muted}
                       />
                       <TextInput
                         style={styles.detailInput}
@@ -767,7 +769,7 @@ export default function TodayScreen() {
                         onChangeText={(t) => updateReadingField('podcastHost', t)}
                         onBlur={commitReadingDetail}
                         placeholder="Host"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={t.muted}
                       />
                       <TextInput
                         style={styles.detailInput}
@@ -775,7 +777,7 @@ export default function TodayScreen() {
                         onChangeText={(t) => updateReadingField('podcastGuest', t)}
                         onBlur={commitReadingDetail}
                         placeholder="Guest (optional)"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={t.muted}
                       />
                     </>
                   )}
@@ -796,7 +798,7 @@ export default function TodayScreen() {
               onChangeText={(text) => updateGratitudeField(i, text)}
               onBlur={commitGratitude}
               placeholder="Type here"
-              placeholderTextColor="#666"
+              placeholderTextColor={t.muted}
             />
           </View>
         ))}
@@ -806,7 +808,7 @@ export default function TodayScreen() {
         <View style={styles.moodRow}>
           {Array.from({ length: MOOD_SCALE_MAX }, (_, i) => i + 1).map((n) => (
             <Pressable key={n} onPress={() => handleSelectMood(n)} hitSlop={6}>
-              <Ionicons name={n <= mood ? 'star' : 'star-outline'} size={32} color={n <= mood ? GOLD : '#555'} />
+              <Ionicons name={n <= mood ? 'star' : 'star-outline'} size={32} color={n <= mood ? t.primary : t.faint} />
             </Pressable>
           ))}
         </View>
@@ -821,7 +823,7 @@ export default function TodayScreen() {
               <Text style={styles.noteText}>{n.text}</Text>
             </View>
             <Pressable onPress={() => handleDeleteNote(n.id)} hitSlop={8}>
-              <Ionicons name="trash-outline" size={16} color="#666" />
+              <Ionicons name="trash-outline" size={16} color={t.muted} />
             </Pressable>
           </View>
         ))}
@@ -831,11 +833,11 @@ export default function TodayScreen() {
             value={noteDraft}
             onChangeText={setNoteDraft}
             placeholder="Write a reflection..."
-            placeholderTextColor="#666"
+            placeholderTextColor={t.muted}
             multiline
           />
           <Pressable style={styles.addNoteButton} onPress={handleAddNote}>
-            <Ionicons name="add" size={16} color={BLACK} />
+            <Ionicons name="add" size={16} color={t.ground} />
             <Text style={styles.addNoteButtonText}>Add Note</Text>
           </Pressable>
         </View>
@@ -850,107 +852,108 @@ export default function TodayScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BLACK },
-  logo: { width: '100%', height: 88, marginBottom: 8 },
-  headerTitle: { color: GOLD, fontSize: 24, fontWeight: '800', marginBottom: 2 },
-  levelLabel: { color: '#8a7433', fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 14 },
-  dayHeaderCard: { backgroundColor: '#161616', borderRadius: 12, borderWidth: 1, borderColor: '#262626', padding: 14, marginBottom: 16 },
-  dayHeaderTitle: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  dayHeaderSubtitle: { color: '#8a7433', fontSize: 12, fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 4 },
-  celebrateBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: BLACK, borderWidth: 2, borderColor: GOLD, borderRadius: 12, padding: 14, marginBottom: 16, gap: 10 },
-  celebrateEmoji: { fontSize: 22 },
-  celebrateText: { color: GOLD, fontSize: 14, fontWeight: '700', flex: 1 },
+const createStyles = (t: Theme) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.ground },
+    logo: { width: '100%', height: 88, marginBottom: 8 },
+    headerTitle: { color: t.primary, fontSize: 24, fontWeight: '800', marginBottom: 2 },
+    levelLabel: { color: t.primaryDim, fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 14 },
+    dayHeaderCard: { backgroundColor: t.surface, borderRadius: 12, borderWidth: 1, borderColor: t.border, padding: 14, marginBottom: 16 },
+    dayHeaderTitle: { color: t.ink, fontSize: 17, fontWeight: '700' },
+    dayHeaderSubtitle: { color: t.primaryDim, fontSize: 12, fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 4 },
+    celebrateBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: t.ground, borderWidth: 2, borderColor: t.primary, borderRadius: 12, padding: 14, marginBottom: 16, gap: 10 },
+    celebrateEmoji: { fontSize: 22 },
+    celebrateText: { color: t.primary, fontSize: 14, fontWeight: '700', flex: 1 },
 
-  dayStripWrap: { marginBottom: 14 },
-  dayTile: { width: TILE_WIDTH, alignItems: 'center', backgroundColor: '#161616', borderRadius: 12, borderWidth: 1, borderColor: '#262626', paddingVertical: 10 },
-  dayTileActive: { borderColor: GOLD, backgroundColor: '#1f1a08' },
-  dayTileWeekday: { color: '#777', fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
-  dayTileNum: { color: '#eee', fontSize: 16, fontWeight: '700', marginTop: 2 },
-  dayTileTextActive: { color: GOLD },
-  stripHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 },
-  levelPickerButton: { flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 },
-  levelPickerText: { color: GOLD, fontSize: 12, fontWeight: '800', letterSpacing: 0.4, flexShrink: 1 },
-  stripHistoryTag: { color: '#8a7433', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
-  jumpToTodayText: { color: '#8a7433', fontSize: 11, fontWeight: '700' },
-  dayTileDayNo: { color: '#5f5f5f', fontSize: 9, fontWeight: '700', marginTop: 1 },
-  pickerBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 28 },
-  pickerCard: { backgroundColor: '#161616', borderRadius: 16, borderWidth: 1, borderColor: '#2a2a2a', padding: 10, maxHeight: '70%' },
-  pickerTitle: { color: GOLD, fontSize: 13, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', padding: 12, paddingBottom: 8 },
-  pickerRow: { flexDirection: 'row', alignItems: 'center', gap: 11, padding: 13, borderRadius: 10 },
-  pickerRowSelected: { backgroundColor: '#1f1a08' },
-  pickerRowText: { color: '#ddd', fontSize: 14, fontWeight: '600' },
-  pickerRowTextSelected: { color: GOLD },
-  pickerRowSub: { color: '#777', fontSize: 11, marginTop: 2 },
-  dayTileDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#333', marginTop: 6 },
-  dayTileDotFilled: { backgroundColor: '#3ddc84' },
+    dayStripWrap: { marginBottom: 14 },
+    dayTile: { width: TILE_WIDTH, alignItems: 'center', backgroundColor: t.surface, borderRadius: 12, borderWidth: 1, borderColor: t.border, paddingVertical: 10 },
+    dayTileActive: { borderColor: t.primary, backgroundColor: t.primaryTint },
+    dayTileWeekday: { color: t.muted, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
+    dayTileNum: { color: t.inkSoft, fontSize: 16, fontWeight: '700', marginTop: 2 },
+    dayTileTextActive: { color: t.primary },
+    stripHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 },
+    levelPickerButton: { flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 },
+    levelPickerText: { color: t.primary, fontSize: 12, fontWeight: '800', letterSpacing: 0.4, flexShrink: 1 },
+    stripHistoryTag: { color: t.primaryDim, fontSize: 10, fontWeight: '800', letterSpacing: 1 },
+    jumpToTodayText: { color: t.primaryDim, fontSize: 11, fontWeight: '700' },
+    dayTileDayNo: { color: t.faint, fontSize: 9, fontWeight: '700', marginTop: 1 },
+    pickerBackdrop: { flex: 1, backgroundColor: t.scrim, justifyContent: 'center', padding: 28 },
+    pickerCard: { backgroundColor: t.surface, borderRadius: 16, borderWidth: 1, borderColor: t.borderMuted, padding: 10, maxHeight: '70%' },
+    pickerTitle: { color: t.primary, fontSize: 13, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', padding: 12, paddingBottom: 8 },
+    pickerRow: { flexDirection: 'row', alignItems: 'center', gap: 11, padding: 13, borderRadius: 10 },
+    pickerRowSelected: { backgroundColor: t.primaryTint },
+    pickerRowText: { color: t.body, fontSize: 14, fontWeight: '600' },
+    pickerRowTextSelected: { color: t.primary },
+    pickerRowSub: { color: t.muted, fontSize: 11, marginTop: 2 },
+    dayTileDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: t.borderStrong, marginTop: 6 },
+    dayTileDotFilled: { backgroundColor: t.success },
 
-  editingBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#161616', borderWidth: 1, borderColor: GOLD, borderRadius: 12, padding: 12, marginBottom: 16 },
-  editingBannerText: { color: '#ccc', fontSize: 12, flex: 1, lineHeight: 17 },
-  catchUpBanner2: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: GOLD, borderRadius: 12, padding: 12, marginBottom: 16 },
-  catchUpBanner2Text: { color: BLACK, fontSize: 12, flex: 1, lineHeight: 17, fontWeight: '600' },
+    editingBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: t.surface, borderWidth: 1, borderColor: t.primary, borderRadius: 12, padding: 12, marginBottom: 16 },
+    editingBannerText: { color: t.body, fontSize: 12, flex: 1, lineHeight: 17 },
+    catchUpBanner2: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: t.primary, borderRadius: 12, padding: 12, marginBottom: 16 },
+    catchUpBanner2Text: { color: t.ground, fontSize: 12, flex: 1, lineHeight: 17, fontWeight: '600' },
 
-  sectionTitle: { color: GOLD, fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 10 },
-  promptLabel: { color: '#ccc', fontSize: 14, marginBottom: 6 },
-  singleInput: {
-    color: '#fff', fontSize: 15, backgroundColor: '#161616', borderRadius: 10, borderWidth: 1,
-    borderColor: '#262626', padding: 12, marginBottom: 12, minHeight: 44,
-  },
-  numberedRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  numberLabel: { color: GOLD, fontSize: 15, fontWeight: '700', width: 20 },
-  numberedInput: {
-    flex: 1, color: '#fff', fontSize: 15, backgroundColor: '#161616', borderRadius: 10,
-    borderWidth: 1, borderColor: '#262626', padding: 12, minHeight: 44,
-  },
-  progressText: { color: '#aaa', marginTop: 8, marginBottom: 16 },
-  habitRow: { backgroundColor: '#161616', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#262626' },
-  habitRowChecked: { borderColor: GOLD },
-  habitRowTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  habitLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  habitLabel: { color: '#eee', fontSize: 16 },
-  habitLabelChecked: { color: '#fff', fontWeight: '600' },
-  habitInput: { color: '#fff', fontSize: 16, borderBottomWidth: 1, borderBottomColor: GOLD, paddingVertical: 2 },
-  stepSubtitle: { color: '#8a7433', fontSize: 12, marginTop: 3 },
-  selfieThumb: { width: 26, height: 26, borderRadius: 6 },
-  autoBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1f1a08', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3, gap: 3 },
-  autoBadgeText: { color: '#8a7433', fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
+    sectionTitle: { color: t.primary, fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 10 },
+    promptLabel: { color: t.body, fontSize: 14, marginBottom: 6 },
+    singleInput: {
+      color: t.ink, fontSize: 15, backgroundColor: t.surface, borderRadius: 10, borderWidth: 1,
+      borderColor: t.border, padding: 12, marginBottom: 12, minHeight: 44,
+    },
+    numberedRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+    numberLabel: { color: t.primary, fontSize: 15, fontWeight: '700', width: 20 },
+    numberedInput: {
+      flex: 1, color: t.ink, fontSize: 15, backgroundColor: t.surface, borderRadius: 10,
+      borderWidth: 1, borderColor: t.border, padding: 12, minHeight: 44,
+    },
+    progressText: { color: t.secondary, marginTop: 8, marginBottom: 16 },
+    habitRow: { backgroundColor: t.surface, borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: t.border },
+    habitRowChecked: { borderColor: t.primary },
+    habitRowTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    habitLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    habitLabel: { color: t.inkSoft, fontSize: 16 },
+    habitLabelChecked: { color: t.ink, fontWeight: '600' },
+    habitInput: { color: t.ink, fontSize: 16, borderBottomWidth: 1, borderBottomColor: t.primary, paddingVertical: 2 },
+    stepSubtitle: { color: t.primaryDim, fontSize: 12, marginTop: 3 },
+    selfieThumb: { width: 26, height: 26, borderRadius: 6 },
+    autoBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: t.primaryTint, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3, gap: 3 },
+    autoBadgeText: { color: t.primaryDim, fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
 
-  detailPanel: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: '#262626' },
-  detailLabel: { color: '#aaa', fontSize: 12, fontWeight: '600', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
-  detailInput: { color: '#fff', fontSize: 14, backgroundColor: '#1c1c1c', borderRadius: 8, borderWidth: 1, borderColor: '#2a2a2a', padding: 10, marginBottom: 8 },
-  detailHint: { color: '#666', fontSize: 11, marginTop: 6, fontStyle: 'italic' },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
-  miniChip: { borderWidth: 1, borderColor: '#333', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
-  miniChipActive: { backgroundColor: GOLD, borderColor: GOLD },
-  miniChipText: { color: '#aaa', fontSize: 12, fontWeight: '600' },
-  miniChipTextActive: { color: BLACK },
+    detailPanel: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: t.border },
+    detailLabel: { color: t.secondary, fontSize: 12, fontWeight: '600', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+    detailInput: { color: t.ink, fontSize: 14, backgroundColor: t.surfaceAlt, borderRadius: 8, borderWidth: 1, borderColor: t.borderMuted, padding: 10, marginBottom: 8 },
+    detailHint: { color: t.muted, fontSize: 11, marginTop: 6, fontStyle: 'italic' },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+    miniChip: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
+    miniChipActive: { backgroundColor: t.primary, borderColor: t.primary },
+    miniChipText: { color: t.secondary, fontSize: 12, fontWeight: '600' },
+    miniChipTextActive: { color: t.ground },
 
-  waterScaleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 4 },
-  waterCupDot: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: '#333', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1c1c1c' },
-  waterCupDotFilled: { backgroundColor: GOLD, borderColor: GOLD },
-  waterCupGoalMark: { borderColor: GOLD, borderWidth: 2 },
-  waterCupDotText: { color: '#888', fontSize: 11, fontWeight: '700' },
-  waterCupDotTextFilled: { color: BLACK },
+    waterScaleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 4 },
+    waterCupDot: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: t.borderStrong, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surfaceAlt },
+    waterCupDotFilled: { backgroundColor: t.primary, borderColor: t.primary },
+    waterCupGoalMark: { borderColor: t.primary, borderWidth: 2 },
+    waterCupDotText: { color: t.secondaryDim, fontSize: 11, fontWeight: '700' },
+    waterCupDotTextFilled: { color: t.ground },
 
-  moodRow: { flexDirection: 'row', gap: 10, marginBottom: 6 },
-  moodValueText: { color: '#8a7433', fontSize: 13, fontWeight: '600', marginBottom: 12 },
+    moodRow: { flexDirection: 'row', gap: 10, marginBottom: 6 },
+    moodValueText: { color: t.primaryDim, fontSize: 13, fontWeight: '600', marginBottom: 12 },
 
-  noteRow: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#161616', borderRadius: 10, borderWidth: 1, borderColor: '#262626', padding: 12, marginBottom: 10, gap: 10 },
-  noteTimestamp: { color: '#8a7433', fontSize: 11, fontWeight: '600', marginBottom: 3 },
-  noteText: { color: '#eee', fontSize: 14, lineHeight: 19 },
-  noteForm: { marginBottom: 8 },
-  noteInput: {
-    color: '#fff', fontSize: 15, backgroundColor: '#161616', borderRadius: 10, borderWidth: 1,
-    borderColor: '#262626', padding: 12, minHeight: 80, textAlignVertical: 'top', marginBottom: 10,
-  },
-  addNoteButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: GOLD, borderRadius: 10, paddingVertical: 12 },
-  addNoteButtonText: { color: BLACK, fontWeight: '700', fontSize: 14 },
-  emptyText: { color: '#666', fontSize: 13, fontStyle: 'italic', marginBottom: 10 },
+    noteRow: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: t.surface, borderRadius: 10, borderWidth: 1, borderColor: t.border, padding: 12, marginBottom: 10, gap: 10 },
+    noteTimestamp: { color: t.primaryDim, fontSize: 11, fontWeight: '600', marginBottom: 3 },
+    noteText: { color: t.inkSoft, fontSize: 14, lineHeight: 19 },
+    noteForm: { marginBottom: 8 },
+    noteInput: {
+      color: t.ink, fontSize: 15, backgroundColor: t.surface, borderRadius: 10, borderWidth: 1,
+      borderColor: t.border, padding: 12, minHeight: 80, textAlignVertical: 'top', marginBottom: 10,
+    },
+    addNoteButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: t.primary, borderRadius: 10, paddingVertical: 12 },
+    addNoteButtonText: { color: t.ground, fontWeight: '700', fontSize: 14 },
+    emptyText: { color: t.muted, fontSize: 13, fontStyle: 'italic', marginBottom: 10 },
 
-  footer: { alignItems: 'center', marginTop: 32, paddingTop: 24, borderTopWidth: 1, borderTopColor: '#262626' },
-  footerLogo: { width: 120, height: 50, marginBottom: 10, opacity: 0.9 },
-  motto: {
-    color: '#8a7433', fontSize: 13, fontWeight: '700', letterSpacing: 4, textTransform: 'uppercase',
-    textShadowColor: 'rgba(255,255,255,0.18)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 1,
-  },
-});
+    footer: { alignItems: 'center', marginTop: 32, paddingTop: 24, borderTopWidth: 1, borderTopColor: t.border },
+    footerLogo: { width: 120, height: 50, marginBottom: 10, opacity: 0.9 },
+    motto: {
+      color: t.primaryDim, fontSize: 13, fontWeight: '700', letterSpacing: 4, textTransform: 'uppercase',
+      textShadowColor: 'rgba(255,255,255,0.18)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 1,
+    },
+  });

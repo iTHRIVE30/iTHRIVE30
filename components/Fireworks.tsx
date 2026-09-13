@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, Animated, StyleSheet, useWindowDimensions } from 'react-native';
 
-const COLORS = ['#D4AF37', '#FFFFFF', '#8a7433', '#F0D385'];
+import { useTheme } from '../hooks/useTheme';
+import type { Theme } from '../constants/theme';
+
 const PARTICLE_COUNT = 26;
+
+// Gold on black reads brilliantly and all but vanishes on ivory, so the burst takes its
+// palette from the theme rather than from the brand alone.
+const paletteFor = (t: Theme): string[] =>
+  t.name === 'dark'
+    ? ['#D4AF37', '#FFFFFF', '#8A7433', '#F0D385']
+    : [t.primary, t.accentGold, t.primaryDim, t.ink];
 
 /**
  * Fires a burst of particles from the center of the screen whenever `trigger` changes
@@ -13,6 +22,7 @@ export default function Fireworks({ trigger }: { trigger: number }) {
   // is captured before the first render and never updates, so the burst would fire from
   // the wrong place after a rotation, on a foldable, or in iPad split view.
   const { width, height } = useWindowDimensions();
+  const t = useTheme();
 
   // Lazy state initialiser, not useRef(...) - the particle shapes are randomised, and calling
   // Math.random() straight in the render body is impure (React Compiler flags it). A lazy
@@ -22,10 +32,13 @@ export default function Fireworks({ trigger }: { trigger: number }) {
       anim: new Animated.Value(0),
       angle: Math.random() * Math.PI * 2,
       distance: 90 + Math.random() * 140,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      // Index only, not the colour itself - resolved at render so a theme change lands.
+      colorIndex: Math.floor(Math.random() * 4),
       size: 4 + Math.random() * 6,
     }))
   );
+
+  const palette = paletteFor(t);
 
   const lastTrigger = useRef(0);
 
@@ -60,7 +73,7 @@ export default function Fireworks({ trigger }: { trigger: number }) {
                 width: p.size,
                 height: p.size,
                 borderRadius: p.size / 2,
-                backgroundColor: p.color,
+                backgroundColor: palette[p.colorIndex],
                 opacity,
                 transform: [{ translateX }, { translateY }],
               },

@@ -6,14 +6,16 @@ import { Asset } from 'expo-asset';
 import * as Sharing from 'expo-sharing';
 import { getSortedCategories, getItemsForCategory, ArchiveItem } from '../../lib/archiveStore';
 import { markScreenVisited } from '../../lib/rewardEvents';
+import { useTheme, useThemedStyles } from '../../hooks/useTheme';
+import { DarkTheme, type Theme } from '../../constants/theme';
 
-const GOLD = '#D4AF37';
-const BLACK = '#0B0B0B';
 const GRID_GAP = 10;
 const GRID_COLUMNS = 3;
 
 export default function ArchiveScreen() {
   const categories = getSortedCategories();
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { width } = useWindowDimensions();
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [preview, setPreview] = useState<ArchiveItem | null>(null);
@@ -94,7 +96,7 @@ export default function ArchiveScreen() {
                       {item.isImage ? (
                         <Image source={item.file} style={styles.itemThumb} resizeMode="cover" />
                       ) : (
-                        <Ionicons name="document-text-outline" size={20} color={GOLD} />
+                        <Ionicons name="document-text-outline" size={20} color={t.primary} />
                       )}
                     </View>
                     <View style={{ flex: 1 }}>
@@ -109,9 +111,9 @@ export default function ArchiveScreen() {
                       )}
                     </View>
                     {openingId === item.id ? (
-                      <Ionicons name="hourglass-outline" size={20} color="#777" />
+                      <Ionicons name="hourglass-outline" size={20} color={t.muted} />
                     ) : (
-                      <Ionicons name={item.isImage ? 'expand-outline' : 'download-outline'} size={20} color="#777" />
+                      <Ionicons name={item.isImage ? 'expand-outline' : 'download-outline'} size={20} color={t.muted} />
                     )}
                   </Pressable>
                 ))
@@ -135,14 +137,14 @@ export default function ArchiveScreen() {
                   onPress={() => handleShare(preview)}
                   disabled={openingId === preview.id}
                 >
-                  <Ionicons name="share-outline" size={16} color={BLACK} />
+                  <Ionicons name="share-outline" size={16} color={t.onPrimary} />
                   <Text style={styles.previewButtonText}>
                     {openingId === preview.id ? 'Opening…' : 'Save / Share'}
                   </Text>
                 </Pressable>
               </View>
               <Pressable style={styles.previewClose} onPress={() => setPreview(null)} hitSlop={10}>
-                <Ionicons name="close" size={26} color="#fff" />
+                <Ionicons name="close" size={26} color={DarkTheme.ink} />
               </Pressable>
             </>
           )}
@@ -152,33 +154,36 @@ export default function ArchiveScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BLACK },
-  title: { color: GOLD, fontSize: 26, fontWeight: '700', marginBottom: 4 },
-  subtitle: { color: '#aaa', fontSize: 14, marginBottom: 24 },
-  categoryBlock: { marginBottom: 26 },
-  categoryHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  categoryTitle: { color: GOLD, fontSize: 16, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  categoryCount: { color: '#666', fontSize: 12, fontWeight: '700' },
+const createStyles = (t: Theme) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.ground },
+    title: { color: t.primary, fontSize: 26, fontWeight: '700', marginBottom: 4 },
+    subtitle: { color: t.secondary, fontSize: 14, marginBottom: 24 },
+    categoryBlock: { marginBottom: 26 },
+    categoryHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+    categoryTitle: { color: t.primary, fontSize: 16, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+    categoryCount: { color: t.muted, fontSize: 12, fontWeight: '700' },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GRID_GAP },
-  gridImage: { width: '100%', height: '100%', borderRadius: 8, backgroundColor: '#161616' },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GRID_GAP },
+    gridImage: { width: '100%', height: '100%', borderRadius: 8, backgroundColor: t.surface },
 
-  itemRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#161616', borderRadius: 12, borderWidth: 1, borderColor: '#262626', padding: 14, marginBottom: 10, gap: 12 },
-  itemIconWrap: { width: 36, height: 36, borderRadius: 8, backgroundColor: '#1f1a08', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  itemThumb: { width: '100%', height: '100%' },
-  itemTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  itemTitle: { color: '#eee', fontSize: 14, fontWeight: '600', flexShrink: 1 },
-  fileTypeBadge: { backgroundColor: '#1f1a08', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2 },
-  fileTypeBadgeText: { color: '#8a7433', fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
-  itemDescription: { color: '#888', fontSize: 12, marginTop: 3, lineHeight: 16 },
-  emptyText: { color: '#666', fontSize: 13, fontStyle: 'italic', marginBottom: 10 },
+    itemRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: t.surface, borderRadius: 12, borderWidth: 1, borderColor: t.border, padding: 14, marginBottom: 10, gap: 12 },
+    itemIconWrap: { width: 36, height: 36, borderRadius: 8, backgroundColor: t.primaryTint, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+    itemThumb: { width: '100%', height: '100%' },
+    itemTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    itemTitle: { color: t.inkSoft, fontSize: 14, fontWeight: '600', flexShrink: 1 },
+    fileTypeBadge: { backgroundColor: t.primaryTint, borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2 },
+    fileTypeBadgeText: { color: t.primaryDim, fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
+    itemDescription: { color: t.secondaryDim, fontSize: 12, marginTop: 3, lineHeight: 16 },
+    emptyText: { color: t.muted, fontSize: 13, fontStyle: 'italic', marginBottom: 10 },
 
-  previewBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', alignItems: 'center', justifyContent: 'center' },
-  previewImage: { width: '92%', height: '76%' },
-  previewBar: { position: 'absolute', bottom: 40, left: 20, right: 20, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  previewTitle: { color: '#eee', fontSize: 14, fontWeight: '600', flex: 1 },
-  previewButton: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: GOLD, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 },
-  previewButtonText: { color: BLACK, fontSize: 13, fontWeight: '700' },
-  previewClose: { position: 'absolute', top: 50, right: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-});
+    // The full-screen picture viewer stays dark in BOTH themes. A lightbox exists to get
+    // everything but the image out of the way, and an ivory one fights the picture.
+    previewBackdrop: { flex: 1, backgroundColor: DarkTheme.scrimStrong, alignItems: 'center', justifyContent: 'center' },
+    previewImage: { width: '92%', height: '76%' },
+    previewBar: { position: 'absolute', bottom: 40, left: 20, right: 20, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    previewTitle: { color: DarkTheme.inkSoft, fontSize: 14, fontWeight: '600', flex: 1 },
+    previewButton: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.primary, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 },
+    previewButtonText: { color: t.onPrimary, fontSize: 13, fontWeight: '700' },
+    previewClose: { position: 'absolute', top: 50, right: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  });

@@ -16,6 +16,7 @@ import { useFocusEffect } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 
 import {
+  Appearance,
   Settings,
   formatDobForDisplay,
   getSettings,
@@ -29,11 +30,9 @@ import {
   restoreBackup,
 } from '../../lib/backupStore';
 import { monitoringStatus, setCrashReportingEnabled } from '../../lib/monitoring';
+import { useAppearance, useTheme, useThemedStyles } from '../../hooks/useTheme';
+import type { Theme } from '../../constants/theme';
 
-const GOLD = '#D4AF37';
-const BLACK = '#0B0B0B';
-const DIM_GOLD = '#8a7433';
-const DANGER = '#C4573F';
 
 /**
  * Settings - preferences, and the only place the user can get their data out of the app.
@@ -44,8 +43,8 @@ const DANGER = '#C4573F';
  * Also deliberately absent: step and water targets. The 13 habits are a baseline, not a
  * threshold - personal targets belong to My Journey and the three editable habits.
  *
- * The Appearance preference is stored but has no control here yet, because light mode
- * isn't built. A selector that changed nothing would be a dead control.
+ * Appearance is a three-way: Dark, Light, or System - System follows the device live
+ * rather than sampling once, so the app flips when the phone does.
  */
 
 /** Set in app.json -> expo.extra. The rows stay hidden until they're real. */
@@ -54,7 +53,16 @@ const SUPPORT_EMAIL: string =
   Constants.expoConfig?.extra?.supportEmail ?? 'bondiprojectglobal@gmail.com';
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 
+const APPEARANCE_OPTIONS: { key: Appearance; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { key: 'system', label: 'System', icon: 'phone-portrait-outline' },
+  { key: 'light', label: 'Light', icon: 'sunny-outline' },
+  { key: 'dark', label: 'Dark', icon: 'moon-outline' },
+];
+
 export default function SettingsScreen() {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
+  const { appearance, systemTheme, setAppearance } = useAppearance();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [dobText, setDobText] = useState('');
   const [entryCount, setEntryCount] = useState<number | null>(null);
@@ -206,7 +214,7 @@ export default function SettingsScreen() {
           value={settings.firstName}
           onChangeText={handleName}
           placeholder="What should the app call you?"
-          placeholderTextColor="#666"
+          placeholderTextColor={t.muted}
           autoCapitalize="words"
           returnKeyType="done"
         />
@@ -217,11 +225,45 @@ export default function SettingsScreen() {
           value={dobText}
           onChangeText={handleDob}
           placeholder="DD/MM/YYYY"
-          placeholderTextColor="#666"
+          placeholderTextColor={t.muted}
           keyboardType="numbers-and-punctuation"
           returnKeyType="done"
         />
         <Text style={styles.fieldHint}>Used only to mark your birthday inside the app.</Text>
+      </View>
+
+      {/* ---------- Appearance ---------- */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Appearance</Text>
+        <Text style={styles.cardNote}>
+          {appearance === 'system'
+            ? `Following your phone, which is currently set to ${systemTheme}.`
+            : `Always ${appearance}, whatever your phone is set to.`}
+        </Text>
+
+        <View style={styles.segment}>
+          {APPEARANCE_OPTIONS.map((opt) => {
+            const active = appearance === opt.key;
+            return (
+              <Pressable
+                key={opt.key}
+                style={[styles.segmentItem, active && styles.segmentItemActive]}
+                onPress={() => setAppearance(opt.key)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+              >
+                <Ionicons
+                  name={opt.icon}
+                  size={16}
+                  color={active ? t.onPrimary : t.secondary}
+                />
+                <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+                  {opt.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
       {/* ---------- Your data ---------- */}
@@ -244,7 +286,7 @@ export default function SettingsScreen() {
           onPress={handleBackup}
           disabled={busy !== null}
         >
-          <Ionicons name="download-outline" size={16} color={BLACK} />
+          <Ionicons name="download-outline" size={16} color={t.ground} />
           <Text style={styles.primaryButtonText}>
             {busy === 'backup' ? 'Preparing…' : 'Back up my data'}
           </Text>
@@ -255,14 +297,14 @@ export default function SettingsScreen() {
           onPress={handleRestore}
           disabled={busy !== null}
         >
-          <Ionicons name="cloud-upload-outline" size={16} color={GOLD} />
+          <Ionicons name="cloud-upload-outline" size={16} color={t.primary} />
           <Text style={styles.outlineButtonText}>
             {busy === 'restore' ? 'Restoring…' : 'Restore from a backup'}
           </Text>
         </Pressable>
 
         <Pressable style={styles.dangerButton} onPress={handleErase} disabled={busy !== null}>
-          <Ionicons name="trash-outline" size={16} color={DANGER} />
+          <Ionicons name="trash-outline" size={16} color={t.danger} />
           <Text style={styles.dangerButtonText}>Delete everything</Text>
         </Pressable>
       </View>
@@ -282,8 +324,8 @@ export default function SettingsScreen() {
           <Switch
             value={settings.crashReports}
             onValueChange={handleCrashToggle}
-            trackColor={{ false: '#2a2a2a', true: DIM_GOLD }}
-            thumbColor={settings.crashReports ? GOLD : '#666'}
+            trackColor={{ false: t.borderMuted, true: t.primaryDim }}
+            thumbColor={settings.crashReports ? t.primary : t.muted}
           />
         </View>
 
@@ -299,9 +341,9 @@ export default function SettingsScreen() {
             style={styles.linkRow}
             onPress={() => WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)}
           >
-            <Ionicons name="document-text-outline" size={16} color={GOLD} />
+            <Ionicons name="document-text-outline" size={16} color={t.primary} />
             <Text style={styles.linkText}>Privacy policy</Text>
-            <Ionicons name="open-outline" size={14} color="#666" />
+            <Ionicons name="open-outline" size={14} color={t.muted} />
           </Pressable>
         )}
 
@@ -313,9 +355,9 @@ export default function SettingsScreen() {
             )
           }
         >
-          <Ionicons name="mail-outline" size={16} color={GOLD} />
+          <Ionicons name="mail-outline" size={16} color={t.primary} />
           <Text style={styles.linkText}>Contact support</Text>
-          <Ionicons name="open-outline" size={14} color="#666" />
+          <Ionicons name="open-outline" size={14} color={t.muted} />
         </Pressable>
 
         <View style={styles.metaRow}>
@@ -337,123 +379,146 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BLACK },
-  loading: { alignItems: 'center', justifyContent: 'center' },
-  muted: { color: '#666', fontSize: 14 },
+const createStyles = (t: Theme) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.ground },
+    loading: { alignItems: 'center', justifyContent: 'center' },
+    muted: { color: t.muted, fontSize: 14 },
 
-  title: { color: GOLD, fontSize: 26, fontWeight: '700', marginBottom: 4 },
-  subtitle: { color: '#aaa', fontSize: 14, marginBottom: 22 },
+    title: { color: t.primary, fontSize: 26, fontWeight: '700', marginBottom: 4 },
+    subtitle: { color: t.secondary, fontSize: 14, marginBottom: 22 },
 
-  card: {
-    backgroundColor: '#161616',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#262626',
-    padding: 16,
-    marginBottom: 18,
-  },
-  cardTitle: { color: GOLD, fontSize: 17, fontWeight: '700', marginBottom: 6 },
-  cardNote: { color: '#aaa', fontSize: 13, lineHeight: 19, marginBottom: 10 },
+    card: {
+      backgroundColor: t.surface,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: t.border,
+      padding: 16,
+      marginBottom: 18,
+    },
+    cardTitle: { color: t.primary, fontSize: 17, fontWeight: '700', marginBottom: 6 },
+    cardNote: { color: t.secondary, fontSize: 13, lineHeight: 19, marginBottom: 10 },
 
-  fieldLabel: {
-    color: DIM_GOLD,
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginTop: 10,
-    marginBottom: 5,
-  },
-  input: {
-    color: '#fff',
-    fontSize: 14,
-    backgroundColor: '#1c1c1c',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
-    padding: 11,
-    minHeight: 42,
-  },
-  fieldHint: { color: '#666', fontSize: 11, lineHeight: 16, marginTop: 6 },
+    fieldLabel: {
+      color: t.primaryDim,
+      fontSize: 11,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginTop: 10,
+      marginBottom: 5,
+    },
+    input: {
+      color: t.ink,
+      fontSize: 14,
+      backgroundColor: t.surfaceAlt,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: t.borderMuted,
+      padding: 11,
+      minHeight: 42,
+    },
+    fieldHint: { color: t.muted, fontSize: 11, lineHeight: 16, marginTop: 6 },
 
-  entryCount: {
-    color: '#888',
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 12,
-  },
+    segment: {
+      flexDirection: 'row',
+      backgroundColor: t.surfaceAlt,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: t.borderMuted,
+      padding: 3,
+      marginTop: 4,
+    },
+    segmentItem: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 9,
+      borderRadius: 8,
+    },
+    segmentItemActive: { backgroundColor: t.primary },
+    segmentText: { color: t.secondary, fontSize: 13, fontWeight: '600' },
+    segmentTextActive: { color: t.onPrimary, fontWeight: '700' },
 
-  primaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    backgroundColor: GOLD,
-    borderRadius: 10,
-    paddingVertical: 12,
-  },
-  primaryButtonText: { color: BLACK, fontWeight: '700', fontSize: 13 },
+    entryCount: {
+      color: t.secondaryDim,
+      fontSize: 12,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginBottom: 12,
+    },
 
-  outlineButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    borderWidth: 1,
-    borderColor: GOLD,
-    borderRadius: 10,
-    paddingVertical: 12,
-    marginTop: 10,
-  },
-  outlineButtonText: { color: GOLD, fontWeight: '700', fontSize: 13 },
+    primaryButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 7,
+      backgroundColor: t.primary,
+      borderRadius: 10,
+      paddingVertical: 12,
+    },
+    primaryButtonText: { color: t.ground, fontWeight: '700', fontSize: 13 },
 
-  dangerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    borderWidth: 1,
-    borderColor: '#4A2A20',
-    borderRadius: 10,
-    paddingVertical: 12,
-    marginTop: 10,
-  },
-  dangerButtonText: { color: DANGER, fontWeight: '700', fontSize: 13 },
+    outlineButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 7,
+      borderWidth: 1,
+      borderColor: t.primary,
+      borderRadius: 10,
+      paddingVertical: 12,
+      marginTop: 10,
+    },
+    outlineButtonText: { color: t.primary, fontWeight: '700', fontSize: 13 },
 
-  buttonBusy: { opacity: 0.5 },
+    dangerButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 7,
+      borderWidth: 1,
+      borderColor: t.dangerBorder,
+      borderRadius: 10,
+      paddingVertical: 12,
+      marginTop: 10,
+    },
+    dangerButtonText: { color: t.danger, fontWeight: '700', fontSize: 13 },
 
-  switchRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 4 },
-  switchLabel: { color: '#eee', fontSize: 14, fontWeight: '600' },
-  statusLine: {
-    color: '#666',
-    fontSize: 11,
-    fontStyle: 'italic',
-    marginTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#242424',
-    paddingTop: 10,
-  },
+    buttonBusy: { opacity: 0.5 },
 
-  linkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#242424',
-  },
-  linkText: { color: '#eee', fontSize: 14, flex: 1 },
+    switchRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 4 },
+    switchLabel: { color: t.inkSoft, fontSize: 14, fontWeight: '600' },
+    statusLine: {
+      color: t.muted,
+      fontSize: 11,
+      fontStyle: 'italic',
+      marginTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: t.borderSoft,
+      paddingTop: 10,
+    },
 
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 16,
-    paddingVertical: 9,
-  },
-  metaLabel: { color: '#888', fontSize: 13 },
-  metaValue: { color: '#ccc', fontSize: 12, fontFamily: 'monospace', flexShrink: 1 },
-});
+    linkRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: t.borderSoft,
+    },
+    linkText: { color: t.inkSoft, fontSize: 14, flex: 1 },
+
+    metaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 16,
+      paddingVertical: 9,
+    },
+    metaLabel: { color: t.secondaryDim, fontSize: 13 },
+    metaValue: { color: t.body, fontSize: 12, fontFamily: 'monospace', flexShrink: 1 },
+  });

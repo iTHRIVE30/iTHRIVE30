@@ -22,15 +22,16 @@ import {
   groupByCategory,
 } from '../../lib/achievements';
 import { markScreenVisited } from '../../lib/rewardEvents';
+import { useTheme, useThemedStyles } from '../../hooks/useTheme';
+import type { Theme } from '../../constants/theme';
 
-const GOLD = '#D4AF37';
-const BLACK = '#0B0B0B';
-const DIM_GOLD = '#8a7433';
 
 type Draft = { achieve: string; feel: string; impact: string };
 const EMPTY_DRAFT: Draft = { achieve: '', feel: '', impact: '' };
 
 export default function MyJourneyScreen() {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [categories, setCategories] = useState<JourneyCategory[]>([]);
   const [goals, setGoals] = useState<JourneyGoal[]>([]);
   const [drafts, setDrafts] = useState<{ [categoryId: string]: Draft }>({});
@@ -116,7 +117,7 @@ export default function MyJourneyScreen() {
                 <Text style={styles.categoryTitle}>{cat.name}</Text>
                 {!cat.isDefault && (
                   <Pressable onPress={() => handleDeleteCategory(cat.id)} hitSlop={8}>
-                    <Ionicons name="trash-outline" size={16} color="#666" />
+                    <Ionicons name="trash-outline" size={16} color={t.muted} />
                   </Pressable>
                 )}
               </View>
@@ -125,13 +126,13 @@ export default function MyJourneyScreen() {
                 <View key={g.id} style={[styles.goalCard, g.completed && styles.goalCardDone]}>
                   <View style={styles.goalCardTop}>
                     <Pressable onPress={() => handleToggleGoal(g.id)} style={styles.goalStatusRow} hitSlop={6}>
-                      <Ionicons name={g.completed ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={g.completed ? GOLD : '#888'} />
+                      <Ionicons name={g.completed ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={g.completed ? t.primary : t.secondaryDim} />
                       <Text style={[styles.goalStatusText, g.completed && styles.goalStatusTextDone]}>
                         {g.completed ? 'Achieved' : 'In progress'}
                       </Text>
                     </Pressable>
                     <Pressable onPress={() => handleDeleteGoal(g.id)} hitSlop={8}>
-                      <Ionicons name="trash-outline" size={16} color="#666" />
+                      <Ionicons name="trash-outline" size={16} color={t.muted} />
                     </Pressable>
                   </View>
 
@@ -161,7 +162,7 @@ export default function MyJourneyScreen() {
                   value={draft.achieve}
                   onChangeText={(t) => updateDraft(cat.id, 'achieve', t)}
                   placeholder="Name the goal..."
-                  placeholderTextColor="#666"
+                  placeholderTextColor={t.muted}
                   multiline
                 />
                 <Text style={styles.formLabel}>How will I feel when I get there?</Text>
@@ -170,7 +171,7 @@ export default function MyJourneyScreen() {
                   value={draft.feel}
                   onChangeText={(t) => updateDraft(cat.id, 'feel', t)}
                   placeholder="Describe the feeling..."
-                  placeholderTextColor="#666"
+                  placeholderTextColor={t.muted}
                   multiline
                 />
                 <Text style={styles.formLabel}>Who else will be impacted?</Text>
@@ -179,11 +180,11 @@ export default function MyJourneyScreen() {
                   value={draft.impact}
                   onChangeText={(t) => updateDraft(cat.id, 'impact', t)}
                   placeholder="Who benefits alongside me..."
-                  placeholderTextColor="#666"
+                  placeholderTextColor={t.muted}
                   multiline
                 />
                 <Pressable style={styles.addGoalButton} onPress={() => handleAddGoal(cat.id)}>
-                  <Ionicons name="add" size={16} color={BLACK} />
+                  <Ionicons name="add" size={16} color={t.ground} />
                   <Text style={styles.addGoalButtonText}>Add Goal</Text>
                 </Pressable>
               </View>
@@ -198,10 +199,10 @@ export default function MyJourneyScreen() {
             value={newCategoryName}
             onChangeText={setNewCategoryName}
             placeholder="e.g. Health, Finances, Spirituality..."
-            placeholderTextColor="#666"
+            placeholderTextColor={t.muted}
           />
           <Pressable style={styles.addCategoryButton} onPress={handleAddCategory}>
-            <Ionicons name="add-circle-outline" size={18} color={GOLD} />
+            <Ionicons name="add-circle-outline" size={18} color={t.primary} />
             <Text style={styles.addCategoryButtonText}>Add Category</Text>
           </Pressable>
         </View>
@@ -222,7 +223,7 @@ export default function MyJourneyScreen() {
               <View style={styles.badgesBarTrack}>
                 <View style={[styles.badgesBarFill, { width: `${Math.round(summary.completion * 100)}%` }]} />
               </View>
-              <Ionicons name={badgesOpen ? 'chevron-up' : 'chevron-down'} size={18} color="#666" />
+              <Ionicons name={badgesOpen ? 'chevron-up' : 'chevron-down'} size={18} color={t.muted} />
             </Pressable>
 
             {badgesOpen && (
@@ -250,7 +251,7 @@ export default function MyJourneyScreen() {
                         <Text style={styles.badgeCategoryCount}>
                           {group.statuses.filter((s) => s.earned).length} / {visible.length}
                         </Text>
-                        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={15} color="#555" />
+                        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={15} color={t.faint} />
                       </Pressable>
                       {open && visible.map((s) => <BadgeRow key={s.achievement.id} status={s} />)}
                     </View>
@@ -274,6 +275,8 @@ export default function MyJourneyScreen() {
 
 /** One badge inside My Journey. Earned badges show their encouragement; the rest show progress. */
 function BadgeRow({ status }: { status: AchievementStatus }) {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { achievement, earned, progress, current, target, encouragement } = status;
   const showBar = !earned && target > 1;
 
@@ -282,7 +285,7 @@ function BadgeRow({ status }: { status: AchievementStatus }) {
       <Ionicons
         name={earned ? 'ribbon' : 'ellipse-outline'}
         size={16}
-        color={earned ? GOLD : '#666'}
+        color={earned ? t.primary : t.muted}
         style={{ marginTop: 2 }}
       />
       <View style={{ flex: 1 }}>
@@ -302,60 +305,61 @@ function BadgeRow({ status }: { status: AchievementStatus }) {
   );
 }
 
-const styles = StyleSheet.create({
-  badgesBlock: { backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#262626', marginTop: 22, overflow: 'hidden' },
-  badgesHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 16 },
-  sectionTitleInline: { color: GOLD, fontSize: 15, fontWeight: '700' },
-  badgesSub: { color: '#777', fontSize: 12, marginTop: 2 },
-  badgesBarTrack: { width: 56, height: 5, backgroundColor: '#2a2a2a', borderRadius: 3, overflow: 'hidden' },
-  badgesBarFill: { height: 5, backgroundColor: GOLD, borderRadius: 3 },
-  badgesBody: { borderTopWidth: 1, borderTopColor: '#242424', padding: 12 },
-  badgesGroupLabel: { color: DIM_GOLD, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 4 },
-  badgesFootnote: { color: '#666', fontSize: 11, lineHeight: 16, fontStyle: 'italic', marginTop: 10 },
-  badgeCategory: { borderTopWidth: 1, borderTopColor: '#232323', marginTop: 8, paddingTop: 8 },
-  badgeCategoryHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
-  badgeCategoryTitle: { color: '#ddd', fontSize: 13, fontWeight: '700', flex: 1 },
-  badgeCategoryCount: { color: '#777', fontSize: 12, fontWeight: '700' },
-  badgeRow: { flexDirection: 'row', gap: 9, backgroundColor: '#1c1c1c', borderRadius: 10, borderWidth: 1, borderColor: '#2a2a2a', padding: 11, marginBottom: 7 },
-  badgeRowEarned: { borderColor: DIM_GOLD, backgroundColor: '#1a1608' },
-  badgeName: { color: '#bbb', fontSize: 13, fontWeight: '700' },
-  badgeNameEarned: { color: GOLD },
-  badgeReq: { color: '#7d7d7d', fontSize: 11, lineHeight: 15, marginTop: 3 },
-  badgeEncouragement: { color: '#e8e0c8', fontSize: 12, lineHeight: 18, marginTop: 7, fontStyle: 'italic' },
-  badgeBarTrack: { height: 4, backgroundColor: '#2f2f2f', borderRadius: 2, marginTop: 7, overflow: 'hidden' },
-  badgeBarFill: { height: 4, backgroundColor: DIM_GOLD, borderRadius: 2 },
-  badgeProgress: { color: '#777', fontSize: 10, marginTop: 4, fontWeight: '600' },
-  container: { flex: 1, backgroundColor: BLACK },
-  title: { color: GOLD, fontSize: 26, fontWeight: '700', marginBottom: 4 },
-  subtitle: { color: '#aaa', fontSize: 14, marginBottom: 22 },
-  categoryCard: { backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#262626', padding: 16, marginBottom: 18 },
-  categoryHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  categoryTitle: { color: GOLD, fontSize: 17, fontWeight: '700' },
-  goalCard: { backgroundColor: '#1c1c1c', borderRadius: 10, borderWidth: 1, borderColor: '#2a2a2a', padding: 14, marginBottom: 12 },
-  goalCardDone: { borderColor: GOLD },
-  goalCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  goalStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  goalStatusText: { color: '#888', fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  goalStatusTextDone: { color: GOLD },
-  goalFieldLabel: { color: '#8a7433', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 8, marginBottom: 3 },
-  goalFieldValue: { color: '#eee', fontSize: 14, lineHeight: 19 },
-  addGoalForm: { borderTopWidth: 1, borderTopColor: '#262626', paddingTop: 14, marginTop: 4 },
-  formLabel: { color: '#aaa', fontSize: 12, marginBottom: 5, marginTop: 8 },
-  formInput: {
-    color: '#fff',
-    fontSize: 14,
-    backgroundColor: '#1c1c1c',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
-    padding: 11,
-    minHeight: 42,
-    textAlignVertical: 'top',
-  },
-  addGoalButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: GOLD, borderRadius: 10, paddingVertical: 11, marginTop: 14 },
-  addGoalButtonText: { color: BLACK, fontWeight: '700', fontSize: 13 },
-  sectionTitle: { color: GOLD, fontSize: 16, fontWeight: '700', marginTop: 4, marginBottom: 12 },
-  addCategoryForm: { backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#262626', padding: 16 },
-  addCategoryButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: GOLD, borderRadius: 10, paddingVertical: 11, marginTop: 12 },
-  addCategoryButtonText: { color: GOLD, fontWeight: '700', fontSize: 13 },
-});
+const createStyles = (t: Theme) =>
+  StyleSheet.create({
+    badgesBlock: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, marginTop: 22, overflow: 'hidden' },
+    badgesHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 16 },
+    sectionTitleInline: { color: t.primary, fontSize: 15, fontWeight: '700' },
+    badgesSub: { color: t.muted, fontSize: 12, marginTop: 2 },
+    badgesBarTrack: { width: 56, height: 5, backgroundColor: t.borderMuted, borderRadius: 3, overflow: 'hidden' },
+    badgesBarFill: { height: 5, backgroundColor: t.primary, borderRadius: 3 },
+    badgesBody: { borderTopWidth: 1, borderTopColor: t.borderSoft, padding: 12 },
+    badgesGroupLabel: { color: t.primaryDim, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 4 },
+    badgesFootnote: { color: t.muted, fontSize: 11, lineHeight: 16, fontStyle: 'italic', marginTop: 10 },
+    badgeCategory: { borderTopWidth: 1, borderTopColor: t.borderSoft, marginTop: 8, paddingTop: 8 },
+    badgeCategoryHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
+    badgeCategoryTitle: { color: t.body, fontSize: 13, fontWeight: '700', flex: 1 },
+    badgeCategoryCount: { color: t.muted, fontSize: 12, fontWeight: '700' },
+    badgeRow: { flexDirection: 'row', gap: 9, backgroundColor: t.surfaceAlt, borderRadius: 10, borderWidth: 1, borderColor: t.borderMuted, padding: 11, marginBottom: 7 },
+    badgeRowEarned: { borderColor: t.primaryDim, backgroundColor: t.primaryTintAlt },
+    badgeName: { color: t.secondary, fontSize: 13, fontWeight: '700' },
+    badgeNameEarned: { color: t.primary },
+    badgeReq: { color: t.muted, fontSize: 11, lineHeight: 15, marginTop: 3 },
+    badgeEncouragement: { color: t.encouragement, fontSize: 12, lineHeight: 18, marginTop: 7, fontStyle: 'italic' },
+    badgeBarTrack: { height: 4, backgroundColor: t.borderMuted, borderRadius: 2, marginTop: 7, overflow: 'hidden' },
+    badgeBarFill: { height: 4, backgroundColor: t.primaryDim, borderRadius: 2 },
+    badgeProgress: { color: t.muted, fontSize: 10, marginTop: 4, fontWeight: '600' },
+    container: { flex: 1, backgroundColor: t.ground },
+    title: { color: t.primary, fontSize: 26, fontWeight: '700', marginBottom: 4 },
+    subtitle: { color: t.secondary, fontSize: 14, marginBottom: 22 },
+    categoryCard: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, padding: 16, marginBottom: 18 },
+    categoryHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+    categoryTitle: { color: t.primary, fontSize: 17, fontWeight: '700' },
+    goalCard: { backgroundColor: t.surfaceAlt, borderRadius: 10, borderWidth: 1, borderColor: t.borderMuted, padding: 14, marginBottom: 12 },
+    goalCardDone: { borderColor: t.primary },
+    goalCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+    goalStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    goalStatusText: { color: t.secondaryDim, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+    goalStatusTextDone: { color: t.primary },
+    goalFieldLabel: { color: t.primaryDim, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 8, marginBottom: 3 },
+    goalFieldValue: { color: t.inkSoft, fontSize: 14, lineHeight: 19 },
+    addGoalForm: { borderTopWidth: 1, borderTopColor: t.border, paddingTop: 14, marginTop: 4 },
+    formLabel: { color: t.secondary, fontSize: 12, marginBottom: 5, marginTop: 8 },
+    formInput: {
+      color: t.ink,
+      fontSize: 14,
+      backgroundColor: t.surfaceAlt,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: t.borderMuted,
+      padding: 11,
+      minHeight: 42,
+      textAlignVertical: 'top',
+    },
+    addGoalButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: t.primary, borderRadius: 10, paddingVertical: 11, marginTop: 14 },
+    addGoalButtonText: { color: t.ground, fontWeight: '700', fontSize: 13 },
+    sectionTitle: { color: t.primary, fontSize: 16, fontWeight: '700', marginTop: 4, marginBottom: 12 },
+    addCategoryForm: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, padding: 16 },
+    addCategoryButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: t.primary, borderRadius: 10, paddingVertical: 11, marginTop: 12 },
+    addCategoryButtonText: { color: t.primary, fontWeight: '700', fontSize: 13 },
+  });

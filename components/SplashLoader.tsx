@@ -2,10 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { LogoTone, logoSequence } from '../lib/brand';
+import { DarkTheme } from '../constants/theme';
 
-const GOLD = '#D4AF37';
-const BLACK = '#0B0B0B';
-const TRACK = '#241f0c';
+// The opening sequence stays on the brand palette in BOTH themes, deliberately.
+//
+// The native splash that runs before any JS is a fixed black image and cannot follow a
+// user setting, so a light-mode splash here would flash black -> ivory -> app on every
+// launch. Holding the dark brand for the two seconds of the sequence is the better trade,
+// and the gold ring on black is the brand moment.
+const GOLD = DarkTheme.primary;
+const BLACK = DarkTheme.ground;
+const TRACK = '#241f0c'; // dark gold, a shade off primaryTint - kept exact
 
 const LOGO_SIZE = 240;
 const RING_SIZE = 288;

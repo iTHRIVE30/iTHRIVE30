@@ -40,10 +40,9 @@ import {
 import { getChallengeResponses, getLevelDays, CONTENT_BY_LEVEL, LEVELS, ChallengeResponses } from '../../lib/challengeStore';
 import Svg, { Polyline, Line as SvgLine, Text as SvgText } from 'react-native-svg';
 import { markScreenVisited } from '../../lib/rewardEvents';
+import { useTheme, useThemedStyles } from '../../hooks/useTheme';
+import { levelColors, type Theme } from '../../constants/theme';
 
-const GOLD = '#D4AF37';
-const BLACK = '#0B0B0B';
-const GREEN = '#3ddc84';
 const GOAL_MAX_LENGTH = 250;
 const GOAL_QUOTE = 'A wish is not a plan, hope is not a strategy. What gets scheduled gets done.';
 const TABLE_DAYS = 30;
@@ -74,13 +73,14 @@ function formatShortDate(dateKey: string): string {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-const LEVEL_COLORS = ['#D4AF37', '#3ddc84', '#5AB0FF', '#F2789F', '#FFA552', '#9B8AFB'];
 
 function LevelComparisonChart({
   series,
 }: {
   series: { number: number; label: string; color: string; points: number[] }[];
 }) {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const width = 320;
   const height = 150;
   const padTop = 10;
@@ -97,11 +97,11 @@ function LevelComparisonChart({
     <View>
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
         {[0, 50, 100].map((g) => (
-          <SvgLine key={g} x1={padLeft} y1={yForPct(g)} x2={width - padRight} y2={yForPct(g)} stroke="#262626" strokeWidth={1} />
+          <SvgLine key={g} x1={padLeft} y1={yForPct(g)} x2={width - padRight} y2={yForPct(g)} stroke={t.border} strokeWidth={1} />
         ))}
-        <SvgText x={0} y={yForPct(100) + 3} fontSize="8" fill="#666">100</SvgText>
-        <SvgText x={4} y={yForPct(50) + 3} fontSize="8" fill="#666">50</SvgText>
-        <SvgText x={8} y={yForPct(0) + 3} fontSize="8" fill="#666">0</SvgText>
+        <SvgText x={0} y={yForPct(100) + 3} fontSize="8" fill={t.muted}>100</SvgText>
+        <SvgText x={4} y={yForPct(50) + 3} fontSize="8" fill={t.muted}>50</SvgText>
+        <SvgText x={8} y={yForPct(0) + 3} fontSize="8" fill={t.muted}>0</SvgText>
 
         {series.map((s) => (
           <Polyline
@@ -126,6 +126,8 @@ function LevelComparisonChart({
 }
 
 export default function ProgressScreen() {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [segment, setSegment] = useState<Segment>('table');
   const [range, setRange] = useState<RangeOption>(7);
   const [view, setView] = useState<ViewOption>('daily');
@@ -269,7 +271,7 @@ export default function ProgressScreen() {
       const doneSoFar = days.filter((d) => d.day <= day && !!challengeResponses[d.id]).length;
       return total > 0 ? Math.round((doneSoFar / total) * 100) : 0;
     });
-    return { number: num, label: levelDef?.name || `Level ${num}`, color: LEVEL_COLORS[idx % LEVEL_COLORS.length], points };
+    return { number: num, label: levelDef?.name || `Level ${num}`, color: levelColors(t)[idx % 6], points };
   });
 
   // Daily %-complete summary row across the same 30 days, mirroring the tracker's bottom row.
@@ -327,7 +329,7 @@ export default function ProgressScreen() {
                           <View key={i} style={styles.trackerCellWrap}>
                             {done && (
                               <View style={styles.trackerCellDone}>
-                                <Ionicons name="checkmark" size={10} color="#0B0B0B" />
+                                <Ionicons name="checkmark" size={10} color={t.ground} />
                               </View>
                             )}
                           </View>
@@ -461,7 +463,7 @@ export default function ProgressScreen() {
             <Text style={styles.sectionTitle}>Key Insights</Text>
 
             <View style={[styles.insightCard, perfectStreak.current > 0 && styles.insightCardCelebrate]}>
-              <Ionicons name="flame" size={20} color={perfectStreak.current > 0 ? GREEN : GOLD} />
+              <Ionicons name="flame" size={20} color={perfectStreak.current > 0 ? t.success : t.primary} />
               <Text style={[styles.insightText, perfectStreak.current > 0 && styles.insightTextCelebrate]}>
                 {perfectStreak.current > 0
                   ? `Well done! You're on a ${perfectStreak.current}-day streak of 100% days.`
@@ -473,21 +475,21 @@ export default function ProgressScreen() {
 
             {!!bestHabit && bestHabit.percent > 0 && (
               <View style={styles.insightCard}>
-                <Ionicons name="trending-up" size={20} color={GOLD} />
+                <Ionicons name="trending-up" size={20} color={t.primary} />
                 <Text style={styles.insightText}>{`${bestHabit.label} is your strongest habit - ${bestHabit.percent}% ${rangeLabel}.`}</Text>
               </View>
             )}
 
             {!!weakestHabit && weakestHabit.percent < 50 && (
               <View style={styles.insightCard}>
-                <Ionicons name="trending-down" size={20} color={GOLD} />
+                <Ionicons name="trending-down" size={20} color={t.primary} />
                 <Text style={styles.insightText}>{`${weakestHabit.label} could use some attention - only ${weakestHabit.percent}% ${rangeLabel}.`}</Text>
               </View>
             )}
 
             {ratingAverage.count > 0 && (
               <View style={styles.insightCard}>
-                <Ionicons name="star" size={20} color={GOLD} />
+                <Ionicons name="star" size={20} color={t.primary} />
                 <Text style={styles.insightText}>
                   {`Your average mood rating is ${ratingAverage.average.toFixed(1)} / 5, across ${ratingAverage.count} rated day${ratingAverage.count === 1 ? '' : 's'}.`}
                 </Text>
@@ -505,14 +507,14 @@ export default function ProgressScreen() {
                 value={newGoalText}
                 onChangeText={(t) => setNewGoalText(t.slice(0, GOAL_MAX_LENGTH))}
                 placeholder="e.g. Complete Level 1 in 30 days by checking off every habit daily"
-                placeholderTextColor="#666"
+                placeholderTextColor={t.muted}
                 maxLength={GOAL_MAX_LENGTH}
                 multiline
               />
               <Text style={styles.charCount}>{newGoalText.length} / {GOAL_MAX_LENGTH}</Text>
               <Text style={styles.goalQuote}>“{GOAL_QUOTE}”</Text>
               <Pressable style={styles.addGoalButton} onPress={handleAddGoal}>
-                <Ionicons name="add" size={18} color={BLACK} />
+                <Ionicons name="add" size={18} color={t.ground} />
                 <Text style={styles.addGoalButtonText}>Add Goal</Text>
               </Pressable>
             </View>
@@ -520,11 +522,11 @@ export default function ProgressScreen() {
             {activeGoals.map((goal) => (
               <View key={goal.id} style={styles.goalRow}>
                 <Pressable onPress={() => handleToggleGoal(goal.id)} style={styles.goalLeft}>
-                  <Ionicons name="ellipse-outline" size={22} color="#888" />
+                  <Ionicons name="ellipse-outline" size={22} color={t.secondaryDim} />
                   <Text style={styles.goalText}>{goal.text}</Text>
                 </Pressable>
                 <Pressable onPress={() => handleDeleteGoal(goal.id)} hitSlop={8}>
-                  <Ionicons name="trash-outline" size={18} color="#666" />
+                  <Ionicons name="trash-outline" size={18} color={t.muted} />
                 </Pressable>
               </View>
             ))}
@@ -535,11 +537,11 @@ export default function ProgressScreen() {
                 {completedGoals.map((goal) => (
                   <View key={goal.id} style={styles.goalRow}>
                     <Pressable onPress={() => handleToggleGoal(goal.id)} style={styles.goalLeft}>
-                      <Ionicons name="checkmark-circle" size={22} color={GOLD} />
+                      <Ionicons name="checkmark-circle" size={22} color={t.primary} />
                       <Text style={[styles.goalText, styles.goalTextDone]}>{goal.text}</Text>
                     </Pressable>
                     <Pressable onPress={() => handleDeleteGoal(goal.id)} hitSlop={8}>
-                      <Ionicons name="trash-outline" size={18} color="#666" />
+                      <Ionicons name="trash-outline" size={18} color={t.muted} />
                     </Pressable>
                   </View>
                 ))}
@@ -560,7 +562,7 @@ export default function ProgressScreen() {
                 value={targetText}
                 onChangeText={setTargetText}
                 placeholder="e.g. Day 30 of Level 1"
-                placeholderTextColor="#666"
+                placeholderTextColor={t.muted}
               />
               <Text style={styles.milestoneFormLabel}>I get to...</Text>
               <TextInput
@@ -568,7 +570,7 @@ export default function ProgressScreen() {
                 value={rewardText}
                 onChangeText={setRewardText}
                 placeholder="e.g. buy new running shoes"
-                placeholderTextColor="#666"
+                placeholderTextColor={t.muted}
               />
               <Pressable style={styles.addMilestoneButton} onPress={handleAddMilestone}>
                 <Text style={styles.addMilestoneButtonText}>Add Milestone</Text>
@@ -578,14 +580,14 @@ export default function ProgressScreen() {
             {activeMilestones.map((m) => (
               <View key={m.id} style={styles.goalRow}>
                 <Pressable onPress={() => handleToggleMilestone(m.id)} style={styles.goalLeft}>
-                  <Ionicons name="ellipse-outline" size={22} color="#888" />
+                  <Ionicons name="ellipse-outline" size={22} color={t.secondaryDim} />
                   <Text style={styles.goalText}>
                     When I reach <Text style={styles.milestoneHighlight}>{m.targetText}</Text>, I get to{' '}
                     <Text style={styles.milestoneHighlight}>{m.rewardText}</Text>.
                   </Text>
                 </Pressable>
                 <Pressable onPress={() => handleDeleteMilestone(m.id)} hitSlop={8}>
-                  <Ionicons name="trash-outline" size={18} color="#666" />
+                  <Ionicons name="trash-outline" size={18} color={t.muted} />
                 </Pressable>
               </View>
             ))}
@@ -596,13 +598,13 @@ export default function ProgressScreen() {
                 {achievedMilestones.map((m) => (
                   <View key={m.id} style={styles.goalRow}>
                     <Pressable onPress={() => handleToggleMilestone(m.id)} style={styles.goalLeft}>
-                      <Ionicons name="trophy" size={22} color={GOLD} />
+                      <Ionicons name="trophy" size={22} color={t.primary} />
                       <Text style={[styles.goalText, styles.goalTextDone]}>
                         When I reach {m.targetText}, I get to {m.rewardText}.
                       </Text>
                     </Pressable>
                     <Pressable onPress={() => handleDeleteMilestone(m.id)} hitSlop={8}>
-                      <Ionicons name="trash-outline" size={18} color="#666" />
+                      <Ionicons name="trash-outline" size={18} color={t.muted} />
                     </Pressable>
                   </View>
                 ))}
@@ -621,90 +623,91 @@ export default function ProgressScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BLACK },
-  title: { color: GOLD, fontSize: 26, fontWeight: '700', marginBottom: 4 },
-  subtitle: { color: '#aaa', fontSize: 14, marginBottom: 20 },
+const createStyles = (t: Theme) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.ground },
+    title: { color: t.primary, fontSize: 26, fontWeight: '700', marginBottom: 4 },
+    subtitle: { color: t.secondary, fontSize: 14, marginBottom: 20 },
 
-  segmentRow: { flexDirection: 'row', backgroundColor: '#161616', borderRadius: 12, borderWidth: 1, borderColor: '#262626', padding: 4, marginBottom: 20 },
-  segmentButton: { flex: 1, paddingVertical: 10, paddingHorizontal: 2, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  segmentButtonActive: { backgroundColor: GOLD },
-  // "Milestones" is twice the length of "Table"/"Graph"/"Goals" and the four buttons share
-  // the row equally, so at 12px it wrapped to two lines on narrow phones. 11px fits it on
-  // one line with room to spare; numberOfLines={1} on the label is the hard guarantee.
-  segmentText: { color: '#aaa', fontSize: 11, fontWeight: '700', letterSpacing: 0.1 },
-  segmentTextActive: { color: BLACK },
+    segmentRow: { flexDirection: 'row', backgroundColor: t.surface, borderRadius: 12, borderWidth: 1, borderColor: t.border, padding: 4, marginBottom: 20 },
+    segmentButton: { flex: 1, paddingVertical: 10, paddingHorizontal: 2, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+    segmentButtonActive: { backgroundColor: t.primary },
+    // "Milestones" is twice the length of "Table"/"Graph"/"Goals" and the four buttons share
+    // the row equally, so at 12px it wrapped to two lines on narrow phones. 11px fits it on
+    // one line with room to spare; numberOfLines={1} on the label is the hard guarantee.
+    segmentText: { color: t.secondary, fontSize: 11, fontWeight: '700', letterSpacing: 0.1 },
+    segmentTextActive: { color: t.ground },
 
-  promptLabel: { color: '#ccc', fontSize: 13, marginBottom: 12 },
+    promptLabel: { color: t.body, fontSize: 13, marginBottom: 12 },
 
-  chipRow: { flexDirection: 'row', gap: 8, marginBottom: 10, flexWrap: 'wrap' },
-  chip: { borderWidth: 1, borderColor: '#333', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 },
-  chipSmall: { paddingHorizontal: 12, paddingVertical: 6 },
-  chipActive: { backgroundColor: GOLD, borderColor: GOLD },
-  chipText: { color: '#aaa', fontSize: 13, fontWeight: '600' },
-  chipTextActive: { color: BLACK },
+    chipRow: { flexDirection: 'row', gap: 8, marginBottom: 10, flexWrap: 'wrap' },
+    chip: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 },
+    chipSmall: { paddingHorizontal: 12, paddingVertical: 6 },
+    chipActive: { backgroundColor: t.primary, borderColor: t.primary },
+    chipText: { color: t.secondary, fontSize: 13, fontWeight: '600' },
+    chipTextActive: { color: t.ground },
 
-  chartCard: { backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#262626', padding: 16, marginTop: 8, marginBottom: 24 },
-  chartTitle: { color: '#ccc', fontSize: 13, fontWeight: '600', marginBottom: 16 },
-  habitBarRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  habitBarLabel: { color: '#eee', fontSize: 13, width: 110 },
-  habitBarTrack: { flex: 1, height: 10, backgroundColor: '#1c1c1c', borderRadius: 6, marginHorizontal: 8, overflow: 'hidden' },
-  habitBarFill: { height: '100%', backgroundColor: GOLD, borderRadius: 6 },
-  habitBarPercent: { color: '#8a7433', fontSize: 12, fontWeight: '700', width: 38, textAlign: 'right' },
+    chartCard: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, padding: 16, marginTop: 8, marginBottom: 24 },
+    chartTitle: { color: t.body, fontSize: 13, fontWeight: '600', marginBottom: 16 },
+    habitBarRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+    habitBarLabel: { color: t.inkSoft, fontSize: 13, width: 110 },
+    habitBarTrack: { flex: 1, height: 10, backgroundColor: t.surfaceAlt, borderRadius: 6, marginHorizontal: 8, overflow: 'hidden' },
+    habitBarFill: { height: '100%', backgroundColor: t.primary, borderRadius: 6 },
+    habitBarPercent: { color: t.primaryDim, fontSize: 12, fontWeight: '700', width: 38, textAlign: 'right' },
 
-  levelLegendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 10 },
-  levelLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  levelLegendDot: { width: 8, height: 8, borderRadius: 4 },
-  levelLegendText: { color: '#aaa', fontSize: 11, fontWeight: '600' },
+    levelLegendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 10 },
+    levelLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    levelLegendDot: { width: 8, height: 8, borderRadius: 4 },
+    levelLegendText: { color: t.secondary, fontSize: 11, fontWeight: '600' },
 
-  sectionTitle: { color: GOLD, fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 6 },
-  insightCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#161616', borderRadius: 12, borderWidth: 1, borderColor: '#262626', padding: 14, marginBottom: 10, gap: 12 },
-  insightCardCelebrate: { borderColor: GREEN, backgroundColor: '#0f1f14' },
-  insightText: { color: '#ddd', fontSize: 13, flex: 1, lineHeight: 18 },
-  insightTextCelebrate: { color: '#bdf5d1' },
+    sectionTitle: { color: t.primary, fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 6 },
+    insightCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: t.surface, borderRadius: 12, borderWidth: 1, borderColor: t.border, padding: 14, marginBottom: 10, gap: 12 },
+    insightCardCelebrate: { borderColor: t.success, backgroundColor: t.successTint },
+    insightText: { color: t.body, fontSize: 13, flex: 1, lineHeight: 18 },
+    insightTextCelebrate: { color: t.successInk },
 
-  trackerCard: { backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#262626', padding: 16, marginBottom: 24 },
-  trackerHeaderRow: { flexDirection: 'row', marginBottom: 6, alignItems: 'center' },
-  trackerHabitHeader: { width: 100 },
-  trackerDateHeader: { width: 16, textAlign: 'center', color: '#555', fontSize: 9, marginHorizontal: 1 },
-  trackerStreakHeader: { width: 30, textAlign: 'center', color: '#8a7433', fontSize: 9, fontWeight: '700' },
-  trackerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 7 },
-  trackerHabitLabel: { width: 100, color: '#ccc', fontSize: 11 },
-  trackerCellWrap: { width: 16, alignItems: 'center', justifyContent: 'center', marginHorizontal: 1 },
-  trackerCellDone: { width: 14, height: 14, borderRadius: 4, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center' },
-  trackerStreakValue: { width: 30, textAlign: 'center', color: GOLD, fontSize: 11, fontWeight: '700' },
-  trackerPercentRow: { marginTop: 6, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#262626' },
-  trackerPercentLabel: { width: 100, color: '#8a7433', fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
-  trackerPercentCell: { color: '#8a7433', fontSize: 8, fontWeight: '700', textAlign: 'center' },
+    trackerCard: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, padding: 16, marginBottom: 24 },
+    trackerHeaderRow: { flexDirection: 'row', marginBottom: 6, alignItems: 'center' },
+    trackerHabitHeader: { width: 100 },
+    trackerDateHeader: { width: 16, textAlign: 'center', color: t.faint, fontSize: 9, marginHorizontal: 1 },
+    trackerStreakHeader: { width: 30, textAlign: 'center', color: t.primaryDim, fontSize: 9, fontWeight: '700' },
+    trackerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 7 },
+    trackerHabitLabel: { width: 100, color: t.body, fontSize: 11 },
+    trackerCellWrap: { width: 16, alignItems: 'center', justifyContent: 'center', marginHorizontal: 1 },
+    trackerCellDone: { width: 14, height: 14, borderRadius: 4, backgroundColor: t.success, alignItems: 'center', justifyContent: 'center' },
+    trackerStreakValue: { width: 30, textAlign: 'center', color: t.primary, fontSize: 11, fontWeight: '700' },
+    trackerPercentRow: { marginTop: 6, paddingTop: 10, borderTopWidth: 1, borderTopColor: t.border },
+    trackerPercentLabel: { width: 100, color: t.primaryDim, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
+    trackerPercentCell: { color: t.primaryDim, fontSize: 8, fontWeight: '700', textAlign: 'center' },
 
-  goalForm: { backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#262626', padding: 16, marginBottom: 16 },
-  goalInput: {
-    color: '#fff',
-    fontSize: 15,
-    backgroundColor: '#1c1c1c',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
-    padding: 12,
-    minHeight: 90,
-    textAlignVertical: 'top',
-  },
-  charCount: { color: '#666', fontSize: 11, textAlign: 'right', marginTop: 4 },
-  goalQuote: { color: '#8a7433', fontSize: 12, fontStyle: 'italic', lineHeight: 17, marginTop: 12, marginBottom: 14 },
-  addGoalButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: GOLD, borderRadius: 10, paddingVertical: 12 },
-  addGoalButtonText: { color: BLACK, fontWeight: '700', fontSize: 14 },
+    goalForm: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, padding: 16, marginBottom: 16 },
+    goalInput: {
+      color: t.ink,
+      fontSize: 15,
+      backgroundColor: t.surfaceAlt,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: t.borderMuted,
+      padding: 12,
+      minHeight: 90,
+      textAlignVertical: 'top',
+    },
+    charCount: { color: t.muted, fontSize: 11, textAlign: 'right', marginTop: 4 },
+    goalQuote: { color: t.primaryDim, fontSize: 12, fontStyle: 'italic', lineHeight: 17, marginTop: 12, marginBottom: 14 },
+    addGoalButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: t.primary, borderRadius: 10, paddingVertical: 12 },
+    addGoalButtonText: { color: t.ground, fontWeight: '700', fontSize: 14 },
 
-  milestoneForm: { backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#262626', padding: 16, marginBottom: 16 },
-  milestoneFormLabel: { color: '#aaa', fontSize: 13, marginBottom: 6, marginTop: 8 },
-  addInput: { color: '#fff', fontSize: 15, backgroundColor: '#1c1c1c', borderRadius: 10, borderWidth: 1, borderColor: '#2a2a2a', padding: 12 },
-  addMilestoneButton: { backgroundColor: GOLD, borderRadius: 10, paddingVertical: 12, alignItems: 'center', marginTop: 14 },
-  addMilestoneButtonText: { color: BLACK, fontWeight: '700', fontSize: 14 },
-  milestoneHighlight: { color: GOLD, fontWeight: '700' },
+    milestoneForm: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, padding: 16, marginBottom: 16 },
+    milestoneFormLabel: { color: t.secondary, fontSize: 13, marginBottom: 6, marginTop: 8 },
+    addInput: { color: t.ink, fontSize: 15, backgroundColor: t.surfaceAlt, borderRadius: 10, borderWidth: 1, borderColor: t.borderMuted, padding: 12 },
+    addMilestoneButton: { backgroundColor: t.primary, borderRadius: 10, paddingVertical: 12, alignItems: 'center', marginTop: 14 },
+    addMilestoneButtonText: { color: t.ground, fontWeight: '700', fontSize: 14 },
+    milestoneHighlight: { color: t.primary, fontWeight: '700' },
 
-  goalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#161616', borderRadius: 10, borderWidth: 1, borderColor: '#262626', padding: 14, marginBottom: 10 },
-  goalLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 10 },
-  goalText: { color: '#eee', fontSize: 14, flex: 1, lineHeight: 19 },
-  goalTextDone: { color: '#888', textDecorationLine: 'line-through' },
-  completedLabel: { color: '#666', fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: 6, marginBottom: 10 },
-  emptyText: { color: '#666', fontSize: 13, fontStyle: 'italic', marginTop: 4, marginBottom: 10 },
-});
+    goalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.surface, borderRadius: 10, borderWidth: 1, borderColor: t.border, padding: 14, marginBottom: 10 },
+    goalLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 10 },
+    goalText: { color: t.inkSoft, fontSize: 14, flex: 1, lineHeight: 19 },
+    goalTextDone: { color: t.secondaryDim, textDecorationLine: 'line-through' },
+    completedLabel: { color: t.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: 6, marginBottom: 10 },
+    emptyText: { color: t.muted, fontSize: 13, fontStyle: 'italic', marginTop: 4, marginBottom: 10 },
+  });

@@ -3,20 +3,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'react-native';
 import HeaderMenu from '../../components/HeaderMenu';
 import { LOGO_MARK } from '../../lib/brand';
-
-const GOLD = '#D4AF37';
-const BLACK = '#0B0B0B';
+import { useTheme } from '../../hooks/useTheme';
 
 export default function TabLayout() {
+  const t = useTheme();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: GOLD,
-        tabBarInactiveTintColor: '#666',
-        tabBarStyle: { backgroundColor: BLACK, borderTopColor: '#222' },
-        headerStyle: { backgroundColor: BLACK },
-        headerTintColor: GOLD,
+        tabBarActiveTintColor: t.primary,
+        tabBarInactiveTintColor: t.muted,
+        tabBarStyle: { backgroundColor: t.ground, borderTopColor: t.borderSoft },
+        headerStyle: { backgroundColor: t.ground },
+        headerTintColor: t.primary,
         headerTitle: () => (
+          // The mark is gold in every variant and carries no tagline, so it needs no
+          // tone switch - it reads on ivory and on black alike.
           <Image
             source={LOGO_MARK}
             style={{ width: 130, height: 36 }}

@@ -31,10 +31,9 @@ import {
 import AcknowledgementTile, { TILE_SIZE } from '../../components/AcknowledgementTile';
 import Fireworks from '../../components/Fireworks';
 import { markScreenVisited } from '../../lib/rewardEvents';
+import { useTheme, useThemedStyles } from '../../hooks/useTheme';
+import type { Theme } from '../../constants/theme';
 
-const GOLD = '#D4AF37';
-const BLACK = '#0B0B0B';
-const DIM_GOLD = '#8a7433';
 
 /**
  * Wins is for things that actually mattered: the streak quadrants, goals and milestones you
@@ -44,6 +43,8 @@ const DIM_GOLD = '#8a7433';
  * prime position turns the programme into a scoreboard, which is the opposite of the point.
  */
 export default function WinsScreen() {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { width } = useWindowDimensions();
 
   const [perfectStreak, setPerfectStreak] = useState<PerfectDayStreak>({ current: 0, best: 0, totalPerfectDays: 0 });
@@ -147,9 +148,9 @@ export default function WinsScreen() {
         {perfectStreak.current > 0 && (
           <View style={styles.celebrateCard}>
             <View style={styles.celebrateStarsRow}>
-              <Ionicons name="star" size={12} color={GOLD} />
-              <Ionicons name="star" size={20} color={GOLD} />
-              <Ionicons name="star" size={12} color={GOLD} />
+              <Ionicons name="star" size={12} color={t.primary} />
+              <Ionicons name="star" size={20} color={t.primary} />
+              <Ionicons name="star" size={12} color={t.primary} />
             </View>
             <Text style={styles.celebrateTitle}>WELL DONE!</Text>
             <Text style={styles.celebrateSubtitle}>{perfectStreak.current}-day 100% streak going strong</Text>
@@ -158,22 +159,22 @@ export default function WinsScreen() {
 
         <View style={styles.statRow}>
           <View style={styles.statCard}>
-            <Ionicons name="flame" size={22} color={GOLD} />
+            <Ionicons name="flame" size={22} color={t.primary} />
             <Text style={styles.statValue}>{perfectStreak.current}</Text>
             <Text style={styles.statLabel}>100% Streak</Text>
           </View>
           <View style={styles.statCard}>
-            <Ionicons name="trophy" size={22} color={GOLD} />
+            <Ionicons name="trophy" size={22} color={t.primary} />
             <Text style={styles.statValue}>{perfectStreak.best}</Text>
             <Text style={styles.statLabel}>Best Streak</Text>
           </View>
           <View style={styles.statCard}>
-            <Ionicons name="checkmark-done" size={22} color={GOLD} />
+            <Ionicons name="checkmark-done" size={22} color={t.primary} />
             <Text style={styles.statValue}>{perfectStreak.totalPerfectDays}</Text>
             <Text style={styles.statLabel}>100% Days</Text>
           </View>
           <View style={styles.statCard}>
-            <Ionicons name="flag" size={22} color={GOLD} />
+            <Ionicons name="flag" size={22} color={t.primary} />
             <Text style={styles.statValue}>{challengesCompleted}</Text>
             <Text style={styles.statLabel}>Challenges</Text>
           </View>
@@ -183,7 +184,7 @@ export default function WinsScreen() {
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>In Your Own Words</Text>
           <Pressable style={styles.addButton} onPress={() => setComposerOpen(true)}>
-            <Ionicons name="add" size={15} color={BLACK} />
+            <Ionicons name="add" size={15} color={t.ground} />
             <Text style={styles.addButtonText}>Add</Text>
           </Pressable>
         </View>
@@ -205,7 +206,7 @@ export default function WinsScreen() {
             <View style={styles.ackFooter}>
               <Text style={styles.ackDate}>{formatAcknowledgementDate(entry.createdAt)}</Text>
               <View style={styles.ackShareHint}>
-                <Ionicons name="share-outline" size={13} color={DIM_GOLD} />
+                <Ionicons name="share-outline" size={13} color={t.primaryDim} />
                 <Text style={styles.ackShareHintText}>Tap to share</Text>
               </View>
             </View>
@@ -219,7 +220,7 @@ export default function WinsScreen() {
         ) : (
           achievedGoals.map((g) => (
             <View key={g.id} style={styles.winRow}>
-              <Ionicons name="checkmark-circle" size={18} color={GOLD} />
+              <Ionicons name="checkmark-circle" size={18} color={t.primary} />
               <Text style={styles.winRowText}>{g.text}</Text>
             </View>
           ))
@@ -232,7 +233,7 @@ export default function WinsScreen() {
         ) : (
           achievedMilestones.map((m) => (
             <View key={m.id} style={styles.winRow}>
-              <Ionicons name="ribbon" size={18} color={GOLD} />
+              <Ionicons name="ribbon" size={18} color={t.primary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.winRowText}>{m.targetText}</Text>
                 {!!m.rewardText && <Text style={styles.winRowSub}>Reward: {m.rewardText}</Text>}
@@ -251,7 +252,7 @@ export default function WinsScreen() {
           majorBadges.map((s) => (
             <View key={s.achievement.id} style={styles.majorCard}>
               <View style={styles.majorHeader}>
-                <Ionicons name="ribbon" size={18} color={GOLD} />
+                <Ionicons name="ribbon" size={18} color={t.primary} />
                 <Text style={styles.majorName}>{s.achievement.name}</Text>
               </View>
               <Text style={styles.majorEncouragement}>{s.encouragement}</Text>
@@ -278,7 +279,7 @@ export default function WinsScreen() {
               value={draftOccasion}
               onChangeText={setDraftOccasion}
               placeholder="e.g. 90 days alcohol-free"
-              placeholderTextColor="#666"
+              placeholderTextColor={t.muted}
               maxLength={40}
             />
 
@@ -288,7 +289,7 @@ export default function WinsScreen() {
               value={draftText}
               onChangeText={setDraftText}
               placeholder="I did something I genuinely didn't think I could..."
-              placeholderTextColor="#666"
+              placeholderTextColor={t.muted}
               multiline
               maxLength={280}
             />
@@ -324,17 +325,17 @@ export default function WinsScreen() {
 
               <View style={styles.previewActions}>
                 <Pressable style={styles.secondaryButton} onPress={() => handleDelete(previewing)}>
-                  <Ionicons name="trash-outline" size={15} color="#aaa" />
+                  <Ionicons name="trash-outline" size={15} color={t.secondary} />
                   <Text style={styles.secondaryButtonText}>Delete</Text>
                 </Pressable>
                 <Pressable style={styles.primaryButton} onPress={handleShare} disabled={sharing}>
-                  <Ionicons name="share-outline" size={16} color={BLACK} />
+                  <Ionicons name="share-outline" size={16} color={t.ground} />
                   <Text style={styles.primaryButtonText}>{sharing ? 'Preparing…' : 'Share'}</Text>
                 </Pressable>
               </View>
 
               <Pressable style={styles.previewClose} onPress={() => setPreviewing(null)} hitSlop={10}>
-                <Ionicons name="close" size={26} color="#fff" />
+                <Ionicons name="close" size={26} color={t.ink} />
               </Pressable>
             </>
           )}
@@ -356,66 +357,67 @@ export default function WinsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BLACK },
-  title: { color: GOLD, fontSize: 26, fontWeight: '700', marginBottom: 4 },
-  subtitle: { color: '#aaa', fontSize: 14, marginBottom: 20 },
+const createStyles = (t: Theme) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.ground },
+    title: { color: t.primary, fontSize: 26, fontWeight: '700', marginBottom: 4 },
+    subtitle: { color: t.secondary, fontSize: 14, marginBottom: 20 },
 
-  celebrateCard: { alignItems: 'center', backgroundColor: BLACK, borderWidth: 2, borderColor: GOLD, borderRadius: 16, paddingVertical: 20, marginBottom: 20 },
-  celebrateStarsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  celebrateTitle: { color: GOLD, fontSize: 18, fontWeight: '800', letterSpacing: 2 },
-  celebrateSubtitle: { color: '#ccc', fontSize: 13, marginTop: 4 },
+    celebrateCard: { alignItems: 'center', backgroundColor: t.ground, borderWidth: 2, borderColor: t.primary, borderRadius: 16, paddingVertical: 20, marginBottom: 20 },
+    celebrateStarsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+    celebrateTitle: { color: t.primary, fontSize: 18, fontWeight: '800', letterSpacing: 2 },
+    celebrateSubtitle: { color: t.body, fontSize: 13, marginTop: 4 },
 
-  statRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
-  statCard: { flexBasis: '47%', flexGrow: 1, backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: '#262626', padding: 16, alignItems: 'center' },
-  statValue: { color: GOLD, fontSize: 26, fontWeight: '700', marginTop: 6 },
-  statLabel: { color: '#888', fontSize: 12, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
+    statRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
+    statCard: { flexBasis: '47%', flexGrow: 1, backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, padding: 16, alignItems: 'center' },
+    statValue: { color: t.primary, fontSize: 26, fontWeight: '700', marginTop: 6 },
+    statLabel: { color: t.secondaryDim, fontSize: 12, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
 
-  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26 },
-  sectionTitle: { color: GOLD, fontSize: 16, fontWeight: '700', marginTop: 26, marginBottom: 10 },
-  helperText: { color: '#888', fontSize: 12, lineHeight: 17, marginBottom: 14 },
-  emptyText: { color: '#666', fontSize: 13, fontStyle: 'italic', lineHeight: 19, marginBottom: 10 },
+    sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26 },
+    sectionTitle: { color: t.primary, fontSize: 16, fontWeight: '700', marginTop: 26, marginBottom: 10 },
+    helperText: { color: t.secondaryDim, fontSize: 12, lineHeight: 17, marginBottom: 14 },
+    emptyText: { color: t.muted, fontSize: 13, fontStyle: 'italic', lineHeight: 19, marginBottom: 10 },
 
-  addButton: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: GOLD, borderRadius: 8, paddingHorizontal: 11, paddingVertical: 6 },
-  addButtonText: { color: BLACK, fontSize: 12, fontWeight: '800' },
+    addButton: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.primary, borderRadius: 8, paddingHorizontal: 11, paddingVertical: 6 },
+    addButtonText: { color: t.ground, fontSize: 12, fontWeight: '800' },
 
-  ackCard: { backgroundColor: '#161616', borderRadius: 14, borderWidth: 1, borderColor: DIM_GOLD, padding: 16, marginBottom: 10 },
-  ackOccasion: { color: GOLD, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, marginBottom: 8 },
-  ackText: { color: '#eee', fontSize: 15, lineHeight: 22, fontStyle: 'italic' },
-  ackFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 },
-  ackDate: { color: '#777', fontSize: 11 },
-  ackShareHint: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  ackShareHintText: { color: DIM_GOLD, fontSize: 11, fontWeight: '600' },
+    ackCard: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.primaryDim, padding: 16, marginBottom: 10 },
+    ackOccasion: { color: t.primary, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, marginBottom: 8 },
+    ackText: { color: t.inkSoft, fontSize: 15, lineHeight: 22, fontStyle: 'italic' },
+    ackFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 },
+    ackDate: { color: t.muted, fontSize: 11 },
+    ackShareHint: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    ackShareHintText: { color: t.primaryDim, fontSize: 11, fontWeight: '600' },
 
-  winRow: { flexDirection: 'row', alignItems: 'center', gap: 11, backgroundColor: '#161616', borderRadius: 12, borderWidth: 1, borderColor: '#262626', padding: 14, marginBottom: 8 },
-  winRowText: { color: '#eee', fontSize: 14, flex: 1, lineHeight: 20 },
-  winRowSub: { color: '#8a7433', fontSize: 12, marginTop: 3 },
+    winRow: { flexDirection: 'row', alignItems: 'center', gap: 11, backgroundColor: t.surface, borderRadius: 12, borderWidth: 1, borderColor: t.border, padding: 14, marginBottom: 8 },
+    winRowText: { color: t.inkSoft, fontSize: 14, flex: 1, lineHeight: 20 },
+    winRowSub: { color: t.primaryDim, fontSize: 12, marginTop: 3 },
 
-  majorCard: { backgroundColor: '#1a1608', borderRadius: 12, borderWidth: 1, borderColor: DIM_GOLD, padding: 15, marginBottom: 10 },
-  majorHeader: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  majorName: { color: GOLD, fontSize: 14, fontWeight: '800', flex: 1 },
-  majorEncouragement: { color: '#e8e0c8', fontSize: 13, lineHeight: 19, marginTop: 8, fontStyle: 'italic' },
+    majorCard: { backgroundColor: t.primaryTintAlt, borderRadius: 12, borderWidth: 1, borderColor: t.primaryDim, padding: 15, marginBottom: 10 },
+    majorHeader: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+    majorName: { color: t.primary, fontSize: 14, fontWeight: '800', flex: 1 },
+    majorEncouragement: { color: t.encouragement, fontSize: 13, lineHeight: 19, marginTop: 8, fontStyle: 'italic' },
 
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'flex-end' },
-  composerCard: { backgroundColor: '#131313', borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 1, borderColor: '#2a2a2a', padding: 22, paddingBottom: 34 },
-  composerTitle: { color: GOLD, fontSize: 19, fontWeight: '800' },
-  composerHint: { color: '#999', fontSize: 13, lineHeight: 19, marginTop: 6, marginBottom: 6 },
-  formLabel: { color: '#aaa', fontSize: 12, marginTop: 14, marginBottom: 6 },
-  formInput: { color: '#fff', fontSize: 15, backgroundColor: '#1c1c1c', borderRadius: 10, borderWidth: 1, borderColor: '#2a2a2a', padding: 12 },
-  formInputLarge: { minHeight: 110, textAlignVertical: 'top', lineHeight: 21 },
-  charCount: { color: '#666', fontSize: 11, textAlign: 'right', marginTop: 6 },
-  composerButtonRow: { flexDirection: 'row', gap: 12, marginTop: 20 },
-  primaryButton: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: GOLD, borderRadius: 11, paddingVertical: 14 },
-  primaryButtonDisabled: { opacity: 0.4 },
-  primaryButtonText: { color: BLACK, fontSize: 14, fontWeight: '800' },
-  secondaryButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: '#3a3a3a', borderRadius: 11, paddingVertical: 14 },
-  secondaryButtonText: { color: '#aaa', fontSize: 14, fontWeight: '600' },
+    modalBackdrop: { flex: 1, backgroundColor: t.scrim, justifyContent: 'flex-end' },
+    composerCard: { backgroundColor: t.surfaceSunken, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 1, borderColor: t.borderMuted, padding: 22, paddingBottom: 34 },
+    composerTitle: { color: t.primary, fontSize: 19, fontWeight: '800' },
+    composerHint: { color: t.secondaryDim, fontSize: 13, lineHeight: 19, marginTop: 6, marginBottom: 6 },
+    formLabel: { color: t.secondary, fontSize: 12, marginTop: 14, marginBottom: 6 },
+    formInput: { color: t.ink, fontSize: 15, backgroundColor: t.surfaceAlt, borderRadius: 10, borderWidth: 1, borderColor: t.borderMuted, padding: 12 },
+    formInputLarge: { minHeight: 110, textAlignVertical: 'top', lineHeight: 21 },
+    charCount: { color: t.muted, fontSize: 11, textAlign: 'right', marginTop: 6 },
+    composerButtonRow: { flexDirection: 'row', gap: 12, marginTop: 20 },
+    primaryButton: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: t.primary, borderRadius: 11, paddingVertical: 14 },
+    primaryButtonDisabled: { opacity: 0.4 },
+    primaryButtonText: { color: t.ground, fontSize: 14, fontWeight: '800' },
+    secondaryButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: t.borderStrong, borderRadius: 11, paddingVertical: 14 },
+    secondaryButtonText: { color: t.secondary, fontSize: 14, fontWeight: '600' },
 
-  previewBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', alignItems: 'center', justifyContent: 'center', padding: 28 },
-  previewFrame: { overflow: 'hidden', borderRadius: 12 },
-  previewActions: { flexDirection: 'row', gap: 12, marginTop: 28, alignSelf: 'stretch', paddingHorizontal: 8 },
-  previewClose: { position: 'absolute', top: 50, right: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+    previewBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', alignItems: 'center', justifyContent: 'center', padding: 28 },
+    previewFrame: { overflow: 'hidden', borderRadius: 12 },
+    previewActions: { flexDirection: 'row', gap: 12, marginTop: 28, alignSelf: 'stretch', paddingHorizontal: 8 },
+    previewClose: { position: 'absolute', top: 50, right: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 
-  // Off-screen, but still laid out and rendered - that's what makes it capturable.
-  captureHost: { position: 'absolute', top: -99999, left: -99999, width: TILE_SIZE, height: TILE_SIZE },
-});
+    // Off-screen, but still laid out and rendered - that's what makes it capturable.
+    captureHost: { position: 'absolute', top: -99999, left: -99999, width: TILE_SIZE, height: TILE_SIZE },
+  });
