@@ -19,6 +19,8 @@ import {
   Appearance,
   Settings,
   formatDobForDisplay,
+  formatTime,
+  parseTimeInput,
   getSettings,
   parseDobInput,
   saveSettings,
@@ -30,6 +32,7 @@ import {
   restoreBackup,
 } from '../../lib/backupStore';
 import { monitoringStatus, setCrashReportingEnabled } from '../../lib/monitoring';
+import { reminderStatus, requestReminderPermission, syncReminders } from '../../lib/reminders';
 import { useAppearance, useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -65,6 +68,8 @@ export default function SettingsScreen() {
   const { appearance, systemTheme, setAppearance } = useAppearance();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [dobText, setDobText] = useState('');
+  const [morningText, setMorningText] = useState('07:00');
+  const [eveningText, setEveningText] = useState('20:30');
   const [entryCount, setEntryCount] = useState<number | null>(null);
   const [busy, setBusy] = useState<null | 'backup' | 'restore'>(null);
 
@@ -72,6 +77,8 @@ export default function SettingsScreen() {
     const [s, count] = await Promise.all([getSettings(), countStoredEntries()]);
     setSettings(s);
     setDobText(formatDobForDisplay(s.dateOfBirth));
+    setMorningText(formatTime(s.morningTime));
+    setEveningText(formatTime(s.eveningTime));
     setEntryCount(count);
   }, []);
 
@@ -101,6 +108,39 @@ export default function SettingsScreen() {
     }
     const iso = parseDobInput(text);
     if (iso) patch({ dateOfBirth: iso });
+  };
+
+  const handleReminderToggle = async (
+    key: 'morningReminder' | 'eveningReminder',
+    value: boolean
+  ) => {
+    // Ask only when switching one ON, and only if we don't already hold permission.
+    if (value) {
+      const granted = await requestReminderPermission();
+      if (!granted) {
+        Alert.alert(
+          'Notifications are off',
+          'Turn on notifications for iTHRIVE30 in your phone settings, then try again.'
+        );
+        return;
+      }
+    }
+    const updated = await patch({ [key]: value });
+    setMorningText(formatTime(updated.morningTime));
+    setEveningText(formatTime(updated.eveningTime));
+    await syncReminders(updated);
+  };
+
+  const handleTimeChange = async (which: 'morning' | 'evening', text: string) => {
+    if (which === 'morning') setMorningText(text);
+    else setEveningText(text);
+
+    // Only persist and reschedule once it's a real time - a half-typed field saves nothing.
+    if (!parseTimeInput(text)) return;
+    const updated = await patch(
+      which === 'morning' ? { morningTime: text } : { eveningTime: text }
+    );
+    await syncReminders(updated);
   };
 
   const handleCrashToggle = async (value: boolean) => {
@@ -264,6 +304,67 @@ export default function SettingsScreen() {
             );
           })}
         </View>
+      </View>
+
+      {/* ---------- Reminders ---------- */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Reminders</Text>
+        <Text style={styles.cardNote}>
+          A nudge from your own phone. Nothing is sent over the internet, and neither one
+          will ever tell you off for a day you missed.
+        </Text>
+
+        <View style={styles.switchRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.switchLabel}>Morning</Text>
+            <Text style={styles.fieldHint}>Start the day with your intention.</Text>
+          </View>
+          <Switch
+            value={settings.morningReminder}
+            onValueChange={(v) => handleReminderToggle('morningReminder', v)}
+            disabled={!reminderStatus.available}
+            trackColor={{ false: t.borderMuted, true: t.primaryDim }}
+            thumbColor={settings.morningReminder ? t.primary : t.muted}
+          />
+        </View>
+        {settings.morningReminder && (
+          <TextInput
+            style={styles.input}
+            value={morningText}
+            onChangeText={(v) => handleTimeChange('morning', v)}
+            placeholder="07:00"
+            placeholderTextColor={t.muted}
+            keyboardType="numbers-and-punctuation"
+            returnKeyType="done"
+          />
+        )}
+
+        <View style={[styles.switchRow, { marginTop: 16 }]}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.switchLabel}>Evening</Text>
+            <Text style={styles.fieldHint}>An open door, not a deadline.</Text>
+          </View>
+          <Switch
+            value={settings.eveningReminder}
+            onValueChange={(v) => handleReminderToggle('eveningReminder', v)}
+            disabled={!reminderStatus.available}
+            trackColor={{ false: t.borderMuted, true: t.primaryDim }}
+            thumbColor={settings.eveningReminder ? t.primary : t.muted}
+          />
+        </View>
+        {settings.eveningReminder && (
+          <TextInput
+            style={styles.input}
+            value={eveningText}
+            onChangeText={(v) => handleTimeChange('evening', v)}
+            placeholder="20:30"
+            placeholderTextColor={t.muted}
+            keyboardType="numbers-and-punctuation"
+            returnKeyType="done"
+          />
+        )}
+
+        <Text style={styles.statusLine}>{reminderStatus.reason}</Text>
       </View>
 
       {/* ---------- Your data ---------- */}

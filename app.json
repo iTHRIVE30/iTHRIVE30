@@ -67,6 +67,13 @@
         }
       ],
       "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#D4AF37",
+          "defaultChannel": "daily"
+        }
+      ],
       "@sentry/react-native"
     ],
     "experiments": {

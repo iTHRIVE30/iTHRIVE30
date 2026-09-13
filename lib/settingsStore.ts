@@ -26,12 +26,15 @@ export type Settings = {
   firstName: string;
   /** Local YYYY-MM-DD, or '' when unset. Unlocks the birthday badge. */
   dateOfBirth: string;
-  /**
-   * Stored but not yet surfaced - the app is dark-only until light mode ships.
-   * No control renders for this yet; a selector that changed nothing would be a dead
-   * control, which is the thing we removed from the Teams screen.
-   */
+  /** 'system' follows the device live; 'light' and 'dark' pin it. See hooks/useTheme.tsx. */
   appearance: Appearance;
+  /** A morning nudge. Off until the user turns it on and grants permission. */
+  morningReminder: boolean;
+  /** Local 24h HH:MM. */
+  morningTime: string;
+  /** An evening invitation to finish the day. Never a reproach - see lib/reminders.ts. */
+  eveningReminder: boolean;
+  eveningTime: string;
   /** Opt-out for anonymous crash diagnostics. Default on, disclosed in the privacy policy. */
   crashReports: boolean;
   /**
@@ -47,6 +50,10 @@ const DEFAULTS: Omit<Settings, 'installId'> = {
   firstName: '',
   dateOfBirth: '',
   appearance: 'system',
+  morningReminder: false,
+  morningTime: '07:00',
+  eveningReminder: false,
+  eveningTime: '20:30',
   crashReports: true,
   schemaVersion: SCHEMA_VERSION,
 };
@@ -97,6 +104,25 @@ export async function saveSettings(patch: Partial<Settings>): Promise<Settings> 
   const updated: Settings = { ...current, ...patch, schemaVersion: SCHEMA_VERSION };
   await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(updated));
   return updated;
+}
+
+// ---------- Reminder time helpers ----------
+
+/** 'HH:MM' -> {hour, minute}, or null when the text isn't yet a real time of day. */
+export function parseTimeInput(text: string): { hour: number; minute: number } | null {
+  const m = /^(\d{1,2})\s*:\s*(\d{2})$/.exec(text.trim());
+  if (!m) return null;
+  const hour = Number(m[1]);
+  const minute = Number(m[2]);
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+  return { hour, minute };
+}
+
+/** Zero-pads for display, so a saved '7:0' still shows as '07:00'. */
+export function formatTime(text: string): string {
+  const parsed = parseTimeInput(text);
+  if (!parsed) return text;
+  return `${String(parsed.hour).padStart(2, '0')}:${String(parsed.minute).padStart(2, '0')}`;
 }
 
 // ---------- Date of birth helpers ----------

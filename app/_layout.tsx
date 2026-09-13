@@ -17,6 +17,7 @@ import SplashLoader from '@/components/SplashLoader';
 import DailyHero from '@/components/DailyHero';
 import { AppThemeProvider, useTheme } from '@/hooks/useTheme';
 import { initMonitoring } from '@/lib/monitoring';
+import { syncReminders } from '@/lib/reminders';
 import {
   DailyHeroContent,
   getDailyHeroContent,
@@ -74,6 +75,9 @@ function RootLayoutInner() {
   // user's opt-out has been read - see lib/monitoring.ts. Never throws.
   useEffect(() => {
     initMonitoring();
+    // Bring the phone's scheduled reminders back in line with the stored settings - they
+    // can drift if the app was reinstalled or notifications were revoked in system settings.
+    syncReminders();
   }, []);
 
   const handleLoaderDone = useCallback(() => {
