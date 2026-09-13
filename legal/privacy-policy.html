@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — iTHRIVE30</title>
+<meta name="description" content="iTHRIVE30 privacy policy and programme disclosure. No accounts, no tracking, no server: everything you record stays on your own device.">
+<style>
+  :root {
+    --ink: #0B0B0B;
+    --surface: #141311;
+    --line: #2A2723;
+    --gold: #D4AF37;
+    --gold-dim: #8A7433;
+    --text: #E9E4D9;
+    --muted: #928C81;
+    --measure: 68ch;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px 100px; }
+
+  header.mast { padding: 56px 0 28px; border-bottom: 2px solid var(--gold-dim); }
+  .brand {
+    font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 18px; font-weight: 600;
+  }
+  h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.12; margin: 0 0 14px; font-weight: 600; }
+  .sub { color: var(--muted); max-width: var(--measure); margin: 0; font-size: 17px; }
+  .dates { margin-top: 22px; font-size: 13px; color: var(--muted); }
+  .dates b { color: var(--gold-dim); font-weight: 600; }
+
+  nav.toc {
+    margin: 34px 0 0; padding: 20px 24px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+  }
+  nav.toc h2 { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold-dim); margin: 0 0 12px; }
+  nav.toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 32px; font-size: 14px; }
+  nav.toc li { margin-bottom: 5px; break-inside: avoid; }
+  nav.toc a { color: var(--text); text-decoration: none; border-bottom: 1px solid transparent; }
+  nav.toc a:hover, nav.toc a:focus { border-bottom-color: var(--gold); }
+
+  .part {
+    margin-top: 52px; padding-top: 18px; border-top: 2px solid var(--gold-dim);
+    font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold);
+    font-weight: 600;
+  }
+  h2 { font-size: 21px; margin: 38px 0 10px; line-height: 1.28; font-weight: 600; scroll-margin-top: 20px; }
+  h2 .n { color: var(--gold-dim); font-weight: 400; margin-right: 8px; }
+  p, li { max-width: var(--measure); }
+  p { margin: 0 0 14px; }
+  ul, ol.body { padding-left: 22px; }
+  li { margin-bottom: 7px; }
+  strong { color: #F7F3E9; }
+  a { color: var(--gold); text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+  .lede {
+    background: var(--surface); border-left: 3px solid var(--gold);
+    padding: 18px 22px; margin: 0 0 20px; max-width: var(--measure);
+  }
+  .lede p:last-child { margin-bottom: 0; }
+
+  .callout {
+    border: 1px solid var(--line); border-left: 3px solid #C4573F;
+    background: #17120F; padding: 18px 22px; margin: 20px 0; max-width: var(--measure);
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .notice {
+    border: 1px dashed var(--gold-dim); padding: 16px 20px; margin: 26px 0 0;
+    font-size: 14px; color: var(--muted); max-width: var(--measure);
+  }
+
+  .tablewrap { overflow-x: auto; margin: 16px 0 20px; }
+  table { border-collapse: collapse; width: 100%; min-width: 460px; }
+  th, td { text-align: left; padding: 11px 16px 11px 0; border-bottom: 1px solid var(--line); font-size: 15px; vertical-align: top; }
+  th { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-dim); font-weight: 600; }
+  td:first-child { color: #F7F3E9; font-weight: 600; }
+
+  .crisis { list-style: none; padding: 0; margin: 14px 0 0; }
+  .crisis li {
+    padding: 10px 0; border-bottom: 1px solid var(--line);
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: baseline;
+  }
+  .crisis b { color: var(--gold); min-width: 150px; }
+
+  footer {
+    margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--line);
+    font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+    display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap;
+  }
+
+  @media (max-width: 620px) {
+    nav.toc ol { columns: 1; }
+    .crisis b { min-width: 0; }
+  }
+
+  @page { margin: 18mm; }
+  @media print {
+    body { background: #fff; color: #000; font-size: 10.5pt; }
+    .wrap { max-width: none; padding: 0; }
+    nav.toc { display: none; }
+    a { color: #000; }
+    .lede, .callout, .notice { background: transparent; border-color: #000; }
+    h2, .part { break-after: avoid; }
+    table, .callout, .lede { break-inside: avoid; }
+    .part, .brand, h2 .n, .crisis b, th { color: #000; }
+    strong { color: #000; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <p class="brand">iTHRIVE30 · Bondi Project Global</p>
+  <h1>Privacy Policy &amp; Programme Disclosure</h1>
+  <p class="sub">iTHRIVE30 has no accounts, no tracking and no server holding your programme. Everything you record stays on your own phone.</p>
+  <p class="dates"><b>Effective:</b> [[EFFECTIVE DATE]] &nbsp;·&nbsp; <b>Last updated:</b> [[EFFECTIVE DATE]] &nbsp;·&nbsp; <b>Applies to:</b> the iTHRIVE30 app for iOS and Android</p>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#s1">Who we are</a></li>
+    <li><a href="#s2">The short version</a></li>
+    <li><a href="#s3">What the app holds</a></li>
+    <li><a href="#s4">Where it is stored</a></li>
+    <li><a href="#s5">What we collect</a></li>
+    <li><a href="#s6">Crash diagnostics</a></li>
+    <li><a href="#s7">Device permissions</a></li>
+    <li><a href="#s8">Anonymity</a></li>
+    <li><a href="#s9">Your controls and rights</a></li>
+    <li><a href="#s10">Data breaches</a></li>
+    <li><a href="#s11">Retention</a></li>
+    <li><a href="#s12">Children</a></li>
+    <li><a href="#s13">Compliance</a></li>
+    <li><a href="#s14">Changes</a></li>
+    <li><a href="#s15">Complaints</a></li>
+    <li><a href="#s16">A system, not a promise</a></li>
+    <li><a href="#s17">Self-directed and self-recorded</a></li>
+    <li><a href="#s18">Not professional advice</a></li>
+    <li><a href="#s19">If you are struggling</a></li>
+    <li><a href="#s20">Content and intellectual property</a></li>
+    <li><a href="#s21">To the extent permitted by law</a></li>
+  </ol>
+</nav>
+
+<p class="part">Part A — Privacy Policy</p>
+
+<h2 id="s1"><span class="n">1</span>Who we are</h2>
+<p>iTHRIVE30 is published by <strong>Andrew James Liley</strong> (ABN 41 954 079 143), trading as <strong>iTHRIVE30</strong>, of PO Box 7256, Bondi Beach NSW 2026, Australia. In this policy, "we", "us" and "our" mean that entity. "You" means the person using the app.</p>
+<p>Rights in the programme content are held by Bondi Project (Global) — see <a href="#s20">section 20</a>.</p>
+<p>Contact for any privacy question, request or complaint: <a href="mailto:bondiprojectglobal@gmail.com">bondiprojectglobal@gmail.com</a></p>
+
+<h2 id="s2"><span class="n">2</span>The short version</h2>
+<div class="lede">
+  <p>iTHRIVE30 has no user accounts, no login, and no server that stores your programme. Everything you record — habits, moods, notes, reflections, goals, photos — is written to storage on your own phone and stays there. <strong>We cannot read it. We could not produce it if asked, because we never receive it.</strong></p>
+  <p>The single exception is an optional, anonymous crash report, described in section 6, which you can switch off in Settings.</p>
+</div>
+
+<h2 id="s3"><span class="n">3</span>What the app holds</h2>
+<p>Used entirely on your device:</p>
+<ul>
+  <li><strong>Habit records</strong> — which of the daily habits you completed, on which dates</li>
+  <li><strong>Details attached to habits</strong> — activity types, cups of water, fruit, book or podcast titles</li>
+  <li><strong>Mood ratings</strong> — a daily 1–5 scale</li>
+  <li><strong>Written entries</strong> — intentions, gratitude entries, freeform notes, challenge responses and self-acknowledgements</li>
+  <li><strong>Goals and milestones</strong> — including what you wrote about why they matter</li>
+  <li><strong>Step counts</strong> — read from your device's motion sensor for the current day</li>
+  <li><strong>Daily photos</strong> — saved into an "iTHRIVE30" album in your own photo library</li>
+  <li><strong>Progress and badges</strong> — all derived from the records above</li>
+  <li><strong>Optional details you enter in Settings</strong> — first name and date of birth</li>
+  <li><strong>An install ID</strong> — a random code generated on your device to identify this installation. It is not derived from you, your phone, or any account, and is not linked to your identity.</li>
+</ul>
+
+<h2 id="s4"><span class="n">4</span>Where it is stored</h2>
+<p>On your device, in the app's private storage, plus your own photo library for daily photos.</p>
+<p>There is no cloud account, no synchronisation and no backup held by us. <strong>If you delete the app, change phone, or wipe the device, this data is permanently lost</strong> unless you have made your own backup using <strong>Settings → Back up my data</strong>. That backup file goes wherever you choose to send it, and its safety and privacy are then in your hands.</p>
+
+<h2 id="s5"><span class="n">5</span>What we collect</h2>
+<p>Nothing you write, record, photograph or track is transmitted to us, ever.</p>
+<p>We do not operate a user database. We do not use advertising networks, marketing trackers, attribution SDKs, social media pixels or third-party product analytics. We do not build a profile of you, and <strong>we do not sell, rent, trade or share personal information with anyone for any purpose.</strong></p>
+<p>Our app stores and Sentry (section 6) may provide us with aggregate, non-identifying figures such as download counts and crash rates. These cannot be traced back to an individual.</p>
+
+<h2 id="s6"><span class="n">6</span>Crash diagnostics (optional)</h2>
+<p>If the app crashes, and only if you have left crash reporting switched on, technical details about the failure are sent to <strong>Sentry</strong>, a crash-reporting service operated by Functional Software, Inc. (a United States company). <strong>Reports are processed in Sentry's European Union region, hosted in Frankfurt, Germany</strong> — not in the United States.</p>
+<p><strong>What a crash report contains:</strong> the error and where in our code it happened, the app version, your device model, and the operating system version.</p>
+<p><strong>What it never contains:</strong> anything you have written, your habits, moods, notes, reflections, goals, photos, step counts, name or date of birth. We have configured the service so that personally identifying information is not attached to reports.</p>
+<p><strong>Turning it off:</strong> Settings → Privacy → <em>Send anonymous crash reports</em>. It takes effect immediately, and no report is sent while it is off.</p>
+<p><strong>Legal basis (EU/UK users):</strong> our legitimate interest in keeping the app working correctly (Article 6(1)(f) GDPR). You may object at any time by using the switch above.</p>
+<p><strong>Overseas disclosure (Australian users):</strong> crash reports are processed on servers in the European Union (Frankfurt, Germany), operated by a United States company. By leaving crash reporting switched on you consent to that overseas disclosure. This is the only circumstance in which any information from the app leaves Australia, and it contains none of your programme content.</p>
+
+<h2 id="s7"><span class="n">7</span>Device permissions</h2>
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Permission</th><th>Why</th><th>If you decline</th></tr></thead>
+  <tbody>
+    <tr><td>Camera</td><td>To take your daily photo</td><td>You can still choose an existing photo, or skip the habit</td></tr>
+    <tr><td>Photo library</td><td>To pick a photo, and to save daily photos into an iTHRIVE30 album</td><td>The photo habit can be ticked manually</td></tr>
+    <tr><td>Motion &amp; fitness</td><td>To read today's step count from the device sensor</td><td>Steps can be ticked manually</td></tr>
+  </tbody>
+</table>
+</div>
+<p>None of these produce data that reaches us. You can withdraw any permission at any time in your device settings.</p>
+
+<h2 id="s8"><span class="n">8</span>Anonymity</h2>
+<p>You can use iTHRIVE30 completely anonymously. There is no sign-up, and the name and date of birth fields in Settings are optional and stay on your device. This satisfies Australian Privacy Principle 2 in the strongest available form: <strong>we do not know who you are.</strong></p>
+
+<h2 id="s9"><span class="n">9</span>Your controls and your rights</h2>
+<p>Because your data is on your own device, you exercise most rights directly, immediately, and without asking us:</p>
+<div class="tablewrap">
+<table>
+  <thead><tr><th>What you want</th><th>How</th></tr></thead>
+  <tbody>
+    <tr><td>See everything held</td><td><strong>Settings → Back up my data</strong> produces a readable JSON file of every record</td></tr>
+    <tr><td>Get a portable copy</td><td>The same export — plain JSON, yours to keep or move</td></tr>
+    <tr><td>Correct something</td><td>Any day, any entry, at any time. Nothing in the app is ever locked for editing</td></tr>
+    <tr><td>Delete everything</td><td><strong>Settings → Delete everything</strong>, or uninstall the app</td></tr>
+    <tr><td>Stop the one thing we receive</td><td><strong>Settings → Privacy → Send anonymous crash reports</strong></td></tr>
+  </tbody>
+</table>
+</div>
+<p><strong>Australian users</strong> have rights of access and correction under Australian Privacy Principles 12 and 13. Since we hold no personal information about you, there is nothing for us to give you or correct — but you may still contact us and we will respond.</p>
+<p><strong>EU and UK users</strong> have rights under the GDPR to access, rectification, erasure, restriction, portability, and objection, and to withdraw consent. For crash diagnostics — the only data we ever receive — the switch in Settings gives immediate effect to those rights.</p>
+<p><strong>California users</strong> have rights under the CCPA/CPRA to know what is collected, to have it deleted, and to opt out of its sale or sharing. <strong>We do not sell or share personal information, and never have.</strong></p>
+
+<h2 id="s10"><span class="n">10</span>Data breaches</h2>
+<p>We comply with the Notifiable Data Breaches scheme under Part IIIC of the <em>Privacy Act 1988</em> (Cth). If a breach of any system we control were likely to result in serious harm, we would notify affected individuals and the Office of the Australian Information Commissioner.</p>
+<p>Because your programme data never reaches our systems, a breach of our systems cannot expose it. The corresponding risk sits with your own device and with any backup file you have chosen to store elsewhere.</p>
+
+<h2 id="s11"><span class="n">11</span>Retention</h2>
+<p>We retain nothing, because we receive nothing. Your data persists on your device for as long as the app is installed, and is destroyed when you delete it or uninstall the app. Crash reports are retained by Sentry under their standard retention period (currently 90 days) and are then deleted.</p>
+
+<h2 id="s12"><span class="n">12</span>Children</h2>
+<p>iTHRIVE30 is intended for people aged <strong>[[MINIMUM AGE]]</strong> and over. It is not directed at children, and we do not knowingly collect personal information from a child. Because the app requires no sign-up and collects nothing, there is nothing for us to hold in any event.</p>
+
+<h2 id="s13"><span class="n">13</span>Compliance</h2>
+<p>This policy is written to the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles. Where a small-business exemption might otherwise apply to us, <strong>we have chosen to comply as a matter of policy rather than rely on it.</strong></p>
+<p>It is also written to the standards of the EU and UK General Data Protection Regulation and the California Consumer Privacy Act, so that the same protections apply wherever you are.</p>
+
+<h2 id="s14"><span class="n">14</span>Changes</h2>
+<p>If we change this policy we will update the date at the top and publish the new version at the same address. Material changes affecting how information is handled will also be announced in the app before they take effect.</p>
+
+<h2 id="s15"><span class="n">15</span>Complaints</h2>
+<p>Contact us first at <a href="mailto:bondiprojectglobal@gmail.com">bondiprojectglobal@gmail.com</a>. We aim to acknowledge within 5 business days and respond substantively within 30 days.</p>
+<p>If you are not satisfied:</p>
+<ul>
+  <li><strong>Australia</strong> — Office of the Australian Information Commissioner, <a href="https://www.oaic.gov.au">oaic.gov.au</a>, 1300 363 992</li>
+  <li><strong>EU / UK</strong> — your national data protection authority, or the UK Information Commissioner's Office at <a href="https://ico.org.uk">ico.org.uk</a></li>
+</ul>
+
+<p class="part">Part B — The nature of the programme</p>
+<p>This part is not about privacy. It sets out plainly what iTHRIVE30 is, and what it is not, so that nobody has to guess.</p>
+
+<h2 id="s16"><span class="n">16</span>A system, not a promise</h2>
+<div class="lede">
+  <p><strong>iTHRIVE30 is a system. You are the operator.</strong></p>
+</div>
+<p>The app provides a structure: a set of daily habits, a sequence of challenges, a way to record what you did, and a way to see it back. That is the whole of what it provides.</p>
+<p>It does not do the work. It cannot do the work. Every result that comes out of it is produced by you, and is proportional to what you put in. Two people running the same 30 days will not arrive at the same place, because they are not the same person and did not do the same things.</p>
+<p><strong>We make no promise, guarantee, representation or warranty about any outcome.</strong> Not about health, fitness, weight, mood, sleep, relationships, productivity, income, or any other result. Nothing in the app, its content, its badges or its marketing should be read as a commitment that you will achieve a particular thing. Testimonials and examples describe individual experiences and are not typical, predictive or promised.</p>
+<p>What the app can honestly claim is narrower and more useful: <strong>if you record what you do, you will be able to see what you did.</strong></p>
+
+<h2 id="s17"><span class="n">17</span>Self-directed and self-recorded</h2>
+<p>You choose what to do each day and whether to do it. Nothing is enforced, nothing is verified, and nothing is ever locked — every day stays editable, permanently, including days long past.</p>
+<p>That is a deliberate design decision, and it has a consequence worth stating: <strong>your records are exactly as accurate as you make them.</strong> The app is a mirror, not an invigilator. It will faithfully show you whatever you put into it.</p>
+<p>Step counts come from your device's motion sensor and are approximate, as all such sensors are. Streaks, percentages and badges are calculated from your own entries.</p>
+
+<h2 id="s18"><span class="n">18</span>Not professional advice</h2>
+<p><strong>iTHRIVE30 is not a medical device, and nothing in it is medical, psychological, psychiatric, nutritional, dietary, financial or legal advice.</strong> It is general wellbeing and personal-development content, provided for information only.</p>
+<p>It is not a substitute for advice from a qualified professional who knows your circumstances. Do not disregard professional advice, or delay seeking it, because of something in this app.</p>
+<p><strong>Before you begin</strong>, particularly if you are pregnant, have a medical condition, are taking medication, have a history of disordered eating, or have any concern about alcohol use, speak to your doctor about whether this programme is appropriate for you.</p>
+<div class="callout">
+  <p>The habits include physical activity, changes to diet and periods without alcohol. <strong>If you are physically dependent on alcohol, stopping suddenly can be dangerous and can require medical supervision.</strong> Please speak to your doctor before changing your intake.</p>
+</div>
+
+<h2 id="s19"><span class="n">19</span>If you are struggling</h2>
+<p>The app records mood, but it is not a mental health service and nobody is monitoring your entries. If you are having a hard time, please reach out to a person, not an app.</p>
+<p><strong>In Australia:</strong></p>
+<ul class="crisis">
+  <li><b>Emergency</b> <span>000</span></li>
+  <li><b>Lifeline</b> <span>13 11 14 — 24 hours</span></li>
+  <li><b>Beyond Blue</b> <span>1300 22 4636 — 24 hours</span></li>
+  <li><b>13YARN</b> <span>13 92 76 — 24 hours, for Aboriginal and Torres Strait Islander people</span></li>
+</ul>
+<p style="margin-top:16px">Outside Australia, please contact your local emergency number or crisis line.</p>
+
+<h2 id="s20"><span class="n">20</span>Content and intellectual property</h2>
+<p>All content in iTHRIVE30 — the programme structure, the daily habits, the challenges and their wording, the badge set, the Digital Library, and the brand — is created in direct accordance with <strong>Bondi Project (Global)'s</strong> methodology and business design, and <strong>all rights in that content are held by Bondi Project (Global)</strong>.</p>
+<p>You may use the app and its content for your own personal, non-commercial use. You may freely share your own results — your acknowledgement tiles, your progress, your photos.</p>
+<p>You may not copy, reproduce, redistribute, resell, or adapt the programme content, structure or materials, or use them to run or build a competing programme, whether for payment or not.</p>
+<p><strong>What you write in the app is yours.</strong> We never receive it (see Part A), so we make no claim over it and could not use it if we wanted to.</p>
+
+<h2 id="s21"><span class="n">21</span>To the extent permitted by law</h2>
+<p>We provide the app "as is". To the maximum extent permitted by law we exclude all warranties not expressly given here, and we are not liable for any loss arising from your use of the app or from decisions you make in reliance on it.</p>
+<p><strong>Nothing in this document excludes, restricts or modifies any guarantee, right or remedy you have under the <em>Australian Consumer Law</em> or any other law that cannot lawfully be excluded.</strong></p>
+
+<footer>
+  <div>Andrew James Liley t/as iTHRIVE30 · ABN 41 954 079 143 · Australia<br>Programme content © Bondi Project (Global). All rights reserved.</div>
+  <div>Change · Grow · Evolve</div>
+</footer>
+
+</div>
+</body>
+</html>
