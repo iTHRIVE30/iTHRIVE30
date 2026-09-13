@@ -22,6 +22,7 @@ import {
 } from '../challengeStore';
 import { JourneyCategory, JourneyGoal, getCategories, getGoals } from '../journeyStore';
 import { RewardEvents, getRewardEvents } from '../rewardEvents';
+import { getUnlockedBadgeMontageLevels } from '../montageStore';
 
 /**
  * The 9 habits the spreadsheet calls "core". Deliberately excludes the Challenge tick
@@ -123,6 +124,8 @@ export type RewardContext = {
   currentLevel: number;
   /** Level numbers where every written day has a response. */
   completedLevels: number[];
+  /** Badge-montage Levels (of 4, 6, 10, 12) that are genuinely unlocked. */
+  unlockedMontageLevels: number[];
   /** Late-night (11pm+) note found anywhere in history. */
   hasNightOwlNote: boolean;
 };
@@ -232,6 +235,8 @@ export async function buildRewardContext(): Promise<RewardContext> {
     })
     .sort((a, b) => a - b);
 
+  const unlockedMontageLevels = await getUnlockedBadgeMontageLevels();
+
   return {
     todayKey,
     habits,
@@ -252,6 +257,7 @@ export async function buildRewardContext(): Promise<RewardContext> {
     fullCircleDayCount: days.filter((d) => d.allCore && d.allReflections).length,
     currentLevel,
     completedLevels,
+    unlockedMontageLevels,
     hasNightOwlNote: await findNightOwlNote(reflection.noteDates),
   };
 }

@@ -24,12 +24,14 @@ const MOOD_KEY_PREFIX = 'ithrive30_mood_';
 const ACTIVITY_KEY_PREFIX = 'ithrive30_activity_detail_';
 const FRUIT_KEY_PREFIX = 'ithrive30_fruit_detail_';
 const READING_KEY_PREFIX = 'ithrive30_reading_detail_';
-const WATER_CUPS_KEY_PREFIX = 'ithrive30_water_cups_';
+// The stored key still says "cups" and must stay that way. The wording changed to glasses,
+// the data did not - renaming this prefix would orphan every day of water already logged.
+const WATER_KEY_PREFIX = 'ithrive30_water_cups_';
 const SELFIE_KEY_PREFIX = 'ithrive30_selfie_';
 const NOTES_KEY_PREFIX = 'ithrive30_notes_';
 
 const SELFIE_ALBUM_NAME = 'iTHRIVE30';
-export const WATER_GOAL_CUPS = 8;
+export const WATER_GOAL_GLASSES = 8;
 export const WATER_SCALE_MAX = 10;
 export const MOOD_SCALE_MAX = 5;
 
@@ -40,7 +42,7 @@ export const DEFAULT_HABITS: HabitDef[] = [
   { id: 'no-tv', label: 'No TV', editable: false, auto: false },
   { id: 'no-takeaway', label: 'No takeaway', editable: false, auto: false },
   { id: 'fruit', label: 'Two pieces of fruit daily', editable: false, auto: false },
-  { id: 'water', label: '8 cups of water', editable: false, auto: true },
+  { id: 'water', label: '8 glasses of water', editable: false, auto: true },
   { id: 'reading', label: 'Read Daily 7+ pages', editable: false, auto: false },
   { id: 'selfie', label: 'One selfie daily uploaded', editable: false, auto: false },
   { id: 'app-tasks', label: "Today's Challenge", editable: false, auto: true },
@@ -59,10 +61,34 @@ export function getTodayKey(date: Date = new Date()): string {
 
 // ---------- Habits & daily log ----------
 
+/**
+ * Stored habits, with one rule applied on the way out: **a non-editable habit always takes
+ * its label from DEFAULT_HABITS.** Only the three editable slots keep what the user typed.
+ *
+ * Those nine labels are programme copy, not user data, so the source of truth is this file.
+ * Without this, changing any of them only reaches people who have never opened the app -
+ * the wording is written into storage on first use and then frozen. It's why the water
+ * habit's rename from "cups" to "glasses" needed no key bump, and why the next copy change
+ * won't either. Bumping HABITS_KEY would have worked too, but it would wipe the custom
+ * labels people have set on their own three slots.
+ */
 export async function getHabits(): Promise<HabitDef[]> {
   const raw = await AsyncStorage.getItem(HABITS_KEY);
   if (!raw) return DEFAULT_HABITS;
-  try { return JSON.parse(raw); } catch { return DEFAULT_HABITS; }
+
+  let stored: HabitDef[];
+  try {
+    stored = JSON.parse(raw);
+  } catch {
+    return DEFAULT_HABITS;
+  }
+  if (!Array.isArray(stored)) return DEFAULT_HABITS;
+
+  return DEFAULT_HABITS.map((def) => {
+    const saved = stored.find((h) => h?.id === def.id);
+    if (!saved) return def;
+    return def.editable ? { ...def, label: saved.label ?? def.label } : def;
+  });
 }
 
 export async function saveHabitLabel(id: string, newLabel: string): Promise<HabitDef[]> {
@@ -173,14 +199,14 @@ export async function saveReadingDetail(dateKey: string, detail: ReadingDetail):
   await AsyncStorage.setItem(READING_KEY_PREFIX + dateKey, JSON.stringify(detail));
 }
 
-/** 0-10 cups. Reaching WATER_GOAL_CUPS (8) marks the water habit complete, but the scale allows logging past the goal. */
-export async function getWaterCups(dateKey: string): Promise<number> {
-  const raw = await AsyncStorage.getItem(WATER_CUPS_KEY_PREFIX + dateKey);
+/** 0-10 glasses. Reaching WATER_GOAL_GLASSES (8) marks the water habit complete, but the scale allows logging past the goal. */
+export async function getWaterGlasses(dateKey: string): Promise<number> {
+  const raw = await AsyncStorage.getItem(WATER_KEY_PREFIX + dateKey);
   return raw ? Number(raw) : 0;
 }
 
-export async function saveWaterCups(dateKey: string, cups: number): Promise<void> {
-  await AsyncStorage.setItem(WATER_CUPS_KEY_PREFIX + dateKey, String(cups));
+export async function saveWaterGlasses(dateKey: string, glasses: number): Promise<void> {
+  await AsyncStorage.setItem(WATER_KEY_PREFIX + dateKey, String(glasses));
 }
 
 // ---------- Selfie ----------
@@ -367,14 +393,14 @@ export async function getDaysWithData(dateKeys: string[]): Promise<Record<string
  * e.g. a day you forgot to open the app at all shouldn't be stuck wrong forever).
  */
 export async function hasAnyDataForDate(dateKey: string): Promise<boolean> {
-  const [log, intention, gratitude, activity, fruit, reading, waterCups, selfie, notes, mood] = await Promise.all([
+  const [log, intention, gratitude, activity, fruit, reading, waterGlasses, selfie, notes, mood] = await Promise.all([
     getLogForDate(dateKey),
     getIntention(dateKey),
     getGratitude(dateKey),
     getActivityDetail(dateKey),
     getFruitDetail(dateKey),
     getReadingDetail(dateKey),
-    getWaterCups(dateKey),
+    getWaterGlasses(dateKey),
     getSelfiePhoto(dateKey),
     getNotes(dateKey),
     getMoodRating(dateKey),
@@ -393,5 +419,5 @@ export async function hasAnyDataForDate(dateKey: string): Promise<boolean> {
     !!reading.podcastHost ||
     !!reading.podcastGuest;
 
-  return anyHabitChecked || anyText || waterCups > 0 || !!selfie || notes.length > 0 || mood > 0;
+  return anyHabitChecked || anyText || waterGlasses > 0 || !!selfie || notes.length > 0 || mood > 0;
 }

@@ -5,7 +5,7 @@
 //
 // 357 achievements - 526,939 base points available.
 // 202 rules derived from requirement wording, 155 hand-mapped,
-// 29 not yet trackable (shown in the app as locked, with a reason).
+// 21 not yet trackable (shown in the app as locked, with a reason).
 // ============================================================================
 
 import { Achievement } from './types';
@@ -2520,7 +2520,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'Chapter One',
     requirement: 'Unlock your Level 4 transformation montage',
     points: 800,
-    rule: { kind: 'manual', reason: 'Needs the selfie montage feature' },
+    rule: { kind: 'montageUnlocked', level: 4 },
   },
   {
     id: 'a280',
@@ -2529,7 +2529,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'Halfway There',
     requirement: 'Unlock your Level 6 transformation montage',
     points: 1500,
-    rule: { kind: 'manual', reason: 'Needs the selfie montage feature' },
+    rule: { kind: 'montageUnlocked', level: 6 },
   },
   {
     id: 'a281',
@@ -2538,7 +2538,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'Into Double Digits',
     requirement: 'Unlock your Level 10 transformation montage',
     points: 4000,
-    rule: { kind: 'manual', reason: 'Needs the selfie montage feature' },
+    rule: { kind: 'montageUnlocked', level: 10 },
   },
   {
     id: 'a282',
@@ -2547,7 +2547,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'Full Year Forward',
     requirement: 'Unlock your Level 12 transformation montage',
     points: 10000,
-    rule: { kind: 'manual', reason: 'Needs the selfie montage feature' },
+    rule: { kind: 'montageUnlocked', level: 12 },
   },
   {
     id: 'a283',
@@ -2556,7 +2556,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'Side by Side',
     requirement: 'Compare your Day 1 and Day 30 selfies',
     points: 50,
-    rule: { kind: 'manual', reason: 'Needs the selfie montage feature' },
+    rule: { kind: 'sideBySideViewed' },
   },
   {
     id: 'a284',
@@ -2565,7 +2565,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'Proof of Change',
     requirement: 'Unlock 2 or more transformation montages',
     points: 2000,
-    rule: { kind: 'manual', reason: 'Needs the selfie montage feature' },
+    rule: { kind: 'montagesUnlocked', count: 2 },
   },
   {
     id: 'a285',
@@ -2574,7 +2574,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'The Whole Arc',
     requirement: 'Unlock every transformation montage available (4, 6, 10, 12)',
     points: 15000,
-    rule: { kind: 'manual', reason: 'Needs the selfie montage feature' },
+    rule: { kind: 'allMontagesUnlocked' },
   },
   {
     id: 'a286',
@@ -2583,7 +2583,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'Witness to Growth',
     requirement: 'Watch your own transformation montage for the first time',
     points: 60,
-    rule: { kind: 'manual', reason: 'Needs the selfie montage feature' },
+    rule: { kind: 'montageViewed' },
   },
   {
     id: 'a287',

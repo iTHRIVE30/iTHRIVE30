@@ -342,6 +342,22 @@ function messageFor(rule: AchievementRule): string | null {
     case 'weekdayReflectionMonth':
       return 'Every Sunday for a month. A reset you can rely on.';
 
+    // ---- transformation montages ----
+    case 'montageUnlocked':
+      return `Level ${rule.level}, start to finish, in your own face. Look properly.`;
+
+    case 'montagesUnlocked':
+      return `${rule.count} montages side by side. The change stopped being an opinion.`;
+
+    case 'allMontagesUnlocked':
+      return 'Every montage unlocked. Twelve levels of evidence, and all of it yours.';
+
+    case 'montageViewed':
+      return 'You watched yourself change. Most people never sit down and look.';
+
+    case 'sideBySideViewed':
+      return 'Day one beside today. The gap between them is the work.';
+
     case 'manual':
       return null;
 

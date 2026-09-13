@@ -43,9 +43,9 @@ import {
   saveFruitDetail,
   getReadingDetail,
   saveReadingDetail,
-  getWaterCups,
-  saveWaterCups,
-  WATER_GOAL_CUPS,
+  getWaterGlasses,
+  saveWaterGlasses,
+  WATER_GOAL_GLASSES,
   WATER_SCALE_MAX,
   getSelfiePhoto,
   saveSelfiePhoto,
@@ -143,7 +143,7 @@ export default function TodayScreen() {
   const [readingDetail, setReadingDetail] = useState<ReadingDetail>({
     bookTitle: '', bookAuthor: '', podcastTitle: '', podcastHost: '', podcastGuest: '',
   });
-  const [waterCups, setWaterCups] = useState(0);
+  const [waterGlasses, setWaterGlasses] = useState(0);
 
   const [notes, setNotes] = useState<NoteEntry[]>([]);
   const [noteDraft, setNoteDraft] = useState('');
@@ -211,7 +211,7 @@ export default function TodayScreen() {
   // Stable identity is the point here - this is the dep of the day-switch effect below, so it
   // must not be re-created every render.
   const loadDayData = useCallback(async (dateKey: string) => {
-    const [h, log, savedIntention, savedGratitude, savedMood, activity, fruit, reading, cups, savedSelfie, dayNotes] =
+    const [h, log, savedIntention, savedGratitude, savedMood, activity, fruit, reading, glasses, savedSelfie, dayNotes] =
       await Promise.all([
         getHabits(),
         getLogForDate(dateKey),
@@ -221,7 +221,7 @@ export default function TodayScreen() {
         getActivityDetail(dateKey),
         getFruitDetail(dateKey),
         getReadingDetail(dateKey),
-        getWaterCups(dateKey),
+        getWaterGlasses(dateKey),
         getSelfiePhoto(dateKey),
         getNotes(dateKey),
       ]);
@@ -233,7 +233,7 @@ export default function TodayScreen() {
     setActivityDetail(activity);
     setFruitDetail(fruit);
     setReadingDetail(reading);
-    setWaterCups(cups);
+    setWaterGlasses(glasses);
     setSelfiePhotoUri(savedSelfie);
     setNotes(dayNotes);
   }, []);
@@ -408,10 +408,10 @@ export default function TodayScreen() {
     setReadingDetail((prev) => ({ ...prev, [field]: value }));
   const commitReadingDetail = () => saveReadingDetail(activeDateKey, readingDetail);
 
-  const handleSelectWaterCups = async (cups: number) => {
-    setWaterCups(cups);
-    await saveWaterCups(activeDateKey, cups);
-    const updated = await setHabitValue(activeDateKey, 'water', cups >= WATER_GOAL_CUPS);
+  const handleSelectWaterGlasses = async (glasses: number) => {
+    setWaterGlasses(glasses);
+    await saveWaterGlasses(activeDateKey, glasses);
+    const updated = await setHabitValue(activeDateKey, 'water', glasses >= WATER_GOAL_GLASSES);
     setChecked(updated);
     refreshDayStatuses();
   };
@@ -644,8 +644,8 @@ export default function TodayScreen() {
                       {habit.id === 'activity' && activityDetail.types.length > 0 && (
                         <Text style={styles.stepSubtitle} numberOfLines={1}>{activityDetail.types.join(', ')}</Text>
                       )}
-                      {habit.id === 'water' && waterCups > 0 && (
-                        <Text style={styles.stepSubtitle}>{waterCups} / {WATER_SCALE_MAX} cups</Text>
+                      {habit.id === 'water' && waterGlasses > 0 && (
+                        <Text style={styles.stepSubtitle}>{waterGlasses} / {WATER_SCALE_MAX} glasses</Text>
                       )}
                       {habit.id === 'reading' && !!(readingDetail.bookTitle || readingDetail.podcastTitle) && (
                         <Text style={styles.stepSubtitle} numberOfLines={1}>{readingDetail.bookTitle || readingDetail.podcastTitle}</Text>
@@ -717,20 +717,20 @@ export default function TodayScreen() {
 
                   {habit.id === 'water' && (
                     <>
-                      <Text style={styles.detailLabel}>How many cups did you actually drink?</Text>
+                      <Text style={styles.detailLabel}>How many glasses did you actually drink?</Text>
                       <View style={styles.waterScaleRow}>
                         {Array.from({ length: WATER_SCALE_MAX + 1 }, (_, n) => n).map((n) => (
                           <Pressable
                             key={n}
-                            onPress={() => handleSelectWaterCups(n)}
-                            style={[styles.waterCupDot, n <= waterCups && styles.waterCupDotFilled, n === WATER_GOAL_CUPS && styles.waterCupGoalMark]}
+                            onPress={() => handleSelectWaterGlasses(n)}
+                            style={[styles.waterGlassDot, n <= waterGlasses && styles.waterGlassDotFilled, n === WATER_GOAL_GLASSES && styles.waterGlassGoalMark]}
                           >
-                            <Text style={[styles.waterCupDotText, n <= waterCups && styles.waterCupDotTextFilled]}>{n}</Text>
+                            <Text style={[styles.waterGlassDotText, n <= waterGlasses && styles.waterGlassDotTextFilled]}>{n}</Text>
                           </Pressable>
                         ))}
                       </View>
                       <Text style={styles.detailHint}>
-                        Goal is {WATER_GOAL_CUPS} cups - the scale goes to {WATER_SCALE_MAX} for days you drink more.
+                        Goal is {WATER_GOAL_GLASSES} glasses - the scale goes to {WATER_SCALE_MAX} for days you drink more.
                       </Text>
                     </>
                   )}
@@ -929,11 +929,11 @@ const createStyles = (t: Theme) =>
     miniChipTextActive: { color: t.ground },
 
     waterScaleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 4 },
-    waterCupDot: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: t.borderStrong, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surfaceAlt },
-    waterCupDotFilled: { backgroundColor: t.primary, borderColor: t.primary },
-    waterCupGoalMark: { borderColor: t.primary, borderWidth: 2 },
-    waterCupDotText: { color: t.secondaryDim, fontSize: 11, fontWeight: '700' },
-    waterCupDotTextFilled: { color: t.ground },
+    waterGlassDot: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: t.borderStrong, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surfaceAlt },
+    waterGlassDotFilled: { backgroundColor: t.primary, borderColor: t.primary },
+    waterGlassGoalMark: { borderColor: t.primary, borderWidth: 2 },
+    waterGlassDotText: { color: t.secondaryDim, fontSize: 11, fontWeight: '700' },
+    waterGlassDotTextFilled: { color: t.ground },
 
     moodRow: { flexDirection: 'row', gap: 10, marginBottom: 6 },
     moodValueText: { color: t.primaryDim, fontSize: 13, fontWeight: '600', marginBottom: 12 },

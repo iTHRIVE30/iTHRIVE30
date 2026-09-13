@@ -3,6 +3,7 @@
 // Every rule returns { current, target }: current/target >= 1 means earned, and the ratio
 // drives the progress bars in Wins. Rules that are simply true/false report 0 or 1 out of 1.
 
+import { MONTAGE_BADGE_LEVELS } from '../montageStore';
 import { AchievementRule } from './types';
 import { getLevelDays } from '../challengeStore';
 import {
@@ -499,6 +500,22 @@ export function evaluateRule(rule: AchievementRule, ctx: RewardContext): RulePro
       );
       return count(best, rule.months);
     }
+
+    // ---- transformation montages ---------------------------------------------------------
+    case 'montageUnlocked':
+      return done(ctx.unlockedMontageLevels.includes(rule.level));
+
+    case 'montagesUnlocked':
+      return count(ctx.unlockedMontageLevels.length, rule.count);
+
+    case 'allMontagesUnlocked':
+      return count(ctx.unlockedMontageLevels.length, MONTAGE_BADGE_LEVELS.length);
+
+    case 'montageViewed':
+      return done(ctx.events.montagesViewed.length > 0);
+
+    case 'sideBySideViewed':
+      return done(ctx.events.sideBySideViewed);
 
     // ---- app engagement ------------------------------------------------------------------
     case 'archiveOpened':

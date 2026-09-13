@@ -43,6 +43,7 @@ export default function TabLayout() {
       <Tabs.Screen name="archive" options={{ href: null }} />
       <Tabs.Screen name="account" options={{ href: null }} />
       <Tabs.Screen name="teams" options={{ href: null }} />
+      <Tabs.Screen name="montage" options={{ href: null }} />
       <Tabs.Screen name="settings" options={{ href: null }} />
     </Tabs>
   );

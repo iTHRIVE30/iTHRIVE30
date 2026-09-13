@@ -16,7 +16,7 @@ import { getTodayKey } from './habitStore';
 
 const EVENTS_KEY = 'ithrive30_reward_events_v1';
 
-export type ScreenId = 'today' | 'challenges' | 'progress' | 'wins' | 'archive' | 'journey' | 'teams';
+export type ScreenId = 'today' | 'challenges' | 'progress' | 'wins' | 'archive' | 'journey' | 'teams' | 'montage';
 
 export type RewardEvents = {
   /** ISO timestamp of the very first time the app recorded anything. */
@@ -33,6 +33,10 @@ export type RewardEvents = {
   earlyBirdDates: string[];
   /** Custom habit slot id -> every distinct label it has ever had, oldest first. */
   customHabitLabels: Record<string, string[]>;
+  /** Level numbers whose transformation montage has actually been watched. */
+  montagesViewed: number[];
+  /** Whether the Day 1 / Day 30 comparison has been opened at least once. */
+  sideBySideViewed: boolean;
   /**
    * Every achievement id ever earned. Achievements are otherwise derived fresh each time,
    * and a few of them legitimately *stop* being true later - "3 or more active goals at the
@@ -51,6 +55,8 @@ const EMPTY: RewardEvents = {
   challengeEdits: 0,
   earlyBirdDates: [],
   customHabitLabels: {},
+  montagesViewed: [],
+  sideBySideViewed: false,
   earnedAchievementIds: [],
 };
 
@@ -124,6 +130,23 @@ export async function recordEarnedAchievements(ids: string[]): Promise<string[]>
     e.earnedAchievementIds = [...new Set([...e.earnedAchievementIds, ...ids])];
   });
   return fresh;
+}
+
+/**
+ * Call when a transformation montage is actually watched, not merely listed. Watching your
+ * own change is the thing the badge is about, and nothing in the habit log records it.
+ */
+export async function recordMontageViewed(level: number): Promise<void> {
+  await update((events) => {
+    if (!events.montagesViewed.includes(level)) events.montagesViewed.push(level);
+  });
+}
+
+/** Call when the Day 1 / Day 30 comparison is opened. */
+export async function recordSideBySideViewed(): Promise<void> {
+  await update((events) => {
+    events.sideBySideViewed = true;
+  });
 }
 
 /**

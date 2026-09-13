@@ -41,6 +41,11 @@ export default function HeaderMenu() {
               <Text style={styles.itemText}>Teams</Text>
             </Pressable>
             <View style={styles.divider} />
+            <Pressable style={styles.item} onPress={() => go('/montage')}>
+              <Ionicons name="images-outline" size={18} color={t.primary} />
+              <Text style={styles.itemText}>Transformation</Text>
+            </Pressable>
+            <View style={styles.divider} />
             <Pressable style={styles.item} onPress={() => go('/settings')}>
               <Ionicons name="settings-outline" size={18} color={t.primary} />
               <Text style={styles.itemText}>Settings</Text>

@@ -222,9 +222,19 @@ const BESPOKE_RULES = {
   271: NEEDS_TEAMS, 272: NEEDS_TEAMS, 273: NEEDS_TEAMS, 274: NEEDS_TEAMS, 275: NEEDS_TEAMS,
   276: NEEDS_TEAMS, 277: NEEDS_TEAMS, 278: NEEDS_TEAMS,
 
-  // ---- Selfie & Transformation (montages aren't built yet; selfie counts are)
-  279: NEEDS_MONTAGE, 280: NEEDS_MONTAGE, 281: NEEDS_MONTAGE, 282: NEEDS_MONTAGE,
-  283: NEEDS_MONTAGE, 284: NEEDS_MONTAGE, 285: NEEDS_MONTAGE, 286: NEEDS_MONTAGE,
+  // ---- Selfie & Transformation
+  // The montage feature exists now (lib/montageStore.ts + app/(tabs)/montage.tsx), so these
+  // are real rules rather than `manual`. The four Level montages still can't be earned in
+  // practice until Levels 4-12 have written content - but that's the content backlog doing
+  // the gating, which is honest, rather than the app claiming the feature is missing.
+  279: { kind: 'montageUnlocked', level: 4 },
+  280: { kind: 'montageUnlocked', level: 6 },
+  281: { kind: 'montageUnlocked', level: 10 },
+  282: { kind: 'montageUnlocked', level: 12 },
+  283: { kind: 'sideBySideViewed' },
+  284: { kind: 'montagesUnlocked', count: 2 },
+  285: { kind: 'allMontagesUnlocked' },
+  286: { kind: 'montageViewed' },
 
   // ---- Meta & App Engagement
   287: { kind: 'anyHabitDays', count: 1 },

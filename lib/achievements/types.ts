@@ -127,6 +127,18 @@ export type AchievementRule =
   /** A goal still open `months` months after it was set. */
   | { kind: 'goalHeldMonths'; months: number }
 
+  // --- transformation montages -------------------------------------------------------
+  /** The montage for a specific Level is unlocked (Level finished, 2+ photos). */
+  | { kind: 'montageUnlocked'; level: number }
+  /** `count` or more of the four badge montages unlocked. */
+  | { kind: 'montagesUnlocked'; count: number }
+  /** All four badge montages (Levels 4, 6, 10, 12) unlocked. */
+  | { kind: 'allMontagesUnlocked' }
+  /** A montage has actually been watched, not merely listed. */
+  | { kind: 'montageViewed' }
+  /** The Day 1 / latest-day comparison has been opened. */
+  | { kind: 'sideBySideViewed' }
+
   // --- app engagement ------------------------------------------------------------------
   | { kind: 'archiveOpened' }
   /** Every main screen visited - all in one day if `sameDay`. */
