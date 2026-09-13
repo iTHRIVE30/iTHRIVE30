@@ -49,7 +49,7 @@ day after it shipped).
   would quietly turn a shared standard into a self-set one. Personal targets
   already have a home: **My Journey and the goal functions**, expressed through
   the three editable habits (`new-thing`, `choose-own`, `bonus`). Hardcoded
-  values like `WATER_GOAL_CUPS = 8` are the standard, not a default awaiting a
+  values like `WATER_GOAL_GLASSES = 8` are the standard, not a default awaiting a
   setting.
 - **Local dates only.** Always build date keys from local `Date` getters
   (`getFullYear`/`getMonth`/`getDate`), never `toISOString()` — that
@@ -68,8 +68,13 @@ day after it shipped).
   `href: null` so the tab bar stays visible and you leave by tapping any tab. In the root
   stack they pushed over the tabs, hiding the bar and showing a back button labelled with
   the raw route name.
-- `lib/settingsStore.ts` / `lib/backupStore.ts` / `lib/monitoring.ts` — Settings, data
-  export/restore/erase, and crash reporting (see its own section below)
+- `lib/settingsStore.ts` / `lib/backupStore.ts` / `lib/monitoring.ts` /
+  `lib/reminders.ts` — Settings, data export/restore/erase, crash reporting, and
+  daily notifications (see their own sections below)
+- `constants/theme.ts` / `hooks/useTheme.tsx` — the theme token layer.
+  **No screen may hardcode a colour any more** (see below)
+- `lib/montageStore.ts` / `components/TransformationTile.tsx` /
+  `app/(tabs)/montage.tsx` — transformation montages (see below)
 - `legal/privacy-policy.md` (source of truth, hand-edited) and
   `legal/privacy-policy.html` (the page published to GitHub Pages). Both carry
   `[[BRACKETED]]` placeholders that must be filled before launch.
@@ -116,7 +121,7 @@ day after it shipped).
 - Notes are freeform, timestamped, multiple per day (`getNotes`/`addNote`/
   `deleteNote`) — not a single journal field.
 - Per-habit detail panels already exist in `habitStore`: activity
-  (multi-select + other), fruit (free text), water (0-10 cup scale, goal 8),
+  (multi-select + other), fruit (free text), water (0-10 glass scale, goal 8),
   reading (book title/author or podcast title/host/guest).
 - The day strip runs **a whole Level, Day 1 to today** — scroll right back to where the
   Level started. A picker above it switches between Levels already begun, which is how
@@ -289,6 +294,64 @@ credentials, which is investment-gated.
 - Config lives in `app.json` → `expo.extra`: `sentryDsn`, `privacyPolicyUrl`,
   `supportEmail`. Empty string means "not set", and the matching UI row hides rather than
   rendering a dead link.
+
+## Theming (`constants/theme.ts`, `hooks/useTheme.tsx`)
+Two palettes, one token set. `dark` is the black + gold brand; `light` is **Eucalypt** —
+cool ivory ground, sage primary — from Sharyn's A/B design handoff, aimed at women 30-60.
+Driven by `settings.appearance`: System / Light / Dark, with System following the device
+live rather than sampling once.
+
+- **Never hardcode a colour in a screen again.** Use
+  `const styles = useThemedStyles(createStyles)` with
+  `const createStyles = (t: Theme) => StyleSheet.create({ ... })` at module scope.
+- **Brand gold cannot carry text in light mode.** `#D4AF37` is 9.19:1 on brand black and
+  **2.10:1 on white**. So `primary` becomes sage `#5F7355`, and gold survives only as
+  `accentGold` `#B79447` on AUTO chips and earned badges.
+- **Do not lighten `muted`, `faint`, `secondary` or `secondaryDim` in the light palette.**
+  Inverting a dark UI is not a mirror of its grey ramp — `#666` reads fine on black and
+  lands near 2.5:1 on ivory. These values clear 4.5:1 at 9-12px on `ground` and `surface`.
+- **A surface whose ground is dark in both themes keeps the dark palette.** That is
+  `SplashLoader` (the native splash runs before any JS and cannot follow a setting, so a
+  light one would flash black → ivory → app on every launch), `DailyHero` (its ground is a
+  photo scrim; sage on it is ~3.4:1) and the Archive lightbox. They import `DarkTheme`.
+- `AcknowledgementTile` and `TransformationTile` **do** follow the theme, per the handoff,
+  so a light-mode user shares a light tile. Flagged in-file as the one call worth revisiting
+  — two users of the same programme produce tiles that look like different products.
+- `app.json` must stay `"userInterfaceStyle": "automatic"`. Pinned to `"dark"` the OS
+  reports dark forever and `useColorScheme()` can never return light.
+
+## Transformation montages
+`app/(tabs)/montage.tsx`, reached from the header menu. Unlocks all 8 Selfie &
+Transformation badges — permanently-locked badges are now **21, not 29**.
+- **Nothing new is stored.** A montage is assembled on demand from selfies already saved
+  against their dates, so there is nothing extra to migrate, corrupt or back up.
+- Day-to-date mapping comes from `getStartedLevels()` and is never recomputed — one home
+  for the local-date rule, not two.
+- **Available for any started Level once there are two photos**, not gated behind Level 4.
+  The four badge montages (4/6/10/12) are the milestone; gating the feature itself would
+  hide the app's most shareable output from every current user.
+- **The filmstrip shows only days that have a photo.** Rendering 30 slots with gaps turns
+  it into a record of what someone missed — the opposite of the point, and against the
+  never-blocking principle.
+- The before and after are **the same size, same treatment**. Enlarging or warming the
+  "after" would be the app editorialising about someone's body.
+
+## Reminders (`lib/reminders.ts`)
+Morning and evening, both off by default, each with its own time. **Local notifications
+only** — scheduled and fired by the device. No push server, no token registration, no
+backend, no cost.
+- **Tone is a hard constraint.** Nothing counts, scolds, or mentions a streak at risk.
+  Loss-aversion pressure is the exact mechanic this programme rejects, and a nudge that
+  makes someone feel caught is a nudge they switch off. The evening one is an open door,
+  not a deadline.
+- Copy is fixed rather than naming the day's challenge: a DAILY trigger carries static
+  text, and a rolling reschedule would quietly lapse for exactly the person the reminder
+  is for.
+- `syncReminders()` cancels **by identifier**, never
+  `cancelAllScheduledNotificationsAsync()`, so it can't clear something a future feature
+  scheduled. Called on every app open, since the schedule drifts when permissions are
+  revoked or the app is reinstalled. Never throws.
+- Guarded off in Expo Go, with the reason shown in Settings rather than a dead switch.
 
 ## Teams tab
 `app/(tabs)/teams.tsx` is a deliberate "coming soon" screen. **Keep it in the header
