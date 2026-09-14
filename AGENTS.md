@@ -133,6 +133,15 @@ day after it shipped).
   never starts its 30-day clock.
 - Day dots come from `getDaysWithData()` (two storage reads for the whole strip). The
   per-date `hasAnyDataForDate` would be hundreds of reads across 30 days.
+- **Scrolling the strip LOOKS. Only a tap SELECTS.** Do not add an `onScroll` /
+  `onMomentumScrollEnd` handler that sets the active day, and do not scroll the strip in
+  response to `activeIndex` changing. Both existed once and formed a loop: the momentum
+  handler picked the tile nearest the *left edge* (`Math.round(x / tile)` is the leftmost
+  index, not the centre), selected it, and an effect on `activeIndex` then yanked the strip
+  back to it — so the strip jumped mid-gesture and a tap on a distant day snapped back to
+  the leftmost one. The strip is now scrolled programmatically **only when it is rebuilt**
+  (first render or a Level change), guarded by a `lastStripKey` ref. After that the scroll
+  position belongs to the user.
 - No day is ever locked (see Architecture principles).
 - `auto` habits (steps via Pedometer, Today's Challenge) stay automatic only
   on Today — on any other day they're manually toggleable, since there's no

@@ -9,8 +9,6 @@ import {
   Image,
   Animated,
   Alert,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -280,25 +278,40 @@ export default function TodayScreen() {
     }, [isToday, todayKey, refreshLevels, refreshDayStatuses, refreshSteps, refreshTodayChallenge, loadDayData])
   );
 
-  const scrollToDay = useCallback((index: number) => {
-    dayScrollRef.current?.scrollTo({ x: index * (TILE_WIDTH + TILE_GAP), animated: true });
+  const scrollToDay = useCallback((index: number, animated: boolean) => {
+    dayScrollRef.current?.scrollTo({ x: index * (TILE_WIDTH + TILE_GAP), animated });
   }, []);
 
-// Land on the selected day rather than Day 1 whenever the strip is rebuilt - opening the
-  // tab should show today, and switching Level should show that Level's latest day.
+  /**
+   * Scrolling the strip LOOKS, it does not SELECT. Only a tap changes the day.
+   *
+   * This used to work the other way and it fought the user badly: `onMomentumScrollEnd`
+   * set the active day from the scroll position, and a `useEffect` on `activeIndex` then
+   * scrolled the strip to wherever that landed. Scroll to see Day 13 while on Day 10 and
+   * the momentum handler picked the tile nearest the LEFT EDGE - `Math.round(x / tile)` is
+   * the leftmost index, not the centre or the tapped one - selected it, and the effect
+   * yanked the strip back to it. So the strip jumped mid-gesture and taps on a distant day
+   * appeared to snap back.
+   *
+   * Both halves of that loop are gone. The strip is only scrolled programmatically when it
+   * is rebuilt - first render, or a Level change - so the selected day is on screen to
+   * begin with. After that the scroll position is the user's, and nothing takes it back.
+   */
+  const lastStripKey = useRef<string | null>(null);
   useEffect(() => {
-    if (activeIndex >= 0) scrollToDay(activeIndex);
-  }, [activeIndex, stripDates.length, scrollToDay]);
+    if (stripDates.length === 0) return;
+    const stripKey = `${viewedLevel ?? 'none'}:${stripDates[0]}:${stripDates.length}`;
+    if (stripKey === lastStripKey.current) return;
+    lastStripKey.current = stripKey;
 
+    const index = Math.max(0, stripDates.indexOf(activeDateKey));
+    // Not animated: this is the strip arriving, not the user being moved.
+    scrollToDay(index, false);
+  }, [viewedLevel, stripDates, activeDateKey, scrollToDay]);
+
+  /** A tap selects, and nothing else. It never scrolls the strip out from under the finger. */
   const handleSelectDay = (index: number) => {
     setActiveDateKey(stripDates[index]);
-    scrollToDay(index);
-  };
-
-  const handleDayScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const x = e.nativeEvent.contentOffset.x;
-    const index = Math.max(0, Math.min(stripDates.length - 1, Math.round(x / (TILE_WIDTH + TILE_GAP))));
-    if (stripDates[index] !== activeDateKey) setActiveDateKey(stripDates[index]);
   };
 
   /**
@@ -500,7 +513,6 @@ export default function TodayScreen() {
             showsHorizontalScrollIndicator={false}
             snapToInterval={TILE_WIDTH + TILE_GAP}
             decelerationRate="fast"
-            onMomentumScrollEnd={handleDayScrollEnd}
             contentContainerStyle={{ gap: TILE_GAP }}
           >
             {stripDates.map((d, i) => {
