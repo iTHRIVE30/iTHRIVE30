@@ -515,7 +515,7 @@ const createStyles = (t: Theme) =>
       textAlignVertical: 'top',
     },
     addGoalButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: t.primary, borderRadius: 10, paddingVertical: 11, marginTop: 14 },
-    addGoalButtonText: { color: t.ground, fontWeight: '700', fontSize: 13 },
+    addGoalButtonText: { color: t.onPrimary, fontWeight: '700', fontSize: 13 },
     sectionTitle: { color: t.primary, fontSize: 16, fontWeight: '700', marginTop: 4, marginBottom: 12 },
     addCategoryForm: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, padding: 16 },
     addCategoryButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: t.primary, borderRadius: 10, paddingVertical: 11, marginTop: 12 },

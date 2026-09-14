@@ -602,7 +602,7 @@ export default function TodayScreen() {
         )}
         {!isToday && !dayHasData[activeDateKey] && (
           <View style={styles.catchUpBanner2}>
-            <Ionicons name="create-outline" size={16} color={t.ground} />
+            <Ionicons name="create-outline" size={16} color={t.onPrimary} />
             <Text style={styles.catchUpBanner2Text}>
               No entry for {formatFullDate(activeDateKey)} yet — fill it in below so it&apos;s not lost.
             </Text>
@@ -872,7 +872,7 @@ export default function TodayScreen() {
             multiline
           />
           <Pressable style={styles.addNoteButton} onPress={handleAddNote}>
-            <Ionicons name="add" size={16} color={t.ground} />
+            <Ionicons name="add" size={16} color={t.onPrimary} />
             <Text style={styles.addNoteButtonText}>Add Note</Text>
           </Pressable>
         </View>
@@ -927,7 +927,7 @@ const createStyles = (t: Theme) =>
     editingBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: t.surface, borderWidth: 1, borderColor: t.primary, borderRadius: 12, padding: 12, marginBottom: 16 },
     editingBannerText: { color: t.body, fontSize: 12, flex: 1, lineHeight: 17 },
     catchUpBanner2: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: t.primary, borderRadius: 12, padding: 12, marginBottom: 16 },
-    catchUpBanner2Text: { color: t.ground, fontSize: 12, flex: 1, lineHeight: 17, fontWeight: '600' },
+    catchUpBanner2Text: { color: t.onPrimary, fontSize: 12, flex: 1, lineHeight: 17, fontWeight: '600' },
 
     sectionTitle: { color: t.primary, fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 10 },
     promptLabel: { color: t.body, fontSize: 14, marginBottom: 6 },
@@ -962,14 +962,14 @@ const createStyles = (t: Theme) =>
     miniChip: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
     miniChipActive: { backgroundColor: t.primary, borderColor: t.primary },
     miniChipText: { color: t.secondary, fontSize: 12, fontWeight: '600' },
-    miniChipTextActive: { color: t.ground },
+    miniChipTextActive: { color: t.onPrimary },
 
     waterScaleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 4 },
     waterGlassDot: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: t.borderStrong, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surfaceAlt },
     waterGlassDotFilled: { backgroundColor: t.primary, borderColor: t.primary },
     waterGlassGoalMark: { borderColor: t.primary, borderWidth: 2 },
     waterGlassDotText: { color: t.secondaryDim, fontSize: 11, fontWeight: '700' },
-    waterGlassDotTextFilled: { color: t.ground },
+    waterGlassDotTextFilled: { color: t.onPrimary },
 
     moodRow: { flexDirection: 'row', gap: 10, marginBottom: 6 },
     moodValueText: { color: t.primaryDim, fontSize: 13, fontWeight: '600', marginBottom: 12 },
@@ -983,7 +983,7 @@ const createStyles = (t: Theme) =>
       borderColor: t.border, padding: 12, minHeight: 80, textAlignVertical: 'top', marginBottom: 10,
     },
     addNoteButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: t.primary, borderRadius: 10, paddingVertical: 12 },
-    addNoteButtonText: { color: t.ground, fontWeight: '700', fontSize: 14 },
+    addNoteButtonText: { color: t.onPrimary, fontWeight: '700', fontSize: 14 },
     emptyText: { color: t.muted, fontSize: 13, fontStyle: 'italic', marginBottom: 10 },
 
     footer: { alignItems: 'center', marginTop: 32, paddingTop: 24, borderTopWidth: 1, borderTopColor: t.border },

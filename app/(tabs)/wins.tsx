@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   Pressable,
+  ScrollView,
   TextInput,
   Modal,
   Alert,
@@ -31,6 +32,7 @@ import AcknowledgementTile, { TILE_SIZE } from '../../components/Acknowledgement
 import Fireworks from '../../components/Fireworks';
 import { markScreenVisited } from '../../lib/rewardEvents';
 import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
+import KeyboardAwareModal from '../../components/KeyboardAwareModal';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -184,7 +186,7 @@ export default function WinsScreen() {
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>In Your Own Words</Text>
           <Pressable style={styles.addButton} onPress={() => setComposerOpen(true)}>
-            <Ionicons name="add" size={15} color={t.ground} />
+            <Ionicons name="add" size={15} color={t.onPrimary} />
             <Text style={styles.addButtonText}>Add</Text>
           </Pressable>
         </View>
@@ -264,8 +266,19 @@ export default function WinsScreen() {
       </KeyboardAwareScrollView>
 
       {/* ---- Composer ---- */}
-      <Modal visible={composerOpen} transparent animationType="slide" onRequestClose={() => setComposerOpen(false)}>
-        <View style={styles.modalBackdrop}>
+      {/* KeyboardAwareModal, not Modal - Android gives a plain Modal no keyboard avoidance
+          at all, so "In your own words" sat behind the keyboard. See the component. */}
+      <KeyboardAwareModal
+        visible={composerOpen}
+        animationType="slide"
+        onRequestClose={() => setComposerOpen(false)}
+        backdropStyle={styles.modalBackdrop}
+      >
+        <ScrollView
+          contentContainerStyle={styles.composerScroll}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+        >
           <View style={styles.composerCard}>
             <Text style={styles.composerTitle}>Acknowledge yourself</Text>
             <Text style={styles.composerHint}>
@@ -308,8 +321,8 @@ export default function WinsScreen() {
               </Pressable>
             </View>
           </View>
-        </View>
-      </Modal>
+        </ScrollView>
+      </KeyboardAwareModal>
 
       {/* ---- Preview + share ---- */}
       <Modal visible={!!previewing} transparent animationType="fade" onRequestClose={() => setPreviewing(null)}>
@@ -329,7 +342,7 @@ export default function WinsScreen() {
                   <Text style={styles.secondaryButtonText}>Delete</Text>
                 </Pressable>
                 <Pressable style={styles.primaryButton} onPress={handleShare} disabled={sharing}>
-                  <Ionicons name="share-outline" size={16} color={t.ground} />
+                  <Ionicons name="share-outline" size={16} color={t.onPrimary} />
                   <Text style={styles.primaryButtonText}>{sharing ? 'Preparing…' : 'Share'}</Text>
                 </Pressable>
               </View>
@@ -379,7 +392,7 @@ const createStyles = (t: Theme) =>
     emptyText: { color: t.muted, fontSize: 13, fontStyle: 'italic', lineHeight: 19, marginBottom: 10 },
 
     addButton: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.primary, borderRadius: 8, paddingHorizontal: 11, paddingVertical: 6 },
-    addButtonText: { color: t.ground, fontSize: 12, fontWeight: '800' },
+    addButtonText: { color: t.onPrimary, fontSize: 12, fontWeight: '800' },
 
     ackCard: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.primaryDim, padding: 16, marginBottom: 10 },
     ackOccasion: { color: t.primary, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, marginBottom: 8 },
@@ -398,7 +411,10 @@ const createStyles = (t: Theme) =>
     majorName: { color: t.primary, fontSize: 14, fontWeight: '800', flex: 1 },
     majorEncouragement: { color: t.encouragement, fontSize: 13, lineHeight: 19, marginTop: 8, fontStyle: 'italic' },
 
-    modalBackdrop: { flex: 1, backgroundColor: t.scrim, justifyContent: 'flex-end' },
+    modalBackdrop: { backgroundColor: t.scrim },
+    // The sheet sits at the bottom via the scroll container, so it can scroll up out of the
+    // keyboard's way instead of being pinned under it.
+    composerScroll: { flexGrow: 1, justifyContent: 'flex-end' },
     composerCard: { backgroundColor: t.surfaceSunken, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 1, borderColor: t.borderMuted, padding: 22, paddingBottom: 34 },
     composerTitle: { color: t.primary, fontSize: 19, fontWeight: '800' },
     composerHint: { color: t.secondaryDim, fontSize: 13, lineHeight: 19, marginTop: 6, marginBottom: 6 },
@@ -409,7 +425,7 @@ const createStyles = (t: Theme) =>
     composerButtonRow: { flexDirection: 'row', gap: 12, marginTop: 20 },
     primaryButton: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: t.primary, borderRadius: 11, paddingVertical: 14 },
     primaryButtonDisabled: { opacity: 0.4 },
-    primaryButtonText: { color: t.ground, fontSize: 14, fontWeight: '800' },
+    primaryButtonText: { color: t.onPrimary, fontSize: 14, fontWeight: '800' },
     secondaryButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: t.borderStrong, borderRadius: 11, paddingVertical: 14 },
     secondaryButtonText: { color: t.secondary, fontSize: 14, fontWeight: '600' },
 

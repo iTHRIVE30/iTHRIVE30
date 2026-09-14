@@ -337,7 +337,7 @@ export default function ProgressScreen() {
                           <View key={i} style={styles.trackerCellWrap}>
                             {done && (
                               <View style={styles.trackerCellDone}>
-                                <Ionicons name="checkmark" size={10} color={t.ground} />
+                                <Ionicons name="checkmark" size={10} color={t.onSuccess} />
                               </View>
                             )}
                           </View>
@@ -522,7 +522,7 @@ export default function ProgressScreen() {
               <Text style={styles.charCount}>{newGoalText.length} / {GOAL_MAX_LENGTH}</Text>
               <Text style={styles.goalQuote}>“{GOAL_QUOTE}”</Text>
               <Pressable style={styles.addGoalButton} onPress={handleAddGoal}>
-                <Ionicons name="add" size={18} color={t.ground} />
+                <Ionicons name="add" size={18} color={t.onPrimary} />
                 <Text style={styles.addGoalButtonText}>Add Goal</Text>
               </Pressable>
             </View>
@@ -644,7 +644,7 @@ const createStyles = (t: Theme) =>
     // the row equally, so at 12px it wrapped to two lines on narrow phones. 11px fits it on
     // one line with room to spare; numberOfLines={1} on the label is the hard guarantee.
     segmentText: { color: t.secondary, fontSize: 11, fontWeight: '700', letterSpacing: 0.1 },
-    segmentTextActive: { color: t.ground },
+    segmentTextActive: { color: t.onPrimary },
 
     promptLabel: { color: t.body, fontSize: 13, marginBottom: 12 },
 
@@ -653,7 +653,7 @@ const createStyles = (t: Theme) =>
     chipSmall: { paddingHorizontal: 12, paddingVertical: 6 },
     chipActive: { backgroundColor: t.primary, borderColor: t.primary },
     chipText: { color: t.secondary, fontSize: 13, fontWeight: '600' },
-    chipTextActive: { color: t.ground },
+    chipTextActive: { color: t.onPrimary },
 
     chartCard: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, padding: 16, marginTop: 8, marginBottom: 24 },
     chartTitle: { color: t.body, fontSize: 13, fontWeight: '600', marginBottom: 16 },
@@ -703,13 +703,13 @@ const createStyles = (t: Theme) =>
     charCount: { color: t.muted, fontSize: 11, textAlign: 'right', marginTop: 4 },
     goalQuote: { color: t.primaryDim, fontSize: 12, fontStyle: 'italic', lineHeight: 17, marginTop: 12, marginBottom: 14 },
     addGoalButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: t.primary, borderRadius: 10, paddingVertical: 12 },
-    addGoalButtonText: { color: t.ground, fontWeight: '700', fontSize: 14 },
+    addGoalButtonText: { color: t.onPrimary, fontWeight: '700', fontSize: 14 },
 
     milestoneForm: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, padding: 16, marginBottom: 16 },
     milestoneFormLabel: { color: t.secondary, fontSize: 13, marginBottom: 6, marginTop: 8 },
     addInput: { color: t.ink, fontSize: 15, backgroundColor: t.surfaceAlt, borderRadius: 10, borderWidth: 1, borderColor: t.borderMuted, padding: 12 },
     addMilestoneButton: { backgroundColor: t.primary, borderRadius: 10, paddingVertical: 12, alignItems: 'center', marginTop: 14 },
-    addMilestoneButtonText: { color: t.ground, fontWeight: '700', fontSize: 14 },
+    addMilestoneButtonText: { color: t.onPrimary, fontWeight: '700', fontSize: 14 },
     milestoneHighlight: { color: t.primary, fontWeight: '700' },
 
     goalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.surface, borderRadius: 10, borderWidth: 1, borderColor: t.border, padding: 14, marginBottom: 10 },

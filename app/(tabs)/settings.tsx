@@ -447,7 +447,7 @@ export default function SettingsScreen() {
           onPress={handleBackup}
           disabled={busy !== null}
         >
-          <Ionicons name="download-outline" size={16} color={t.ground} />
+          <Ionicons name="download-outline" size={16} color={t.onPrimary} />
           <Text style={styles.primaryButtonText}>
             {busy === 'backup' ? 'Preparing…' : 'Back up my data'}
           </Text>
@@ -636,7 +636,7 @@ const createStyles = (t: Theme) =>
       borderRadius: 10,
       paddingVertical: 12,
     },
-    primaryButtonText: { color: t.ground, fontWeight: '700', fontSize: 13 },
+    primaryButtonText: { color: t.onPrimary, fontWeight: '700', fontSize: 13 },
 
     outlineButton: {
       flexDirection: 'row',
