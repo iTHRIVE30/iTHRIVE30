@@ -5,7 +5,7 @@
 //
 // 357 achievements - 526,939 base points available.
 // 202 rules derived from requirement wording, 155 hand-mapped,
-// 21 not yet trackable (shown in the app as locked, with a reason).
+// 17 not yet trackable (shown in the app as locked, with a reason).
 // ============================================================================
 
 import { Achievement } from './types';
@@ -3051,7 +3051,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'Written in Stone',
     requirement: 'Set a goal with a specific target date',
     points: 20,
-    rule: { kind: 'manual', reason: 'Needs a target date field on goals' },
+    rule: { kind: 'goalWithTargetDate' },
   },
   {
     id: 'a339',
@@ -3132,7 +3132,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'Revisit & Refine',
     requirement: 'Update or edit an existing goal',
     points: 15,
-    rule: { kind: 'manual', reason: 'Needs goal editing in My Journey' },
+    rule: { kind: 'goalEdited' },
   },
   {
     id: 'a348',
@@ -3159,7 +3159,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'Checking In',
     requirement: 'Review your goals in Progress 10 total times',
     points: 40,
-    rule: { kind: 'manual', reason: 'Needs Progress goal-view tracking' },
+    rule: { kind: 'goalsReviewed', count: 10 },
   },
   {
     id: 'a351',
@@ -3213,7 +3213,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     name: 'Clean Slate',
     requirement: 'Archive a goal you\'ve outgrown, and set a new one in its place',
     points: 20,
-    rule: { kind: 'manual', reason: 'Needs goal archiving in My Journey' },
+    rule: { kind: 'goalArchivedAndReplaced' },
   },
   {
     id: 'a357',

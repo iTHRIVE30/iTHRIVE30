@@ -15,9 +15,11 @@ import 'react-native-reanimated';
 
 import SplashLoader from '@/components/SplashLoader';
 import DailyHero from '@/components/DailyHero';
+import Onboarding from '@/components/Onboarding';
 import { AppThemeProvider, useTheme } from '@/hooks/useTheme';
 import { initMonitoring } from '@/lib/monitoring';
 import { syncReminders } from '@/lib/reminders';
+import { getSettings, saveSettings } from '@/lib/settingsStore';
 import {
   DailyHeroContent,
   getDailyHeroContent,
@@ -34,7 +36,10 @@ export const unstable_settings = {
 // native splash hides on its own schedule.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-type Phase = 'loading' | 'hero' | 'ready';
+type Phase = 'loading' | 'onboarding' | 'hero' | 'ready';
+
+/** What the loading ring is actually waiting on: which opening screen, if any, comes next. */
+type Opening = { hero: DailyHeroContent | null; needsOnboarding: boolean };
 
 export default function RootLayout() {
   // The theme has to sit outside everything that reads it, including the opening sequence.
@@ -48,23 +53,34 @@ export default function RootLayout() {
 function RootLayoutInner() {
   const theme = useTheme();
   const [phase, setPhase] = useState<Phase>('loading');
-  const [hero, setHero] = useState<DailyHeroContent | null>(null);
+  const [opening, setOpening] = useState<Opening>({ hero: null, needsOnboarding: false });
 
-  // Decide the day's welcome while the loading ring is still sweeping, and hand the
-  // promise to SplashLoader so the ring hitting 100% means genuinely ready.
-  const [prepare] = useState(() =>
+  // Decide what follows the loading ring while it is still sweeping, and hand the promise
+  // to SplashLoader so the ring hitting 100% means genuinely ready. Each read is guarded
+  // separately: a failure in one must not cost us the other.
+  const [prepare] = useState<Promise<Opening>>(() =>
     (async () => {
+      let needsOnboarding = false;
+      let hero: DailyHeroContent | null = null;
+
       try {
-        if (!(await shouldShowDailyHero())) return null;
-        return await getDailyHeroContent();
+        needsOnboarding = !(await getSettings()).onboardedAt;
       } catch {
-        return null;
+        // Unreadable settings: don't force onboarding on someone who may have seen it.
       }
+
+      try {
+        if (await shouldShowDailyHero()) hero = await getDailyHeroContent();
+      } catch {
+        hero = null;
+      }
+
+      return { hero, needsOnboarding };
     })()
   );
 
   useEffect(() => {
-    prepare.then(setHero).catch(() => setHero(null));
+    prepare.then(setOpening).catch(() => {});
   }, [prepare]);
 
   useEffect(() => {
@@ -81,8 +97,21 @@ function RootLayoutInner() {
   }, []);
 
   const handleLoaderDone = useCallback(() => {
-    setPhase(hero ? 'hero' : 'ready');
-  }, [hero]);
+    if (opening.needsOnboarding) setPhase('onboarding');
+    else setPhase(opening.hero ? 'hero' : 'ready');
+  }, [opening]);
+
+  /**
+   * First run ends here. The daily hero is deliberately skipped and marked seen: onboarding
+   * has already had the newcomer's full attention for four cards, and stacking a second
+   * full-screen welcome behind it is one screen too many on the very first launch. The hero
+   * greets them tomorrow instead.
+   */
+  const handleOnboardingDone = useCallback(() => {
+    saveSettings({ onboardedAt: new Date().toISOString() }).catch(() => {});
+    markDailyHeroSeen();
+    setPhase('ready');
+  }, []);
 
   const handleHeroDismiss = useCallback(() => {
     markDailyHeroSeen();
@@ -114,7 +143,10 @@ function RootLayoutInner() {
       </Stack>
 
       {phase === 'loading' && <SplashLoader onDone={handleLoaderDone} holdUntil={prepare} />}
-      {phase === 'hero' && hero && <DailyHero content={hero} onDismiss={handleHeroDismiss} />}
+      {phase === 'onboarding' && <Onboarding onDone={handleOnboardingDone} />}
+      {phase === 'hero' && opening.hero && (
+        <DailyHero content={opening.hero} onDismiss={handleHeroDismiss} />
+      )}
 
       <StatusBar style={theme.name === 'dark' ? 'light' : 'dark'} />
     </ThemeProvider>

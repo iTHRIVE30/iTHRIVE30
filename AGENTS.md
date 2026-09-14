@@ -90,7 +90,10 @@ day after it shipped).
 - `lib/analytics.ts` — derived stats: streaks, completion rates, rating
   trends (not yet reviewed in detail — treat call signatures already used
   elsewhere in the app as the source of truth)
-- `lib/goalsStore.ts` — Goals **and** Milestones both live in this one file
+- `lib/goalsStore.ts` — Goals **and** Milestones both live in this one file. **Not the
+  same thing as `lib/journeyStore.ts`**, which holds My Journey's richer category goals
+  (achieve / feel / impact / target date / archive) — that is the one the goal badges read.
+- `components/Onboarding.tsx` — first-run cards (see below)
 - `lib/archiveStore.ts` / `archiveCategories.ts` / `archiveMeta.ts` /
   `archiveFiles.generated.ts` — Archive / Digital Library (see below)
 - `lib/brand.ts` — the logo lockups and which tagline cut to use
@@ -228,10 +231,11 @@ tiers it says so plainly. Self-validation, not currency.
   succeed ("3 or more active goals at once"). Earned ids persist in
   `rewardEvents.earnedAchievementIds` and are unioned back in. Keep that guarantee.
 - Completing a Challenge day is **not** an award — fireworks only.
-- **29 badges are permanently locked** with a visible reason: all 13 Social & Team (needs a
-  backend), all 8 Selfie & Transformation (needs montages), plus a few needing a birthday,
-  goal target dates, goal editing/archiving, or weather. Rule kind `manual`. Building the
-  feature is what unlocks them — give them a real rule then.
+- **17 badges are permanently locked** with a visible reason: all 13 Social & Team (needs a
+  backend), 2 needing weather/location, 1 needing a birthday, 1 needing per-Level start
+  dates. Rule kind `manual`. Building the feature is what unlocks them — give them a real
+  rule then, in `BESPOKE_RULES`, and regenerate. It was 29; montages took out 8 and the
+  goal work took out 4.
 - `lib/rewardEvents.ts` records what leaves no trace in the data (screens visited,
   backfilled days, challenge edits, custom-slot labels, early-bird completions). Writes are
   best-effort and never throw.
@@ -353,10 +357,29 @@ backend, no cost.
   revoked or the app is reinstalled. Never throws.
 - Guarded off in Expo Go, with the reason shown in Settings rather than a dead switch.
 
+## First-run onboarding
+`components/Onboarding.tsx`, four swipe cards, shown once. An overlay from
+`app/_layout.tsx` above the `Stack` — never a route, so the router can't navigate back
+into it. Gated on `settings.onboardedAt` **alone, never on habit data**: it explains the
+programme, it does not judge whether someone has started properly.
+- **Card three is the load-bearing one.** "You cannot fall behind" is the least obvious
+  thing about this programme from the interface, and someone who believes they can fail on
+  day three stops on day three.
+- On first run the Daily Hero is skipped and marked seen. Four cards plus a second
+  full-screen welcome is one screen too many on a first launch; the hero greets them
+  tomorrow.
+- Badge `a287` ("Complete onboarding and set up your first day") is **not** gated on this —
+  it already runs on `anyHabitDays: 1` and deliberately stays there. Ticking a habit is the
+  real milestone; dismissing four cards is not.
+
 ## Teams tab
-`app/(tabs)/teams.tsx` is a deliberate "coming soon" screen. **Keep it in the header
-menu** — an earlier suggestion to hide it until Teams ships was rejected. It is a
-statement of intent, not an unfinished stub, and the screen copy should say so.
+`app/(tabs)/teams.tsx` is a deliberate "coming soon" screen, and the copy now says what
+Teams is for rather than just that it is absent. **Keep it in the header menu** — an
+earlier suggestion to hide it until Teams ships was rejected. It is a statement of intent,
+not an unfinished stub.
+- **No email capture, no waitlist, no "notify me".** That would collect an address with
+  nowhere to keep it, in an app whose whole privacy position is that nothing leaves the
+  device.
 
 **The model is real-life connection, not virtual.** You start solo, then team up with
 someone you already know in actual life and grow together. The app supports a

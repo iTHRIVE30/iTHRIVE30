@@ -126,6 +126,14 @@ export type AchievementRule =
   | { kind: 'goalsAchievedInMonth'; count: number }
   /** A goal still open `months` months after it was set. */
   | { kind: 'goalHeldMonths'; months: number }
+  /** A goal was given a target date. */
+  | { kind: 'goalWithTargetDate' }
+  /** An existing goal's wording or target date was later changed. */
+  | { kind: 'goalEdited' }
+  /** A goal was archived, and another set afterwards to take its place. */
+  | { kind: 'goalArchivedAndReplaced' }
+  /** The Goals view in Progress has been opened `count` times. */
+  | { kind: 'goalsReviewed'; count: number }
 
   // --- transformation montages -------------------------------------------------------
   /** The montage for a specific Level is unlocked (Level finished, 2+ photos). */

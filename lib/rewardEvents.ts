@@ -35,6 +35,8 @@ export type RewardEvents = {
   customHabitLabels: Record<string, string[]>;
   /** Level numbers whose transformation montage has actually been watched. */
   montagesViewed: number[];
+  /** How many times the Goals view in Progress has been opened. */
+  progressGoalViews: number;
   /** Whether the Day 1 / Day 30 comparison has been opened at least once. */
   sideBySideViewed: boolean;
   /**
@@ -56,6 +58,7 @@ const EMPTY: RewardEvents = {
   earlyBirdDates: [],
   customHabitLabels: {},
   montagesViewed: [],
+  progressGoalViews: 0,
   sideBySideViewed: false,
   earnedAchievementIds: [],
 };
@@ -139,6 +142,13 @@ export async function recordEarnedAchievements(ids: string[]): Promise<string[]>
 export async function recordMontageViewed(level: number): Promise<void> {
   await update((events) => {
     if (!events.montagesViewed.includes(level)) events.montagesViewed.push(level);
+  });
+}
+
+/** Call when the Goals segment in Progress is opened. Counts reviews, not renders. */
+export async function recordProgressGoalView(): Promise<void> {
+  await update((events) => {
+    events.progressGoalViews += 1;
   });
 }
 

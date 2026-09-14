@@ -35,6 +35,12 @@ export type Settings = {
   /** An evening invitation to finish the day. Never a reproach - see lib/reminders.ts. */
   eveningReminder: boolean;
   eveningTime: string;
+  /**
+   * ISO timestamp of when the first-run cards were dismissed, or '' if they haven't been.
+   * Gated on this alone - never on habit data. Onboarding explains the programme; it must
+   * not double as a judgement about whether someone has started properly.
+   */
+  onboardedAt: string;
   /** Opt-out for anonymous crash diagnostics. Default on, disclosed in the privacy policy. */
   crashReports: boolean;
   /**
@@ -54,6 +60,7 @@ const DEFAULTS: Omit<Settings, 'installId'> = {
   morningTime: '07:00',
   eveningReminder: false,
   eveningTime: '20:30',
+  onboardedAt: '',
   crashReports: true,
   schemaVersion: SCHEMA_VERSION,
 };

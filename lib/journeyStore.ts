@@ -11,6 +11,16 @@ export type JourneyGoal = {
   createdAt: string;
   completed: boolean;
   completedAt?: string;
+  /** Optional local YYYY-MM-DD. A date makes a goal a commitment rather than a wish. */
+  targetDate?: string;
+  /** Set the first time the goal's wording is changed. Absent means never edited. */
+  updatedAt?: string;
+  /**
+   * Outgrown, not failed, and not deleted. Archiving keeps the record - deleting destroys
+   * it, and a goal you moved past is still part of the journey. Archived goals are hidden
+   * from the working list and never counted as active.
+   */
+  archivedAt?: string;
 };
 
 const CATEGORIES_KEY = 'ithrive30_journey_categories';
@@ -68,7 +78,13 @@ export async function getGoals(): Promise<JourneyGoal[]> {
   try { return JSON.parse(raw); } catch { return []; }
 }
 
-export async function addGoal(categoryId: string, achieve: string, feel: string, impact: string): Promise<JourneyGoal[]> {
+export async function addGoal(
+  categoryId: string,
+  achieve: string,
+  feel: string,
+  impact: string,
+  targetDate?: string
+): Promise<JourneyGoal[]> {
   const goals = await getGoals();
   const newGoal: JourneyGoal = {
     id: generateId(),
@@ -78,8 +94,47 @@ export async function addGoal(categoryId: string, achieve: string, feel: string,
     impact,
     createdAt: new Date().toISOString(),
     completed: false,
+    ...(targetDate ? { targetDate } : {}),
   };
   const updated = [newGoal, ...goals];
+  await AsyncStorage.setItem(GOALS_KEY, JSON.stringify(updated));
+  return updated;
+}
+
+/**
+ * Edits a goal's wording or target date, stamping `updatedAt`.
+ *
+ * A goal you can't correct is a goal a typo can cost you, and the fields here are the ones
+ * people most want to sharpen once they've lived with them for a week. `updatedAt` is what
+ * the "Revisit & Refine" badge derives from, so it is set here and nowhere else.
+ */
+export async function updateGoal(
+  id: string,
+  fields: { achieve?: string; feel?: string; impact?: string; targetDate?: string }
+): Promise<JourneyGoal[]> {
+  const goals = await getGoals();
+  const updated = goals.map((g) =>
+    g.id === id ? { ...g, ...fields, updatedAt: new Date().toISOString() } : g
+  );
+  await AsyncStorage.setItem(GOALS_KEY, JSON.stringify(updated));
+  return updated;
+}
+
+/**
+ * Archives or restores a goal. Archiving is the honest alternative to deleting something
+ * you've outgrown: the goal stops cluttering the list and stops counting as active, but
+ * the fact that you once set it survives.
+ */
+export async function setGoalArchived(id: string, archived: boolean): Promise<JourneyGoal[]> {
+  const goals = await getGoals();
+  const updated = goals.map((g) => {
+    if (g.id !== id) return g;
+    if (!archived) {
+      const { archivedAt: _removed, ...rest } = g;
+      return rest;
+    }
+    return { ...g, archivedAt: new Date().toISOString() };
+  });
   await AsyncStorage.setItem(GOALS_KEY, JSON.stringify(updated));
   return updated;
 }
@@ -93,6 +148,33 @@ export async function toggleGoal(id: string): Promise<JourneyGoal[]> {
   );
   await AsyncStorage.setItem(GOALS_KEY, JSON.stringify(updated));
   return updated;
+}
+
+// ---------- Target date helpers ----------
+// Local getters only, never toISOString - see AGENTS.md. Unlike a date of birth, a target
+// date is expected to be in the future, so nothing here rejects one.
+
+/** 'YYYY-MM-DD' -> 'DD/MM/YYYY'. Returns '' for anything unparseable. */
+export function formatTargetDate(iso?: string): string {
+  if (!iso) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+}
+
+/** 'DD/MM/YYYY' -> 'YYYY-MM-DD', or null while the text isn't yet a real calendar date. */
+export function parseTargetDate(text: string): string | null {
+  const m = /^(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{4})$/.exec(text.trim());
+  if (!m) return null;
+
+  const day = Number(m[1]);
+  const month = Number(m[2]);
+  const year = Number(m[3]);
+  if (year < 1900 || year > 2200 || month < 1 || month > 12) return null;
+
+  const d = new Date(year, month - 1, day);
+  if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return null;
+
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 export async function deleteGoal(id: string): Promise<JourneyGoal[]> {

@@ -13,6 +13,10 @@ import {
   addGoal,
   toggleGoal,
   deleteGoal,
+  updateGoal,
+  setGoalArchived,
+  formatTargetDate,
+  parseTargetDate,
 } from '../../lib/journeyStore';
 import {
   AchievementStatus,
@@ -26,8 +30,8 @@ import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
 
-type Draft = { achieve: string; feel: string; impact: string };
-const EMPTY_DRAFT: Draft = { achieve: '', feel: '', impact: '' };
+type Draft = { achieve: string; feel: string; impact: string; target: string };
+const EMPTY_DRAFT: Draft = { achieve: '', feel: '', impact: '', target: '' };
 
 export default function MyJourneyScreen() {
   const t = useTheme();
@@ -40,6 +44,9 @@ export default function MyJourneyScreen() {
   const [summary, setSummary] = useState<BadgeSummary | null>(null);
   const [badgesOpen, setBadgesOpen] = useState(false);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<Draft>(EMPTY_DRAFT);
+  const [showArchived, setShowArchived] = useState(false);
 
   const loadData = useCallback(async () => {
     const [cats, goalList, badges] = await Promise.all([getCategories(), getGoals(), getBadgeSummary()]);
@@ -67,9 +74,44 @@ export default function MyJourneyScreen() {
   const handleAddGoal = async (categoryId: string) => {
     const draft = drafts[categoryId] || EMPTY_DRAFT;
     if (!draft.achieve.trim()) return;
-    const updated = await addGoal(categoryId, draft.achieve.trim(), draft.feel.trim(), draft.impact.trim());
+    const updated = await addGoal(
+      categoryId,
+      draft.achieve.trim(),
+      draft.feel.trim(),
+      draft.impact.trim(),
+      parseTargetDate(draft.target) ?? undefined
+    );
     setGoals(updated);
     setDrafts((prev) => ({ ...prev, [categoryId]: EMPTY_DRAFT }));
+  };
+
+  const startEditing = (goal: JourneyGoal) => {
+    setEditingId(goal.id);
+    setEditDraft({
+      achieve: goal.achieve,
+      feel: goal.feel,
+      impact: goal.impact,
+      target: formatTargetDate(goal.targetDate),
+    });
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    if (!editDraft.achieve.trim()) return;
+    const updated = await updateGoal(id, {
+      achieve: editDraft.achieve.trim(),
+      feel: editDraft.feel.trim(),
+      impact: editDraft.impact.trim(),
+      targetDate: parseTargetDate(editDraft.target) ?? undefined,
+    });
+    setGoals(updated);
+    setEditingId(null);
+    setSummary(await getBadgeSummary());
+  };
+
+  const handleArchive = async (id: string, archived: boolean) => {
+    const updated = await setGoalArchived(id, archived);
+    setGoals(updated);
+    setSummary(await getBadgeSummary());
   };
 
   const handleToggleGoal = async (id: string) => {
@@ -108,7 +150,11 @@ export default function MyJourneyScreen() {
         <Text style={styles.subtitle}>Where I&apos;m going, across every part of my life</Text>
 
         {categories.map((cat) => {
-          const catGoals = goals.filter((g) => g.categoryId === cat.id);
+          // Archived goals are hidden by default. They are kept, not deleted - a goal you
+          // moved past is still part of the journey - but they shouldn't crowd the list.
+          const inCategory = goals.filter((g) => g.categoryId === cat.id);
+          const archivedCount = inCategory.filter((g) => !!g.archivedAt).length;
+          const catGoals = showArchived ? inCategory : inCategory.filter((g) => !g.archivedAt);
           const draft = drafts[cat.id] || EMPTY_DRAFT;
 
           return (
@@ -122,45 +168,121 @@ export default function MyJourneyScreen() {
                 )}
               </View>
 
-              {catGoals.map((g) => (
-                <View key={g.id} style={[styles.goalCard, g.completed && styles.goalCardDone]}>
-                  <View style={styles.goalCardTop}>
-                    <Pressable onPress={() => handleToggleGoal(g.id)} style={styles.goalStatusRow} hitSlop={6}>
-                      <Ionicons name={g.completed ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={g.completed ? t.primary : t.secondaryDim} />
-                      <Text style={[styles.goalStatusText, g.completed && styles.goalStatusTextDone]}>
-                        {g.completed ? 'Achieved' : 'In progress'}
-                      </Text>
-                    </Pressable>
-                    <Pressable onPress={() => handleDeleteGoal(g.id)} hitSlop={8}>
-                      <Ionicons name="trash-outline" size={16} color={t.muted} />
-                    </Pressable>
+              {catGoals.map((g) => {
+                const editing = editingId === g.id;
+                return (
+                  <View
+                    key={g.id}
+                    style={[
+                      styles.goalCard,
+                      g.completed && styles.goalCardDone,
+                      !!g.archivedAt && styles.goalCardArchived,
+                    ]}
+                  >
+                    <View style={styles.goalCardTop}>
+                      <Pressable onPress={() => handleToggleGoal(g.id)} style={styles.goalStatusRow} hitSlop={6}>
+                        <Ionicons name={g.completed ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={g.completed ? t.primary : t.secondaryDim} />
+                        <Text style={[styles.goalStatusText, g.completed && styles.goalStatusTextDone]}>
+                          {g.archivedAt ? 'Archived' : g.completed ? 'Achieved' : 'In progress'}
+                        </Text>
+                      </Pressable>
+
+                      <View style={styles.goalActions}>
+                        {!g.archivedAt && (
+                          <Pressable onPress={() => (editing ? handleSaveEdit(g.id) : startEditing(g))} hitSlop={8}>
+                            <Ionicons
+                              name={editing ? 'checkmark' : 'create-outline'}
+                              size={17}
+                              color={editing ? t.primary : t.muted}
+                            />
+                          </Pressable>
+                        )}
+                        <Pressable onPress={() => handleArchive(g.id, !g.archivedAt)} hitSlop={8}>
+                          <Ionicons
+                            name={g.archivedAt ? 'arrow-undo-outline' : 'archive-outline'}
+                            size={16}
+                            color={t.muted}
+                          />
+                        </Pressable>
+                        <Pressable onPress={() => handleDeleteGoal(g.id)} hitSlop={8}>
+                          <Ionicons name="trash-outline" size={16} color={t.muted} />
+                        </Pressable>
+                      </View>
+                    </View>
+
+                    {editing ? (
+                      <>
+                        <Text style={styles.goalFieldLabel}>What do I want to achieve?</Text>
+                        <TextInput
+                          style={styles.formInput}
+                          value={editDraft.achieve}
+                          onChangeText={(v) => setEditDraft((d) => ({ ...d, achieve: v }))}
+                          placeholderTextColor={t.muted}
+                          multiline
+                        />
+                        <Text style={styles.goalFieldLabel}>How will I feel when I get there?</Text>
+                        <TextInput
+                          style={styles.formInput}
+                          value={editDraft.feel}
+                          onChangeText={(v) => setEditDraft((d) => ({ ...d, feel: v }))}
+                          placeholderTextColor={t.muted}
+                          multiline
+                        />
+                        <Text style={styles.goalFieldLabel}>Who else will be impacted?</Text>
+                        <TextInput
+                          style={styles.formInput}
+                          value={editDraft.impact}
+                          onChangeText={(v) => setEditDraft((d) => ({ ...d, impact: v }))}
+                          placeholderTextColor={t.muted}
+                          multiline
+                        />
+                        <Text style={styles.goalFieldLabel}>By when?</Text>
+                        <TextInput
+                          style={styles.formInput}
+                          value={editDraft.target}
+                          onChangeText={(v) => setEditDraft((d) => ({ ...d, target: v }))}
+                          placeholder="DD/MM/YYYY"
+                          placeholderTextColor={t.muted}
+                          keyboardType="numbers-and-punctuation"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <Text style={styles.goalFieldLabel}>What do I want to achieve?</Text>
+                        <Text style={styles.goalFieldValue}>{g.achieve}</Text>
+
+                        {!!g.feel && (
+                          <>
+                            <Text style={styles.goalFieldLabel}>How will I feel when I get there?</Text>
+                            <Text style={styles.goalFieldValue}>{g.feel}</Text>
+                          </>
+                        )}
+
+                        {!!g.impact && (
+                          <>
+                            <Text style={styles.goalFieldLabel}>Who else will be impacted?</Text>
+                            <Text style={styles.goalFieldValue}>{g.impact}</Text>
+                          </>
+                        )}
+
+                        {!!g.targetDate && (
+                          <View style={styles.targetRow}>
+                            <Ionicons name="flag-outline" size={13} color={t.primaryDim} />
+                            <Text style={styles.targetText}>By {formatTargetDate(g.targetDate)}</Text>
+                          </View>
+                        )}
+                      </>
+                    )}
                   </View>
-
-                  <Text style={styles.goalFieldLabel}>What do I want to achieve?</Text>
-                  <Text style={styles.goalFieldValue}>{g.achieve}</Text>
-
-                  {!!g.feel && (
-                    <>
-                      <Text style={styles.goalFieldLabel}>How will I feel when I get there?</Text>
-                      <Text style={styles.goalFieldValue}>{g.feel}</Text>
-                    </>
-                  )}
-
-                  {!!g.impact && (
-                    <>
-                      <Text style={styles.goalFieldLabel}>Who else will be impacted?</Text>
-                      <Text style={styles.goalFieldValue}>{g.impact}</Text>
-                    </>
-                  )}
-                </View>
-              ))}
+                );
+              })}
 
               <View style={styles.addGoalForm}>
                 <Text style={styles.formLabel}>What do I want to achieve?</Text>
                 <TextInput
                   style={styles.formInput}
                   value={draft.achieve}
-                  onChangeText={(t) => updateDraft(cat.id, 'achieve', t)}
+                  onChangeText={(v) => updateDraft(cat.id, 'achieve', v)}
                   placeholder="Name the goal..."
                   placeholderTextColor={t.muted}
                   multiline
@@ -169,7 +291,7 @@ export default function MyJourneyScreen() {
                 <TextInput
                   style={styles.formInput}
                   value={draft.feel}
-                  onChangeText={(t) => updateDraft(cat.id, 'feel', t)}
+                  onChangeText={(v) => updateDraft(cat.id, 'feel', v)}
                   placeholder="Describe the feeling..."
                   placeholderTextColor={t.muted}
                   multiline
@@ -178,16 +300,38 @@ export default function MyJourneyScreen() {
                 <TextInput
                   style={styles.formInput}
                   value={draft.impact}
-                  onChangeText={(t) => updateDraft(cat.id, 'impact', t)}
+                  onChangeText={(v) => updateDraft(cat.id, 'impact', v)}
                   placeholder="Who benefits alongside me..."
                   placeholderTextColor={t.muted}
                   multiline
                 />
+                <Text style={styles.formLabel}>By when? (optional)</Text>
+                <TextInput
+                  style={styles.formInput}
+                  value={draft.target}
+                  onChangeText={(v) => updateDraft(cat.id, 'target', v)}
+                  placeholder="DD/MM/YYYY"
+                  placeholderTextColor={t.muted}
+                  keyboardType="numbers-and-punctuation"
+                />
                 <Pressable style={styles.addGoalButton} onPress={() => handleAddGoal(cat.id)}>
-                  <Ionicons name="add" size={16} color={t.ground} />
+                  <Ionicons name="add" size={16} color={t.onPrimary} />
                   <Text style={styles.addGoalButtonText}>Add Goal</Text>
                 </Pressable>
               </View>
+
+              {archivedCount > 0 && (
+                <Pressable style={styles.archivedToggle} onPress={() => setShowArchived((v) => !v)}>
+                  <Ionicons
+                    name={showArchived ? 'eye-off-outline' : 'archive-outline'}
+                    size={14}
+                    color={t.muted}
+                  />
+                  <Text style={styles.archivedToggleText}>
+                    {showArchived ? 'Hide archived' : `Show ${archivedCount} archived`}
+                  </Text>
+                </Pressable>
+              )}
             </View>
           );
         })}
@@ -337,6 +481,19 @@ const createStyles = (t: Theme) =>
     categoryTitle: { color: t.primary, fontSize: 17, fontWeight: '700' },
     goalCard: { backgroundColor: t.surfaceAlt, borderRadius: 10, borderWidth: 1, borderColor: t.borderMuted, padding: 14, marginBottom: 12 },
     goalCardDone: { borderColor: t.primary },
+    goalCardArchived: { opacity: 0.55, borderStyle: 'dashed' },
+    goalActions: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+    targetRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 },
+    targetText: { color: t.primaryDim, fontSize: 12, fontWeight: '700' },
+    archivedToggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 10,
+      marginTop: 4,
+    },
+    archivedToggleText: { color: t.muted, fontSize: 12, fontWeight: '600' },
     goalCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
     goalStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     goalStatusText: { color: t.secondaryDim, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },

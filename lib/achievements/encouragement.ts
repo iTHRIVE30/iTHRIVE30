@@ -342,6 +342,18 @@ function messageFor(rule: AchievementRule): string | null {
     case 'weekdayReflectionMonth':
       return 'Every Sunday for a month. A reset you can rely on.';
 
+    case 'goalWithTargetDate':
+      return 'You gave it a date. A wish with a deadline is a plan.';
+
+    case 'goalEdited':
+      return 'You sharpened it. Goals are meant to be revised, not obeyed.';
+
+    case 'goalArchivedAndReplaced':
+      return 'You let one go and set another. Outgrowing something is not failing it.';
+
+    case 'goalsReviewed':
+      return `Back to your goals ${rule.count} times. Reviewing is the habit, not setting.`;
+
     // ---- transformation montages ----
     case 'montageUnlocked':
       return `Level ${rule.level}, start to finish, in your own face. Look properly.`;

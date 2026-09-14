@@ -501,6 +501,27 @@ export function evaluateRule(rule: AchievementRule, ctx: RewardContext): RulePro
       return count(best, rule.months);
     }
 
+    case 'goalWithTargetDate':
+      return done(ctx.goals.some((g) => !!g.targetDate));
+
+    case 'goalEdited':
+      return done(ctx.goals.some((g) => !!g.updatedAt));
+
+    case 'goalArchivedAndReplaced': {
+      // "Outgrown, and something new in its place" - so an archive on its own isn't it.
+      // The replacement has to have been set after the archiving, not before.
+      const archived = ctx.goals
+        .map((g) => g.archivedAt)
+        .filter((a): a is string => !!a)
+        .sort();
+      if (archived.length === 0) return done(false);
+      const firstArchive = archived[0];
+      return done(ctx.goals.some((g) => !g.archivedAt && g.createdAt > firstArchive));
+    }
+
+    case 'goalsReviewed':
+      return count(ctx.events.progressGoalViews, rule.count);
+
     // ---- transformation montages ---------------------------------------------------------
     case 'montageUnlocked':
       return done(ctx.unlockedMontageLevels.includes(rule.level));

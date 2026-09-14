@@ -39,7 +39,7 @@ import {
 } from '../../lib/goalsStore';
 import { getChallengeResponses, getLevelDays, CONTENT_BY_LEVEL, LEVELS, ChallengeResponses } from '../../lib/challengeStore';
 import Svg, { Polyline, Line as SvgLine, Text as SvgText } from 'react-native-svg';
-import { markScreenVisited } from '../../lib/rewardEvents';
+import { markScreenVisited, recordProgressGoalView } from '../../lib/rewardEvents';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import { levelColors, type Theme } from '../../constants/theme';
 
@@ -193,6 +193,13 @@ export default function ProgressScreen() {
     }, [loadData])
   );
 
+  // Opening Goals is a review, and 'Checking In' counts them. Counted on the tap rather
+  // than on render, so re-rendering the screen doesn't inflate it.
+  const handleSelectSegment = (next: Segment) => {
+    setSegment(next);
+    if (next === 'goals') recordProgressGoalView();
+  };
+
   const handleSelectView = (v: ViewOption) => {
     setView(v);
     const opts = VIEW_OPTIONS.find((o) => o.key === v)?.types || ['bar'];
@@ -292,7 +299,7 @@ export default function ProgressScreen() {
             <Pressable
               key={s.key}
               style={[styles.segmentButton, segment === s.key && styles.segmentButtonActive]}
-              onPress={() => setSegment(s.key)}
+              onPress={() => handleSelectSegment(s.key)}
             >
               <Text
                 style={[styles.segmentText, segment === s.key && styles.segmentTextActive]}
