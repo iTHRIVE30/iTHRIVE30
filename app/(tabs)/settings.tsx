@@ -3,7 +3,6 @@ import {
   Alert,
   Linking,
   Pressable,
-  ScrollView,
   StyleSheet,
   Switch,
   Text,
@@ -36,6 +35,7 @@ import {
 import { monitoringStatus, setCrashReportingEnabled } from '../../lib/monitoring';
 import { reminderStatus, requestReminderPermission, syncReminders } from '../../lib/reminders';
 import { shareProgressSummary } from '../../lib/shareProgress';
+import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
 import { useAppearance, useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -254,11 +254,7 @@ export default function SettingsScreen() {
   const age = ageFromDob(settings.dateOfBirth);
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
-      keyboardShouldPersistTaps="handled"
-    >
+    <KeyboardAwareScrollView style={styles.container}>
       <Text style={styles.title}>Settings</Text>
       <Text style={styles.subtitle}>Your details, your data, and who can see it</Text>
 
@@ -540,7 +536,7 @@ export default function SettingsScreen() {
           and it helps if you ever need to describe a problem to support.
         </Text>
       </View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 

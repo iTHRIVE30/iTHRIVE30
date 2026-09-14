@@ -61,6 +61,7 @@ import {
   recordCustomHabitLabel,
   recordDayCompleted,
 } from '../../lib/rewardEvents';
+import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -477,11 +478,8 @@ export default function TodayScreen() {
 
   return (
     <>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={{ padding: 20, paddingBottom: 260 }}
-        keyboardShouldPersistTaps="handled"
-      >
+      {/* Today keeps its deeper bottom padding - the habit detail panels expand inline. */}
+      <KeyboardAwareScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 260 }}>
         {/* Tagline cut follows the ground, not the brand - the white cut vanishes on ivory. */}
         <Image source={LOGO_IS_HERE[t.logoTone]} style={styles.logo} resizeMode="contain" />
 
@@ -883,7 +881,7 @@ export default function TodayScreen() {
           <Image source={LOGO_MARK} style={styles.footerLogo} resizeMode="contain" />
           <Text style={styles.motto}>Change · Grow · Evolve</Text>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <Fireworks trigger={celebrateTrigger} />
     </>
   );

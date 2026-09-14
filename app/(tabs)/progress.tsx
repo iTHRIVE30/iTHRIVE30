@@ -40,6 +40,7 @@ import {
 import { getChallengeResponses, getLevelDays, CONTENT_BY_LEVEL, LEVELS, ChallengeResponses } from '../../lib/challengeStore';
 import Svg, { Polyline, Line as SvgLine, Text as SvgText } from 'react-native-svg';
 import { markScreenVisited, recordProgressGoalView } from '../../lib/rewardEvents';
+import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import { levelColors, type Theme } from '../../constants/theme';
 
@@ -290,7 +291,7 @@ export default function ProgressScreen() {
 
   return (
     <>
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 20, paddingBottom: 80 }} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView style={styles.container}>
         <Text style={styles.title}>Progress</Text>
         <Text style={styles.subtitle}>Your habits and mindset, over time</Text>
 
@@ -624,7 +625,7 @@ export default function ProgressScreen() {
 
         {/* Footer spacer so the keyboard never covers what you're typing above */}
         <View style={{ height: 220 }} />
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <Fireworks trigger={celebrateTrigger} />
     </>
   );

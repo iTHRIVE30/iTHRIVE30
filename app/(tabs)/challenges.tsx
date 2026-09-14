@@ -101,10 +101,13 @@ function FieldInput({
   field,
   value,
   onChange,
+  onFocus,
 }: {
   field: ChallengeField;
   value: ChallengeAnswer;
   onChange: (v: ChallengeAnswer) => void;
+  /** Lets the sheet scroll this field clear of the keyboard - see handleFieldFocus. */
+  onFocus?: () => void;
 }) {
   const t = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -116,6 +119,7 @@ function FieldInput({
         style={field.type === 'textarea' ? styles.answerInput : styles.answerInputShort}
         value={text}
         onChangeText={(next) => onChange(next)}
+        onFocus={onFocus}
         placeholder={field.placeholder || 'Type my response...'}
         placeholderTextColor={t.muted}
         multiline={field.type === 'textarea'}
@@ -171,6 +175,21 @@ export default function ChallengesScreen() {
   const [showMoodPopup, setShowMoodPopup] = useState(false);
   const [draftMood, setDraftMood] = useState(0);
   const [pendingSubmit, setPendingSubmit] = useState<{ id: string; answers: ChallengeAnswer[] } | null>(null);
+
+  // Shrinking the sheet is not quite enough on its own: the field still has to be scrolled
+  // into the space that is left. Each field block records its own offset on layout, and
+  // focusing one scrolls it near the top of the sheet.
+  const modalScrollRef = useRef<ScrollView>(null);
+  const fieldOffsets = useRef<Record<number, number>>({});
+
+  const handleFieldFocus = (index: number) => {
+    const y = fieldOffsets.current[index];
+    if (y == null) return;
+    // The keyboard animates in; scrolling before it has finished measures the old height.
+    setTimeout(() => {
+      modalScrollRef.current?.scrollTo({ y: Math.max(0, y - 16), animated: true });
+    }, 150);
+  };
 
   const loadLevels = useCallback(async () => {
     const items = await Promise.all(
@@ -436,7 +455,21 @@ export default function ChallengesScreen() {
       })}
 
       <Modal visible={!!activeDay} animationType="slide" transparent onRequestClose={saveAndClose}>
-        <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        {/*
+          A Modal is the one place that genuinely needs a KeyboardAvoidingView. Android does
+          NOT apply `adjustResize` inside a Modal, so `behavior={undefined}` - which is right
+          on a normal Android screen and is what Expo's guide recommends - meant no keyboard
+          avoidance at all here. Day 3's third field sat straight behind the keyboard.
+
+          'height' shrinks this container by the keyboard, so the card's `maxHeight: 85%`
+          resolves against the reduced space and the sheet's own ScrollView takes over. On
+          iOS 'padding' achieves the same thing, because a percentage height resolves
+          against the parent's content box, which the padding has already shrunk.
+        */}
+        <KeyboardAvoidingView
+          style={styles.modalBackdrop}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View style={styles.modalCard}>
             {/*
               A second way out, pinned above the scroll. Not a Cancel - it runs the same
@@ -452,8 +485,10 @@ export default function ChallengesScreen() {
             </View>
 
             <ScrollView
-              contentContainerStyle={{ padding: 20, paddingTop: 4, paddingBottom: 44 }}
+              ref={modalScrollRef}
+              contentContainerStyle={{ padding: 20, paddingTop: 4, paddingBottom: 120 }}
               keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
             >
               <Text style={styles.modalDay}>DAY {activeDay?.day}</Text>
               {!!activeDay?.theme && <Text style={styles.themeTag}>{activeDay.theme}</Text>}
@@ -468,9 +503,18 @@ export default function ChallengesScreen() {
               )}
 
               {activeDay?.fields.map((field, i) => (
-                <View key={i} style={{ marginTop: 18 }}>
+                <View
+                  key={i}
+                  style={{ marginTop: 18 }}
+                  onLayout={(e) => { fieldOffsets.current[i] = e.nativeEvent.layout.y; }}
+                >
                   <Text style={styles.promptLabel}>{field.prompt}</Text>
-                  <FieldInput field={field} value={draftAnswers[i]} onChange={(v) => updateAnswer(i, v)} />
+                  <FieldInput
+                    field={field}
+                    value={draftAnswers[i]}
+                    onChange={(v) => updateAnswer(i, v)}
+                    onFocus={() => handleFieldFocus(i)}
+                  />
                 </View>
               ))}
 

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import Fireworks from '../../components/Fireworks';
@@ -26,6 +26,7 @@ import {
   groupByCategory,
 } from '../../lib/achievements';
 import { markScreenVisited } from '../../lib/rewardEvents';
+import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -145,7 +146,7 @@ export default function MyJourneyScreen() {
 
   return (
     <>
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 20, paddingBottom: 100 }} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView style={styles.container}>
         <Text style={styles.title}>My Journey</Text>
         <Text style={styles.subtitle}>Where I&apos;m going, across every part of my life</Text>
 
@@ -410,7 +411,7 @@ export default function MyJourneyScreen() {
             )}
           </View>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <Fireworks trigger={celebrateTrigger} />
     </>
   );

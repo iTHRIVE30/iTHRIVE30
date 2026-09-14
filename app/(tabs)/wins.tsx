@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Pressable,
   TextInput,
   Modal,
@@ -31,6 +30,7 @@ import {
 import AcknowledgementTile, { TILE_SIZE } from '../../components/AcknowledgementTile';
 import Fireworks from '../../components/Fireworks';
 import { markScreenVisited } from '../../lib/rewardEvents';
+import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -140,7 +140,7 @@ export default function WinsScreen() {
 
   return (
     <>
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 20, paddingBottom: 80 }}>
+      <KeyboardAwareScrollView style={styles.container}>
         <Text style={styles.title}>Wins</Text>
         <Text style={styles.subtitle}>What you&apos;ve actually done</Text>
 
@@ -261,7 +261,7 @@ export default function WinsScreen() {
         )}
 
         <View style={{ height: 40 }} />
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* ---- Composer ---- */}
       <Modal visible={composerOpen} transparent animationType="slide" onRequestClose={() => setComposerOpen(false)}>
