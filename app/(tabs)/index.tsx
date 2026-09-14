@@ -12,7 +12,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Pedometer } from 'expo-sensors';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -92,6 +92,7 @@ export default function TodayScreen() {
   const t = useTheme();
   const styles = useThemedStyles(createStyles);
   const dayScrollRef = useRef<ScrollView>(null);
+  const router = useRouter();
 
   const todayKey = getTodayKey();
 
@@ -154,6 +155,7 @@ export default function TodayScreen() {
   const [programDay, setProgramDay] = useState(1);
   const [todayChallengeTitle, setTodayChallengeTitle] = useState<string | null>(null);
   const [todayChallengeTheme, setTodayChallengeTheme] = useState<string | null>(null);
+  const [todayLevelNumber, setTodayLevelNumber] = useState<number | null>(null);
 
   const [celebrateTrigger, setCelebrateTrigger] = useState(0);
   const [celebrateAnim] = useState(() => new Animated.Value(0));
@@ -192,6 +194,7 @@ export default function TodayScreen() {
     try {
       const info = await getTodayChallengeInfo();
       setLevelName(info.level.name);
+      setTodayLevelNumber(info.level.number);
       setProgramDay(info.levelDay || 1);
       setTodayChallengeTitle(info.challenge ? info.challenge.title : null);
       setTodayChallengeTheme(info.challenge ? info.challenge.theme : null);
@@ -308,6 +311,19 @@ export default function TodayScreen() {
     // Not animated: this is the strip arriving, not the user being moved.
     scrollToDay(index, false);
   }, [viewedLevel, stripDates, activeDateKey, scrollToDay]);
+
+  /**
+   * Tapping today's challenge title jumps straight to it on the Challenges tab, rather than
+   * making someone find the Level and the day themselves. The title is the thing people
+   * read first and the thing they want to act on, so it should be the way in.
+   */
+  const openTodayChallenge = () => {
+    if (todayLevelNumber === null) return;
+    router.push({
+      pathname: '/challenges',
+      params: { level: String(todayLevelNumber), day: String(programDay) },
+    });
+  };
 
   /** A tap selects, and nothing else. It never scrolls the strip out from under the finger. */
   const handleSelectDay = (index: number) => {
@@ -466,15 +482,24 @@ export default function TodayScreen() {
         contentContainerStyle={{ padding: 20, paddingBottom: 260 }}
         keyboardShouldPersistTaps="handled"
       >
-        <Image source={LOGO_IS_HERE.onDark} style={styles.logo} resizeMode="contain" />
+        {/* Tagline cut follows the ground, not the brand - the white cut vanishes on ivory. */}
+        <Image source={LOGO_IS_HERE[t.logoTone]} style={styles.logo} resizeMode="contain" />
 
         <Text style={styles.headerTitle}>Today iTHRIVE.</Text>
         <Text style={styles.levelLabel}>{levelName} · Day {programDay} of 30</Text>
         {isToday && !!todayChallengeTitle && (
-          <View style={styles.dayHeaderCard}>
-            <Text style={styles.dayHeaderTitle}>{todayChallengeTitle}</Text>
-            {!!todayChallengeTheme && <Text style={styles.dayHeaderSubtitle}>{todayChallengeTheme}</Text>}
-          </View>
+          <Pressable
+            style={styles.dayHeaderCard}
+            onPress={openTodayChallenge}
+            accessibilityRole="button"
+            accessibilityHint="Opens today's challenge on the Challenges tab"
+          >
+            <View style={styles.dayHeaderTextWrap}>
+              <Text style={styles.dayHeaderTitle}>{todayChallengeTitle}</Text>
+              {!!todayChallengeTheme && <Text style={styles.dayHeaderSubtitle}>{todayChallengeTheme}</Text>}
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={t.primaryDim} />
+          </Pressable>
         )}
 
         {allComplete && isToday && (
@@ -870,7 +895,8 @@ const createStyles = (t: Theme) =>
     logo: { width: '100%', height: 88, marginBottom: 8 },
     headerTitle: { color: t.primary, fontSize: 24, fontWeight: '800', marginBottom: 2 },
     levelLabel: { color: t.primaryDim, fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 14 },
-    dayHeaderCard: { backgroundColor: t.surface, borderRadius: 12, borderWidth: 1, borderColor: t.border, padding: 14, marginBottom: 16 },
+    dayHeaderTextWrap: { flex: 1 },
+    dayHeaderCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surface, borderRadius: 12, borderWidth: 1, borderColor: t.border, padding: 14, marginBottom: 16 },
     dayHeaderTitle: { color: t.ink, fontSize: 17, fontWeight: '700' },
     dayHeaderSubtitle: { color: t.primaryDim, fontSize: 12, fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 4 },
     celebrateBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: t.ground, borderWidth: 2, borderColor: t.primary, borderRadius: 12, padding: 14, marginBottom: 16, gap: 10 },

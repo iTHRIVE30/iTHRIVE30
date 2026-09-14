@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { markScreenVisited, recordChallengeEdit } from '../../lib/rewardEvents';
 import {
   LEVELS,
@@ -15,6 +15,7 @@ import {
   getLevelProgramDay,
   getLevelProgress,
   isLevelUnlocked,
+  getChallengeDay,
   getChallengeResponses,
   submitChallengeResponse,
   hasAnswerContent,
@@ -196,6 +197,21 @@ export default function ChallengesScreen() {
     }, [loadLevels, loadLevelDetail, selectedLevel])
   );
 
+  /**
+   * Arriving from the Today tab, where tapping the challenge title jumps straight here.
+   *
+   * The params are consumed once and remembered in a ref: the tab keeps its params after
+   * you navigate away, so without the guard the modal would spring open again every time
+   * you came back to Challenges, including after you had deliberately closed it.
+   *
+   * Responses are fetched here rather than read from state - `loadLevelDetail` sets them
+   * asynchronously, so `responses` is still empty on this tick and an already-answered day
+   * would open blank.
+   */
+  const params = useLocalSearchParams<{ level?: string; day?: string }>();
+  const consumedParams = useRef<string | null>(null);
+
+
   const openLevel = async (item: LevelListItem) => {
     if (!item.unlocked) return;
     setSelectedLevel(item.level);
@@ -209,8 +225,8 @@ export default function ChallengesScreen() {
     loadLevels();
   };
 
-  const openDay = (challenge: ChallengeDayDef) => {
-    const existing = responses[challenge.id];
+  const openDay = (challenge: ChallengeDayDef, known?: ChallengeResponses) => {
+    const existing = (known ?? responses)[challenge.id];
     if (existing) {
       setDraftAnswers(existing.answers);
     } else {
@@ -218,6 +234,35 @@ export default function ChallengesScreen() {
     }
     setActiveDay(challenge);
   };
+
+  useEffect(() => {
+    if (!params.level || !params.day) return;
+
+    const signature = `${params.level}:${params.day}`;
+    if (consumedParams.current === signature) return;
+    consumedParams.current = signature;
+
+    const levelNumber = Number(params.level);
+    const day = Number(params.day);
+    const level = LEVELS.find((l) => l.number === levelNumber);
+    const challenge = getChallengeDay(levelNumber, day);
+    if (!level || !challenge) return;
+
+    (async () => {
+      const [programDay, resp] = await Promise.all([
+        getLevelProgramDay(levelNumber),
+        getChallengeResponses(),
+      ]);
+      setSelectedLevel(level);
+      setLevelProgramDay(programDay || 1);
+      setResponses(resp);
+      setView('days');
+      openDay(challenge, resp);
+    })();
+    // Intentionally keyed on the params alone - the consumed-params ref is what stops it
+    // re-firing, so adding openDay to the deps would only defeat that guard.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.level, params.day]);
 
   const closeModal = () => {
     setActiveDay(null);
