@@ -313,9 +313,16 @@ export default function ChallengesScreen() {
 
     // Finishing a day for the first time is the moment worth capturing a mood on. Later
     // visits just save quietly - nobody wants a popup every time they reread a day.
+    //
+    // The day modal is closed FIRST. Presenting a second Modal on top of a visible one is
+    // unreliable in React Native - the new one is routinely never shown - and that is
+    // exactly what used to happen here: tapping Done on a first completion left the day
+    // modal open with an invisible mood popup behind it, so the only exit appeared dead.
+    // The answers are already captured in pendingSubmit, so closing first loses nothing.
     if (!existing && filledIn) {
       setPendingSubmit({ id: activeDay.id, answers: draftAnswers });
       setDraftMood(0);
+      closeModal();
       setShowMoodPopup(true);
       return;
     }
@@ -431,7 +438,23 @@ export default function ChallengesScreen() {
       <Modal visible={!!activeDay} animationType="slide" transparent onRequestClose={saveAndClose}>
         <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.modalCard}>
-            <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
+            {/*
+              A second way out, pinned above the scroll. Not a Cancel - it runs the same
+              saveAndClose as the Done button, so nothing is lost either way. It exists
+              because Done lives at the bottom of a scrolling sheet, and with the keyboard
+              up on a small screen it can sit below the fold. One exit is not enough when
+              the exit can be off-screen.
+            */}
+            <View style={styles.modalTopBar}>
+              <Pressable onPress={saveAndClose} hitSlop={12} style={styles.modalClose}>
+                <Ionicons name="chevron-down" size={22} color={t.secondary} />
+              </Pressable>
+            </View>
+
+            <ScrollView
+              contentContainerStyle={{ padding: 20, paddingTop: 4, paddingBottom: 44 }}
+              keyboardShouldPersistTaps="handled"
+            >
               <Text style={styles.modalDay}>DAY {activeDay?.day}</Text>
               {!!activeDay?.theme && <Text style={styles.themeTag}>{activeDay.theme}</Text>}
               <Text style={styles.modalTitle}>{activeDay?.title}</Text>
@@ -468,7 +491,13 @@ export default function ChallengesScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      <Modal visible={showMoodPopup} transparent animationType="fade" onRequestClose={() => finalizeMood(0)}>
+      {/* `&& !activeDay` guarantees only one Modal is ever on screen - see saveAndClose. */}
+      <Modal
+        visible={showMoodPopup && !activeDay}
+        transparent
+        animationType="fade"
+        onRequestClose={() => finalizeMood(0)}
+      >
         <View style={styles.moodBackdrop}>
           <View style={styles.moodCard}>
             <Ionicons name="checkmark-circle" size={32} color={t.primary} />
@@ -514,6 +543,8 @@ const createStyles = (t: Theme) =>
     viewButton: { backgroundColor: 'transparent', borderWidth: 1, borderColor: t.primary, borderRadius: 8, paddingVertical: 10, alignItems: 'center' },
     viewButtonText: { color: t.primary, fontWeight: '700', fontSize: 14 },
     modalBackdrop: { flex: 1, backgroundColor: t.scrim, justifyContent: 'flex-end' },
+    modalTopBar: { alignItems: 'center', paddingTop: 8 },
+    modalClose: { paddingHorizontal: 24, paddingVertical: 4 },
     modalCard: { backgroundColor: t.surfaceSunken, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '85%', borderWidth: 1, borderColor: t.border },
     modalDay: { color: t.primaryDim, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 4 },
     modalTitle: { color: t.primary, fontSize: 22, fontWeight: '700', marginBottom: 8 },
