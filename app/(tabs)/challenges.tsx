@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, Keyboa
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { markScreenVisited, recordChallengeEdit } from '../../lib/rewardEvents';
+import { parseQuote } from '../../lib/dailyHero';
+import { toReadableLines } from '../../lib/prose';
 import {
   LEVELS,
   LevelDef,
@@ -361,6 +363,12 @@ export default function ChallengesScreen() {
 
   const actionLabel = (activeDay?.doThisLabel || 'Do This').toUpperCase();
 
+  // Presentation only - no word is changed. See lib/prose.ts.
+  const quote = parseQuote(activeDay?.quote ?? '');
+  const lessonLines = toReadableLines(activeDay?.lesson);
+  const doThisLines = toReadableLines(activeDay?.doThis);
+  const goDeeperLines = toReadableLines(activeDay?.goDeeper);
+
   // ---------- Levels list view ----------
   if (view === 'levels') {
     return (
@@ -493,8 +501,33 @@ export default function ChallengesScreen() {
               <Text style={styles.modalDay}>DAY {activeDay?.day}</Text>
               {!!activeDay?.theme && <Text style={styles.themeTag}>{activeDay.theme}</Text>}
               <Text style={styles.modalTitle}>{activeDay?.title}</Text>
-              {!!activeDay?.quote && <Text style={styles.quoteText}>{activeDay.quote}</Text>}
-              {!!activeDay?.lesson && <Text style={styles.lessonText}>{activeDay.lesson}</Text>}
+
+              {/*
+                The quote is the day's centrepiece, so it is set as one: centred, larger,
+                with the author beneath it rather than trailing the last line. parseQuote is
+                the same splitter the Daily Hero uses - don't hand-roll one, the closing
+                smart quote sits mid-string, before the attribution.
+              */}
+              {!!quote.quote && (
+                <View style={styles.quoteBlock}>
+                  <View style={styles.quoteRule} />
+                  <Text style={styles.quoteText}>{quote.quote}</Text>
+                  {!!quote.attribution && (
+                    <Text style={styles.quoteAuthor}>~ {quote.attribution}</Text>
+                  )}
+                  <View style={styles.quoteRule} />
+                </View>
+              )}
+
+              {/* One sentence per line - the lessons are written as short declaratives and
+                  read as admin when they're run together in a block. See lib/prose.ts. */}
+              {lessonLines.length > 0 && (
+                <View style={styles.proseBlock}>
+                  {lessonLines.map((line, i) => (
+                    <Text key={i} style={styles.lessonText}>{line}</Text>
+                  ))}
+                </View>
+              )}
 
               {!!activeDay?.worksheetTitle && <Text style={styles.worksheetTitle}>{activeDay.worksheetTitle}</Text>}
 
@@ -518,14 +551,22 @@ export default function ChallengesScreen() {
                 </View>
               ))}
 
-              {!!activeDay?.doThis && (
+              {doThisLines.length > 0 && (
                 <View style={styles.doThisBox}>
                   <Text style={styles.actionBoxLabel}>{actionLabel}</Text>
-                  <Text style={styles.doThisText}>{activeDay.doThis}</Text>
+                  {doThisLines.map((line, i) => (
+                    <Text key={i} style={styles.doThisText}>{line}</Text>
+                  ))}
                 </View>
               )}
 
-              {!!activeDay?.goDeeper && <Text style={styles.goDeeperText}>{activeDay.goDeeper}</Text>}
+              {goDeeperLines.length > 0 && (
+                <View style={[styles.proseBlock, { marginTop: 24 }]}>
+                  {goDeeperLines.map((line, i) => (
+                    <Text key={i} style={styles.goDeeperText}>{line}</Text>
+                  ))}
+                </View>
+              )}
 
               <Pressable style={styles.submitButton} onPress={saveAndClose}>
                 <Text style={styles.submitButtonText}>Done</Text>
@@ -577,7 +618,7 @@ const createStyles = (t: Theme) =>
     cardLocked: { opacity: 0.5 },
     cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
     dayBadge: { color: t.primaryDim, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
-    themeTag: { color: t.primaryDim, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },
+    themeTag: { color: t.primaryDim, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10 },
     cardTitle: { color: t.ink, fontSize: 18, fontWeight: '700', marginBottom: 6 },
     cardDescription: { color: t.body, fontSize: 14, marginBottom: 12, lineHeight: 20, fontStyle: 'italic' },
     catchUpLabel: { color: t.primaryDim, fontSize: 12, fontStyle: 'italic', marginBottom: 10 },
@@ -590,13 +631,31 @@ const createStyles = (t: Theme) =>
     modalTopBar: { alignItems: 'center', paddingTop: 8 },
     modalClose: { paddingHorizontal: 24, paddingVertical: 4 },
     modalCard: { backgroundColor: t.surfaceSunken, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '85%', borderWidth: 1, borderColor: t.border },
-    modalDay: { color: t.primaryDim, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 4 },
-    modalTitle: { color: t.primary, fontSize: 22, fontWeight: '700', marginBottom: 8 },
-    quoteText: { color: t.body, fontSize: 14, fontStyle: 'italic', lineHeight: 20, marginBottom: 10 },
-    lessonText: { color: t.body, fontSize: 14, lineHeight: 20, marginBottom: 4 },
-    worksheetTitle: { color: t.primary, fontSize: 15, fontWeight: '700', marginTop: 20 },
+    modalDay: { color: t.primaryDim, fontSize: 12, fontWeight: '700', letterSpacing: 1.4, marginBottom: 6 },
+    modalTitle: { color: t.primary, fontSize: 24, fontWeight: '700', lineHeight: 31, marginBottom: 4 },
+    quoteBlock: { alignItems: 'center', marginTop: 26, marginBottom: 30, paddingHorizontal: 4 },
+    quoteRule: { width: 34, height: 1, backgroundColor: t.primaryDim, marginVertical: 16 },
+    quoteText: {
+      color: t.inkSoft,
+      fontSize: 18,
+      fontStyle: 'italic',
+      lineHeight: 28,
+      textAlign: 'center',
+    },
+    quoteAuthor: {
+      color: t.primary,
+      fontSize: 12,
+      fontWeight: '700',
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      textAlign: 'center',
+      marginTop: 12,
+    },
+    proseBlock: { gap: 10, marginBottom: 4 },
+    lessonText: { color: t.body, fontSize: 15, lineHeight: 24 },
+    worksheetTitle: { color: t.primary, fontSize: 16, fontWeight: '700', marginTop: 32 },
     noFieldsNote: { color: t.muted, fontSize: 13, fontStyle: 'italic', marginTop: 12 },
-    promptLabel: { color: t.inkSoft, fontSize: 14, marginBottom: 8, fontWeight: '600' },
+    promptLabel: { color: t.inkSoft, fontSize: 14.5, lineHeight: 21, marginBottom: 10, fontWeight: '600' },
     answerInput: {
       color: t.ink, fontSize: 15, backgroundColor: t.surfaceAlt, borderRadius: 10, borderWidth: 1,
       borderColor: t.borderStrong, padding: 12, minHeight: 70, textAlignVertical: 'top',
@@ -615,10 +674,10 @@ const createStyles = (t: Theme) =>
     optionChipSelected: { backgroundColor: t.primary, borderColor: t.primary },
     optionChipText: { color: t.body, fontSize: 13 },
     optionChipTextSelected: { color: t.ground, fontWeight: '700' },
-    doThisBox: { marginTop: 20, backgroundColor: t.primaryTint, borderRadius: 10, borderWidth: 1, borderColor: t.primaryTintBorder, padding: 14 },
-    actionBoxLabel: { color: t.primary, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
-    doThisText: { color: t.inkSoft, fontSize: 14, lineHeight: 20 },
-    goDeeperText: { color: t.secondaryDim, fontSize: 13, fontStyle: 'italic', marginTop: 14, lineHeight: 18 },
+    doThisBox: { marginTop: 30, backgroundColor: t.primaryTint, borderRadius: 10, borderWidth: 1, borderColor: t.primaryTintBorder, padding: 16, gap: 8 },
+    actionBoxLabel: { color: t.primary, fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginBottom: 2 },
+    doThisText: { color: t.inkSoft, fontSize: 15, lineHeight: 23 },
+    goDeeperText: { color: t.secondaryDim, fontSize: 14, fontStyle: 'italic', lineHeight: 22 },
     submitButton: { backgroundColor: t.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 26, marginBottom: 10 },
     submitButtonText: { color: t.ground, fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
     moodBackdrop: { flex: 1, backgroundColor: t.scrim, alignItems: 'center', justifyContent: 'center', padding: 30 },
