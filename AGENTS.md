@@ -276,15 +276,16 @@ Expo Go picks it up on a Metro reload during dev).
 Account** — no email, no password, no login. Adding one means a server holding
 credentials, which is investment-gated.
 
-- **`lib/settingsStore.ts`** — first name, date of birth, appearance, crash-report opt-out,
-  plus `installId` and `SCHEMA_VERSION`. Those last two do nothing today: they exist so a
-  future cloud sync can migrate existing users instead of making them start over. Keep
-  them written on every save.
+- **`lib/settingsStore.ts`** — first name, date of birth, appearance, reminder times,
+  `onboardedAt`, crash-report opt-out, plus `installId` and `SCHEMA_VERSION`. Those last
+  two do nothing today: they exist so a future cloud sync can migrate existing users
+  instead of making them start over. Keep them written on every save.
 - **No personal targets here** — see the baseline-not-threshold rule in Architecture
   principles.
-- **`appearance` is stored but has no control yet.** Light mode isn't built; a selector
-  that changed nothing would be a dead control, which is the thing we fixed on Teams.
-  Wire the control up in the same pass that lands the theme.
+- Settings has five cards: Your details, Appearance, Reminders, Your data, Privacy, About.
+  Every one of its controls does something — **don't add a switch for a feature that
+  isn't built**, which is the thing we fixed on Teams. Where a feature exists but can't
+  run in the current environment (reminders in Expo Go), the row explains why instead.
 - **`lib/backupStore.ts`** — the only way data leaves the device. Every key the app owns
   starts `ithrive30_`, which is what makes a one-pass export possible; **keep that prefix
   for any new key or it silently drops out of backups.** Restore is a *replace*, not a
@@ -326,7 +327,8 @@ live rather than sampling once.
 
 ## Transformation montages
 `app/(tabs)/montage.tsx`, reached from the header menu. Unlocks all 8 Selfie &
-Transformation badges — permanently-locked badges are now **21, not 29**.
+Transformation badges. (For the current locked total, see the Badges section — that is
+the one place it is counted.)
 - **Nothing new is stored.** A montage is assembled on demand from selfies already saved
   against their dates, so there is nothing extra to migrate, corrupt or back up.
 - Day-to-date mapping comes from `getStartedLevels()` and is never recomputed — one home
