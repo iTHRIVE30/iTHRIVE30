@@ -4,8 +4,8 @@
 **Last updated:** `[[EFFECTIVE DATE]]`
 **Applies to:** the iTHRIVE30 mobile application for iOS and Android
 
-> **Before publishing:** two `[[BRACKETED]]` fields remain — the effective date and the
-> minimum age — and this document should be read by an Australian lawyer. It is written to
+> **Before publishing:** one `[[EFFECTIVE DATE]]` field remains, and this document should be
+> read by an Australian lawyer. It is written to
 > the Australian Privacy Principles and to GDPR/CCPA expectations, and it describes the app
 > accurately as built — but a privacy policy is a legal instrument, and I am not your lawyer.
 
@@ -39,7 +39,7 @@ you can switch off in Settings.
 Used entirely on your device:
 
 - **Habit records** — which of the daily habits you completed, on which dates
-- **Details attached to habits** — activity types, cups of water, fruit, book or podcast titles
+- **Details attached to habits** — activity types, glasses of water, fruit, book or podcast titles
 - **Mood ratings** — a daily 1–5 scale
 - **Written entries** — intentions, gratitude entries, freeform notes, challenge responses and
   self-acknowledgements
@@ -160,11 +160,36 @@ as the app is installed, and is destroyed when you delete it or uninstall the ap
 reports are retained by Sentry under their standard retention period (currently 90 days) and
 are then deleted.
 
-### 12. Children
+### 12. Children, and under-18 users
 
-iTHRIVE30 is intended for people aged `[[MINIMUM AGE]]` and over. It is not directed at
-children, and we do not knowingly collect personal information from a child. Because the app
+iTHRIVE30 is intended for people aged **16 and over**. It is not directed at children under
+16, and we do not knowingly collect personal information from a child. Because the app
 requires no sign-up and collects nothing, there is nothing for us to hold in any event.
+
+**If you are under 18**, we suggest going through the programme alongside a parent,
+guardian or mentor — someone who knows what you are doing and can ask how it is going. The
+app makes that easy without giving anything away: see section 12a. The suggestion is a
+suggestion; nothing is shared unless you send it, and no feature is withheld if you don't.
+
+### 12a. Sharing your progress with someone else
+
+The app can produce a short progress summary and hand it to your phone's share sheet, so
+you can send it to a parent, guardian, mentor, coach or friend. **We encourage this,
+particularly for younger users** — someone who knows what you are working on can ask how it
+is going, and being seen doing something is one of the few things that reliably helps.
+
+It is entirely your choice, every time. Nothing is ever sent automatically, no one is
+notified without you sending it, and the app never learns who you sent it to.
+
+**A summary contains only what you did:** your Level and day, streaks, how many full days
+and daily challenges you have completed, your strongest habit, and how many goals you have
+set and achieved.
+
+**It never contains what you wrote or how you felt.** Mood ratings, notes, gratitude
+entries, intentions, challenge answers, self-acknowledgements and photographs are excluded
+by design and cannot be shared this way. Those are the private part of the programme, and
+they only work if they stay private — someone who thinks a parent might read a difficult
+day will stop recording difficult days.
 
 ### 13. Compliance
 

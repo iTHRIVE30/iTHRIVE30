@@ -142,6 +142,38 @@ export function formatDobForDisplay(iso: string): string {
 }
 
 /**
+ * Whole years between a stored 'YYYY-MM-DD' date of birth and today, or null when there
+ * is no usable date. Local getters throughout - never toISOString (AGENTS.md).
+ */
+export function ageFromDob(iso: string): number | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return null;
+
+  const born = { year: Number(m[1]), month: Number(m[2]), day: Number(m[3]) };
+  const now = new Date();
+  let age = now.getFullYear() - born.year;
+
+  // Take a year off if this year's birthday hasn't come round yet.
+  const monthNow = now.getMonth() + 1;
+  const dayNow = now.getDate();
+  if (monthNow < born.month || (monthNow === born.month && dayNow < born.day)) age -= 1;
+
+  return age >= 0 && age < 130 ? age : null;
+}
+
+/**
+ * True only when a date of birth has been entered AND it works out under 18.
+ *
+ * Deliberately false when the field is blank: the date of birth is optional, and a missing
+ * one must never be treated as "probably a minor". Nothing in the app is withheld on the
+ * strength of this - it only decides whether the accountability card is surfaced.
+ */
+export function isUnder18(iso: string): boolean {
+  const age = ageFromDob(iso);
+  return age !== null && age < 18;
+}
+
+/**
  * 'DD/MM/YYYY' (or 'D/M/YYYY') -> 'YYYY-MM-DD'. Returns null when the text isn't yet a
  * real calendar date, so a half-typed field simply doesn't save rather than saving junk.
  */

@@ -282,7 +282,21 @@ credentials, which is investment-gated.
   instead of making them start over. Keep them written on every save.
 - **No personal targets here** — see the baseline-not-threshold rule in Architecture
   principles.
-- Settings has five cards: Your details, Appearance, Reminders, Your data, Privacy, About.
+- **`lib/shareProgress.ts`** — a plain-text progress summary handed to the system share
+  sheet, so someone can loop in a parent, guardian, mentor or coach. There is no URL and
+  no link: a link would need a server holding someone's programme, which is the one thing
+  this app doesn't do. **The summary carries structure only** — Level and day, streaks,
+  full days, challenges completed, strongest habit, goal counts. **It must never carry
+  moods, notes, gratitude, intentions, challenge answers, acknowledgements or photos.**
+  Accountability is knowing whether someone showed up; a 16-year-old who thinks a parent
+  might see a one-star mood day stops logging one-star mood days, and the app loses the
+  only honest signal it has. Sending is always a tap, never automatic.
+- **The under-18 card is surfaced, not gated.** `isUnder18()` only changes the wording and
+  highlights the card — the feature is available at any age, and a blank date of birth is
+  never read as "probably a minor". Withholding anything by age would make it supervision
+  imposed on a minor rather than something anyone can choose. Minimum age is **16**.
+- Settings has these cards: Your details, Appearance, Share your progress, Reminders,
+  Your data, Privacy, About.
   Every one of its controls does something — **don't add a switch for a feature that
   isn't built**, which is the thing we fixed on Teams. Where a feature exists but can't
   run in the current environment (reminders in Expo Go), the row explains why instead.

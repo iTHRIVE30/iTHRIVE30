@@ -18,6 +18,8 @@ import * as WebBrowser from 'expo-web-browser';
 import {
   Appearance,
   Settings,
+  ageFromDob,
+  isUnder18,
   formatDobForDisplay,
   formatTime,
   parseTimeInput,
@@ -33,6 +35,7 @@ import {
 } from '../../lib/backupStore';
 import { monitoringStatus, setCrashReportingEnabled } from '../../lib/monitoring';
 import { reminderStatus, requestReminderPermission, syncReminders } from '../../lib/reminders';
+import { shareProgressSummary } from '../../lib/shareProgress';
 import { useAppearance, useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -72,6 +75,7 @@ export default function SettingsScreen() {
   const [eveningText, setEveningText] = useState('20:30');
   const [entryCount, setEntryCount] = useState<number | null>(null);
   const [busy, setBusy] = useState<null | 'backup' | 'restore'>(null);
+  const [sharing, setSharing] = useState(false);
 
   const load = useCallback(async () => {
     const [s, count] = await Promise.all([getSettings(), countStoredEntries()]);
@@ -141,6 +145,16 @@ export default function SettingsScreen() {
       which === 'morning' ? { morningTime: text } : { eveningTime: text }
     );
     await syncReminders(updated);
+  };
+
+  const handleShareProgress = async () => {
+    setSharing(true);
+    const result = await shareProgressSummary();
+    setSharing(false);
+    if (result.status === 'error') {
+      Alert.alert('Could not share', result.message ?? 'Try again in a moment.');
+    }
+    // 'shared' and 'dismissed' both need no popup - the share sheet was the interaction.
   };
 
   const handleCrashToggle = async (value: boolean) => {
@@ -234,6 +248,11 @@ export default function SettingsScreen() {
     );
   }
 
+  // Only true when a date of birth was actually entered and works out under 18. A blank
+  // field is never treated as 'probably a minor' - see isUnder18 in settingsStore.
+  const under18 = isUnder18(settings.dateOfBirth);
+  const age = ageFromDob(settings.dateOfBirth);
+
   return (
     <ScrollView
       style={styles.container}
@@ -269,7 +288,11 @@ export default function SettingsScreen() {
           keyboardType="numbers-and-punctuation"
           returnKeyType="done"
         />
-        <Text style={styles.fieldHint}>Used only to mark your birthday inside the app.</Text>
+        <Text style={styles.fieldHint}>
+          {age === null
+            ? 'Used only to mark your birthday inside the app.'
+            : `Used only to mark your birthday inside the app. That makes you ${age}.`}
+        </Text>
       </View>
 
       {/* ---------- Appearance ---------- */}
@@ -304,6 +327,47 @@ export default function SettingsScreen() {
             );
           })}
         </View>
+      </View>
+
+      {/* ---------- Accountability ----------
+          Available to everyone. The under-18 line is added context, not a restriction:
+          gating the feature by age would make it read as supervision imposed on a minor
+          rather than something anyone can choose. */}
+      <View style={[styles.card, under18 && styles.cardHighlight]}>
+        <Text style={styles.cardTitle}>Share your progress</Text>
+
+        {under18 ? (
+          <Text style={styles.cardNote}>
+            Going through this alongside a parent, guardian or mentor makes it far more
+            likely to stick — someone who knows what you&apos;re doing can ask how it&apos;s
+            going. Send them a summary whenever you want to.
+          </Text>
+        ) : (
+          <Text style={styles.cardNote}>
+            Send someone a summary of how you&apos;re going — a partner, a friend, a mentor,
+            a coach. Being seen doing it is one of the few things that reliably helps.
+          </Text>
+        )}
+
+        <View style={styles.privacyNote}>
+          <Ionicons name="lock-closed-outline" size={14} color={t.primaryDim} />
+          <Text style={styles.privacyNoteText}>
+            Only what you <Text style={styles.privacyNoteStrong}>did</Text> — days, streaks,
+            level, goals. Never your moods, notes, reflections or photos. Those stay on this
+            phone.
+          </Text>
+        </View>
+
+        <Pressable
+          style={[styles.outlineButton, sharing && styles.buttonBusy]}
+          onPress={handleShareProgress}
+          disabled={sharing}
+        >
+          <Ionicons name="share-outline" size={16} color={t.primary} />
+          <Text style={styles.outlineButtonText}>
+            {sharing ? 'Preparing…' : 'Share a progress summary'}
+          </Text>
+        </Pressable>
       </View>
 
       {/* ---------- Reminders ---------- */}
@@ -497,6 +561,21 @@ const createStyles = (t: Theme) =>
       padding: 16,
       marginBottom: 18,
     },
+    cardHighlight: { borderColor: t.primaryDim, backgroundColor: t.primaryTintAlt },
+    privacyNote: {
+      flexDirection: 'row',
+      gap: 9,
+      alignItems: 'flex-start',
+      backgroundColor: t.surfaceAlt,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: t.borderMuted,
+      padding: 12,
+      marginTop: 4,
+      marginBottom: 14,
+    },
+    privacyNoteText: { color: t.muted, fontSize: 12, lineHeight: 18, flex: 1 },
+    privacyNoteStrong: { color: t.inkSoft, fontWeight: '700' },
     cardTitle: { color: t.primary, fontSize: 17, fontWeight: '700', marginBottom: 6 },
     cardNote: { color: t.secondary, fontSize: 13, lineHeight: 19, marginBottom: 10 },
 
