@@ -12,7 +12,8 @@
     "lint": "expo lint",
     "sync-achievements": "node ./scripts/generate-achievements.js",
     "sync-heroes": "node ./scripts/generate-heroes.js",
-    "optimise-assets": "node ./scripts/optimise-assets.js"
+    "optimise-assets": "node ./scripts/optimise-assets.js",
+    "check-content": "node ./scripts/check-content.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

@@ -1,5 +1,66 @@
 import { ChallengeDayDef } from './types';
 
+/* ============================================================================
+   EDITING THE WORDING — a guide for Andrew, not for a developer
+
+   This file is the actual words of Level 1. You can change any of them yourself
+   and see it on your phone within a second or two.
+
+   HOW
+   1. Have `npx expo start` running.
+   2. Change the text between the ` backticks ` below.
+   3. Save. Expo reloads on its own — no rebuild, no restart.
+   4. Before you commit, run:  npm run check-content
+      That checks every day for the mistakes listed below and tells you in plain
+      English if something is wrong. It is much faster than finding out from a
+      blank screen on your phone.
+
+   THE THREE RULES
+
+   1. Only ever type BETWEEN the backticks. Leave everything else alone —
+      the `id:`, `day:`, `type:`, the commas, the brackets.
+
+          title: `Avoid-Less`,
+                 ^          ^   change what's in here, not the marks themselves
+
+   2. Never type a backtick ` inside your text, and never type  ${  .
+      Those two are the only characters that break the app. Apostrophes are
+      completely fine — don't it's you're all work normally.
+
+   3. Curly quotes “ ” around quotations, and  ~ Author  after the closing one:
+
+          quote: `“The success you seek is in the work you are avoiding.” ~ Sharyn Brown`,
+
+      The app splits that itself and puts the author on its own line, centred.
+      Don't add the line break yourself.
+
+   SPACING — you are in charge
+
+   The app only lays text out for you when you haven't. Write a lesson as one
+   paragraph and it puts each sentence on its own line automatically:
+
+          lesson: `Avoidance is rarely laziness. It points at what matters.`
+
+              ->  Avoidance is rarely laziness.
+                  It points at what matters.
+
+   The moment you put in your own line breaks, the app stops interfering and
+   gives you exactly the lines you typed:
+
+          lesson: `Avoidance is rarely laziness.
+   It points at what matters most.
+   Today, just notice it.`
+
+      Leading spaces on your lines are ignored, so indent however looks tidy.
+      Two short sentences you want kept together? Put them on one line.
+
+   WHAT NOT TO CHANGE WITHOUT ASKING
+   - `id:` — the day's responses are stored against it. Change it and anyone who
+     has already answered that day loses their answer.
+   - `day:` — the day number. It controls the order and the unlock date.
+   - `type:` — what kind of input the question is (textarea, rating10, and so on).
+   ============================================================================ */
+
 // LEVEL 1: FOUNDATION - full 30 days, transcribed from the live iThrive30 Level 1 course.
 export const LEVEL_1_DAYS: ChallengeDayDef[] = [
   {

@@ -73,13 +73,21 @@ export function splitSentences(text: string): string[] {
 /**
  * Turns a block of prose into the lines to render.
  *
- * Authored line breaks win: if the writer already broke the text up, that is respected and
- * each of their paragraphs is then split into its own sentences.
+ * **The writer's own line breaks always win.** If the text contains any line break at all,
+ * it is rendered exactly as written, one line per line, and nothing is split automatically.
+ * Only text written as a single unbroken block gets the sentence-per-line treatment.
+ *
+ * That rule is what makes the content files editable without touching this code: type the
+ * lines where you want them and you get them, leave it as a paragraph and the app lays it
+ * out sensibly. See the editing guide at the top of level1-foundation.ts.
  */
 export function toReadableLines(text: string | undefined | null): string[] {
   if (!text) return [];
-  return text
-    .split(/\n+/)
-    .flatMap((paragraph) => splitSentences(paragraph))
-    .filter(Boolean);
+
+  const authored = text.split('\n').map((line) => line.trim());
+  const hasAuthoredBreaks = authored.filter(Boolean).length > 1;
+
+  if (hasAuthoredBreaks) return authored.filter(Boolean);
+
+  return splitSentences(text).filter(Boolean);
 }
