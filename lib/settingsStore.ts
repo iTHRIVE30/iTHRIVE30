@@ -36,6 +36,12 @@ export type Settings = {
   eveningReminder: boolean;
   eveningTime: string;
   /**
+   * ISO timestamp of when the one-time reminder offer on Today was answered (either way),
+   * or '' if it hasn't been. It is offered once, on a later day after something has been
+   * logged - never after a missed day, which would tell someone the app noticed the gap.
+   */
+  reminderOfferAt: string;
+  /**
    * ISO timestamp of when the first-run cards were dismissed, or '' if they haven't been.
    * Gated on this alone - never on habit data. Onboarding explains the programme; it must
    * not double as a judgement about whether someone has started properly.
@@ -60,6 +66,7 @@ const DEFAULTS: Omit<Settings, 'installId'> = {
   morningTime: '07:00',
   eveningReminder: false,
   eveningTime: '20:30',
+  reminderOfferAt: '',
   onboardedAt: '',
   crashReports: true,
   schemaVersion: SCHEMA_VERSION,

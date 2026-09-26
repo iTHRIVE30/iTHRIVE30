@@ -1834,7 +1834,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     category: 'Challenge & Program',
     tier: null,
     name: 'Foundation Complete',
-    requirement: 'Complete all 30 days of Level 1 (Foundation)',
+    requirement: 'Complete all 30 days of Level 1',
     points: 1500,
     rule: { kind: 'levelComplete', level: 1 },
   },

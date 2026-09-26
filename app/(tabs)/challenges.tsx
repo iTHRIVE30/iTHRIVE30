@@ -5,6 +5,8 @@ import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { markScreenVisited, recordChallengeEdit } from '../../lib/rewardEvents';
 import { parseQuote } from '../../lib/dailyHero';
 import { toReadableLines } from '../../lib/prose';
+import { personaliseDay } from '../../lib/personalise';
+import { getSettings } from '../../lib/settingsStore';
 import {
   LEVELS,
   LevelDef,
@@ -172,6 +174,7 @@ export default function ChallengesScreen() {
   const [responses, setResponses] = useState<ChallengeResponses>({});
 
   const [activeDay, setActiveDay] = useState<ChallengeDayDef | null>(null);
+  const [firstName, setFirstName] = useState('');
   const [draftAnswers, setDraftAnswers] = useState<ChallengeAnswer[]>([]);
 
   const [showMoodPopup, setShowMoodPopup] = useState(false);
@@ -213,6 +216,7 @@ export default function ChallengesScreen() {
   useFocusEffect(
     useCallback(() => {
       markScreenVisited('challenges');
+      getSettings().then((s) => setFirstName(s.firstName)).catch(() => {});
       loadLevels();
       if (selectedLevel) loadLevelDetail(selectedLevel);
     }, [loadLevels, loadLevelDetail, selectedLevel])
@@ -363,11 +367,15 @@ export default function ChallengesScreen() {
 
   const actionLabel = (activeDay?.doThisLabel || 'Do This').toUpperCase();
 
+  // What the modal shows: the day with {name} filled in. Display only - saving still goes
+  // through activeDay and the answers, untouched. See lib/personalise.ts.
+  const shownDay = activeDay ? personaliseDay(activeDay, firstName) : null;
+
   // Presentation only - no word is changed. See lib/prose.ts.
-  const quote = parseQuote(activeDay?.quote ?? '');
-  const lessonLines = toReadableLines(activeDay?.lesson);
-  const doThisLines = toReadableLines(activeDay?.doThis);
-  const goDeeperLines = toReadableLines(activeDay?.goDeeper);
+  const quote = parseQuote(shownDay?.quote ?? '');
+  const lessonLines = toReadableLines(shownDay?.lesson);
+  const doThisLines = toReadableLines(shownDay?.doThis);
+  const goDeeperLines = toReadableLines(shownDay?.goDeeper);
 
   // ---------- Levels list view ----------
   if (view === 'levels') {
@@ -499,8 +507,20 @@ export default function ChallengesScreen() {
               keyboardDismissMode="interactive"
             >
               <Text style={styles.modalDay}>DAY {activeDay?.day}</Text>
-              {!!activeDay?.theme && <Text style={styles.themeTag}>{activeDay.theme}</Text>}
-              <Text style={styles.modalTitle}>{activeDay?.title}</Text>
+              {!!shownDay?.theme && <Text style={styles.themeTag}>{shownDay.theme}</Text>}
+              <Text style={styles.modalTitle}>{shownDay?.title}</Text>
+
+              {/*
+                The iTHRIVE30 voice line: the app speaking straight to the Thriver, before
+                the quote. It is the brand's own words, so it is set apart from the lesson
+                body and labelled, rather than reading as a first line of the lesson.
+              */}
+              {!!shownDay?.voice && (
+                <View style={styles.voiceBlock}>
+                  <Text style={styles.voiceLabel}>iTHRIVE30</Text>
+                  <Text style={styles.voiceText}>{shownDay.voice}</Text>
+                </View>
+              )}
 
               {/*
                 The quote is the day's centrepiece, so it is set as one: centred, larger,
@@ -529,13 +549,29 @@ export default function ChallengesScreen() {
                 </View>
               )}
 
-              {!!activeDay?.worksheetTitle && <Text style={styles.worksheetTitle}>{activeDay.worksheetTitle}</Text>}
+              {/* The affirmation closes the reading half of the day, in the Thriver's own
+                  first person. It already carries its curly quote marks in the content. */}
+              {!!shownDay?.affirmation && (
+                <View style={styles.affirmationBlock}>
+                  <Text style={styles.affirmationText}>{shownDay.affirmation}</Text>
+                </View>
+              )}
+
+              {/* Only a handful of days carry a sourced fact. */}
+              {!!shownDay?.fact && (
+                <View style={styles.factBlock}>
+                  <Text style={styles.factLabel}>FACT</Text>
+                  <Text style={styles.factText}>{shownDay.fact}</Text>
+                </View>
+              )}
+
+              {!!shownDay?.worksheetTitle && <Text style={styles.worksheetTitle}>{shownDay.worksheetTitle}</Text>}
 
               {activeDay && activeDay.fields.length === 0 && (
                 <Text style={styles.noFieldsNote}>This day has no worksheet fields yet.</Text>
               )}
 
-              {activeDay?.fields.map((field, i) => (
+              {shownDay?.fields.map((field, i) => (
                 <View
                   key={i}
                   style={{ marginTop: 18 }}
@@ -633,6 +669,37 @@ const createStyles = (t: Theme) =>
     modalCard: { backgroundColor: t.surfaceSunken, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '85%', borderWidth: 1, borderColor: t.border },
     modalDay: { color: t.primaryDim, fontSize: 12, fontWeight: '700', letterSpacing: 1.4, marginBottom: 6 },
     modalTitle: { color: t.primary, fontSize: 24, fontWeight: '700', lineHeight: 31, marginBottom: 4 },
+    voiceBlock: {
+      marginTop: 20,
+      paddingLeft: 14,
+      borderLeftWidth: 2,
+      borderLeftColor: t.primaryDim,
+      gap: 6,
+    },
+    voiceLabel: { color: t.primary, fontSize: 10, fontWeight: '700', letterSpacing: 1.6 },
+    voiceText: { color: t.inkSoft, fontSize: 16, lineHeight: 25 },
+
+    affirmationBlock: {
+      marginTop: 28,
+      backgroundColor: t.primaryTint,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: t.primaryTintBorder,
+      paddingVertical: 18,
+      paddingHorizontal: 18,
+    },
+    affirmationText: {
+      color: t.encouragement,
+      fontSize: 16,
+      lineHeight: 25,
+      fontStyle: 'italic',
+      textAlign: 'center',
+    },
+
+    factBlock: { marginTop: 22, gap: 6 },
+    factLabel: { color: t.secondaryDim, fontSize: 10, fontWeight: '700', letterSpacing: 1.6 },
+    factText: { color: t.secondary, fontSize: 14, lineHeight: 22 },
+
     quoteBlock: { alignItems: 'center', marginTop: 26, marginBottom: 30, paddingHorizontal: 4 },
     quoteRule: { width: 34, height: 1, backgroundColor: t.primaryDim, marginVertical: 16 },
     quoteText: {

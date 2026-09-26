@@ -22,8 +22,17 @@ export type ChallengeDayDef = {
   day: number; // 1-30, position within its level
   title: string;
   theme: string;
+  /**
+   * The iTHRIVE30 voice line - the app speaking straight to the Thriver, one or two short
+   * sentences, before the quote. Optional: levels written before the v5 format have none.
+   */
+  voice?: string;
   quote: string;
   lesson: string;
+  /** The day's affirmation, in the Thriver's own first person. Set in quote marks by the UI. */
+  affirmation?: string;
+  /** An optional sourced fact. Only a handful of days carry one. */
+  fact?: string;
   worksheetTitle: string; // heading shown above the fields - empty = no heading shown
   fields: ChallengeField[]; // the interactive worksheet fields for this day
   doThisLabel: string; // empty string = falls back to "Do This" in the UI

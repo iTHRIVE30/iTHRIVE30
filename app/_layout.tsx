@@ -39,7 +39,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 type Phase = 'loading' | 'onboarding' | 'hero' | 'ready';
 
 /** What the loading ring is actually waiting on: which opening screen, if any, comes next. */
-type Opening = { hero: DailyHeroContent | null; needsOnboarding: boolean };
+type Opening = { hero: DailyHeroContent | null; needsOnboarding: boolean; firstName: string };
 
 export default function RootLayout() {
   // The theme has to sit outside everything that reads it, including the opening sequence.
@@ -53,7 +53,7 @@ export default function RootLayout() {
 function RootLayoutInner() {
   const theme = useTheme();
   const [phase, setPhase] = useState<Phase>('loading');
-  const [opening, setOpening] = useState<Opening>({ hero: null, needsOnboarding: false });
+  const [opening, setOpening] = useState<Opening>({ hero: null, needsOnboarding: false, firstName: '' });
 
   // Decide what follows the loading ring while it is still sweeping, and hand the promise
   // to SplashLoader so the ring hitting 100% means genuinely ready. Each read is guarded
@@ -62,9 +62,12 @@ function RootLayoutInner() {
     (async () => {
       let needsOnboarding = false;
       let hero: DailyHeroContent | null = null;
+      let firstName = '';
 
       try {
-        needsOnboarding = !(await getSettings()).onboardedAt;
+        const settings = await getSettings();
+        needsOnboarding = !settings.onboardedAt;
+        firstName = settings.firstName;
       } catch {
         // Unreadable settings: don't force onboarding on someone who may have seen it.
       }
@@ -75,7 +78,7 @@ function RootLayoutInner() {
         hero = null;
       }
 
-      return { hero, needsOnboarding };
+      return { hero, needsOnboarding, firstName };
     })()
   );
 
@@ -106,9 +109,12 @@ function RootLayoutInner() {
    * has already had the newcomer's full attention for four cards, and stacking a second
    * full-screen welcome behind it is one screen too many on the very first launch. The hero
    * greets them tomorrow instead.
+   *
+   * The first name from the last card goes in the same write as `onboardedAt` - two
+   * separate saves could each read the old settings and one would undo the other.
    */
-  const handleOnboardingDone = useCallback(() => {
-    saveSettings({ onboardedAt: new Date().toISOString() }).catch(() => {});
+  const handleOnboardingDone = useCallback((firstName: string) => {
+    saveSettings({ onboardedAt: new Date().toISOString(), ...(firstName ? { firstName } : {}) }).catch(() => {});
     markDailyHeroSeen();
     setPhase('ready');
   }, []);
@@ -145,7 +151,7 @@ function RootLayoutInner() {
       {phase === 'loading' && <SplashLoader onDone={handleLoaderDone} holdUntil={prepare} />}
       {phase === 'onboarding' && <Onboarding onDone={handleOnboardingDone} />}
       {phase === 'hero' && opening.hero && (
-        <DailyHero content={opening.hero} onDismiss={handleHeroDismiss} />
+        <DailyHero content={opening.hero} firstName={opening.firstName} onDismiss={handleHeroDismiss} />
       )}
 
       <StatusBar style={theme.name === 'dark' ? 'light' : 'dark'} />

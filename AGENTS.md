@@ -8,8 +8,8 @@ https://docs.expo.dev/versions/v57.0.0/ rather than relying on training data.
 ## Project overview
 iTHRIVE30 is a React Native (Expo) mobile app for Bondi Project Global, a
 structured 30-day-at-a-time personal development platform. Content is
-organized into named Levels (1 = Foundation, 2 = Awareness, 3 = Discovery,
-4-12+ planned). Brand: black `#0B0B0B` + gold `#D4AF37`, tagline "Your Next
+organized into named Levels (1 = Your Next Best Self Awaits, 2 = Awareness,
+3 = Discovery, 4-12+ planned). Brand: black `#0B0B0B` + gold `#D4AF37`, tagline "Your Next
 Best Self Awaits," motto "Change · Grow · Evolve."
 
 **Who's who:** Andrew builds the app (non-developer). Sharyn is the founder
@@ -73,6 +73,7 @@ day after it shipped).
   daily notifications (see their own sections below)
 - `constants/theme.ts` / `hooks/useTheme.tsx` — the theme token layer.
   **No screen may hardcode a colour any more** (see below)
+- `lib/growthTree.ts` / `app/(tabs)/growth-tree.tsx` — the Growth Tree (see below)
 - `lib/montageStore.ts` / `components/TransformationTile.tsx` /
   `app/(tabs)/montage.tsx` — transformation montages (see below)
 - `legal/privacy-policy.md` (source of truth, hand-edited) and
@@ -108,7 +109,11 @@ day after it shipped).
   instead of extending it)
 
 ## Levels & challenge content
-- Level 1 (Foundation) is fully written and live in testing.
+- Level 1 ("Your Next Best Self Awaits") is fully written and live in testing. Its content
+  is draft v5 from `iTHRIVE30_Level1_YourNextBestSelfAwaits_v5_1.docx`: six cycles of five
+  days, each day carrying a `voice` line, quote, lesson, `affirmation` and sometimes a
+  `fact`. **The day ids stay `l1-d1`...`l1-d30`** — responses are stored against them, so
+  renaming them to the doc's `l1.d01` style would wipe existing testers' answers.
 - Level 2 (Awareness) and Level 3 (Discovery) have partial/placeholder
   content and are scheduled for a major rewrite. **Do not edit
   `level2-awareness.ts` or `level3-discovery.ts` content, or build features
@@ -365,6 +370,31 @@ the one place it is counted.)
 - The before and after are **the same size, same treatment**. Enlarging or warming the
   "after" would be the app editorialising about someone's body.
 
+## Growth Tree
+`app/(tabs)/growth-tree.tsx` + `lib/growthTree.ts`, reached from the header menu. One
+picture of the whole programme: the trunk everyone climbs (Levels 1-3), the fork (Level 4),
+then a branch per **area of life**, each holding the levels allocated to it. It fills in
+from real progress, so it reads as growth over time rather than as a map.
+- **`lib/growthTree.ts` is the only file to edit when challenges get allocated to
+  branches.** `TRUNK_LEVELS`, `FORK_LEVEL` and `BRANCHES` define the shape and every
+  coordinate is computed from them — change a branch's levels, give branches different
+  lengths, add or remove a branch, and the screen redraws with no edit to the component.
+  Verified against 1, 2, 3 and 4 branches and an uneven 2/5/3 split. Past a readable
+  column width the canopy scrolls sideways rather than squeezing.
+- **Level names are never stored here.** They come from `LEVELS` in `challengeStore`, so
+  the tree and the Challenges tab cannot disagree. A level still named `Level 7` reads as
+  "Locked" until it is named there.
+- **`REVEAL_AT_LEVEL = 3` is deliberate — do not remove it as a "never-blocking" fix.**
+  Never-blocking is about the user's own progress: days and challenges always unlock on
+  schedule and nothing earned is withheld. This is different. Showing a sixteen-level map
+  to someone on day three buries the one step they are meant to take today under a picture
+  of everything they have not done. Andrew's call, for that reason — note it points the
+  other way from the montage decision above, which is about a thing the user has *made*.
+- **The locked screen shows nothing of the tree** — no branches, no level count, no greyed
+  silhouette. A greyed-out map is still a map. The header menu row stays visible but
+  dimmed with a lock, so it does not appear from nowhere weeks later.
+- Branch names are placeholders until Sharyn and Andrew decide them.
+
 ## Reminders (`lib/reminders.ts`)
 Morning and evening, both off by default, each with its own time. **Local notifications
 only** — scheduled and fired by the device. No push server, no token registration, no
@@ -382,20 +412,38 @@ backend, no cost.
   revoked or the app is reinstalled. Never throws.
 - Guarded off in Expo Go, with the reason shown in Settings rather than a dead switch.
 
+## Names, not gender (`lib/personalise.ts`)
+- **The app talks to people as "you", and by first name — never by gender.** A pronoun
+  setting was considered and rejected: the copy is second person, so it reads right for
+  everyone with no sensitive question on setup and no three versions to maintain. Don't
+  add one; write new copy as "you", never "she"/"he"/"as a woman".
+- `{name}` in challenge content becomes the first name, filled in for display only
+  (`personaliseDay`) — never in quotes, never in saved answers. With no name it drops out
+  cleanly ("{name}, you showed up." → "You showed up."). `npm run check-content` rejects
+  any other `{tag}`. Once a day at most.
+- Greetings: the Daily Hero always ("Good morning" / "Good morning, Andrew"); Today only
+  when a name is set.
+
 ## First-run onboarding
-`components/Onboarding.tsx`, four swipe cards, shown once. An overlay from
-`app/_layout.tsx` above the `Stack` — never a route, so the router can't navigate back
+`components/Onboarding.tsx`, four swipe cards plus an optional first-name card, shown once.
+- **The name is the only Settings question asked on day one.** Theme follows the phone,
+  date of birth stays in Settings (asking it up front reads as an age gate), and reminders
+  are offered later by `components/ReminderOffer.tsx`: once, on Today, the first time
+  someone returns on a later day having logged something. **Never after a missed day** —
+  that tells them the app noticed the gap. Hidden in Expo Go, where reminders can't run.
+- The name is saved in the same write as `onboardedAt` — two separate saves race.
+- An overlay from `app/_layout.tsx` above the `Stack` — never a route, so the router can't navigate back
 into it. Gated on `settings.onboardedAt` **alone, never on habit data**: it explains the
 programme, it does not judge whether someone has started properly.
 - **Card three is the load-bearing one.** "You cannot fall behind" is the least obvious
   thing about this programme from the interface, and someone who believes they can fail on
   day three stops on day three.
-- On first run the Daily Hero is skipped and marked seen. Four cards plus a second
+- On first run the Daily Hero is skipped and marked seen. Five cards plus a second
   full-screen welcome is one screen too many on a first launch; the hero greets them
   tomorrow.
 - Badge `a287` ("Complete onboarding and set up your first day") is **not** gated on this —
   it already runs on `anyHabitDays: 1` and deliberately stays there. Ticking a habit is the
-  real milestone; dismissing four cards is not.
+  real milestone; dismissing the setup cards is not.
 
 ## Teams tab
 `app/(tabs)/teams.tsx` is a deliberate "coming soon" screen, and the copy now says what

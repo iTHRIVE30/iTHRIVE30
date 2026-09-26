@@ -116,6 +116,20 @@ for (const file of FILES) {
         warnings.push(`${at}: ${key} has unbalanced curly quotes (${open} “ and ${close} ”).`);
       }
     }
+
+    // 6. {name} is the only tag the app understands. Anything else in curly brackets would
+    //    show up on screen exactly as typed. See lib/personalise.ts.
+    for (const tag of value.match(/\{[^}]*\}/g) || []) {
+      if (tag !== '{name}') {
+        problems.push(
+          `${at}: "${tag}" isn't a tag the app knows, so it will show on screen as typed.\n` +
+            `   The only one is {name} - lower case, no spaces.`
+        );
+      }
+    }
+    if (key === 'quote' && value.includes('{name}')) {
+      problems.push(`${at}: {name} can't go in a quote - those are someone else's words.`);
+    }
   }
 
   // 6. Day numbers should be unique and in order.

@@ -62,6 +62,9 @@ import {
   recordDayCompleted,
 } from '../../lib/rewardEvents';
 import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
+import ReminderOffer from '../../components/ReminderOffer';
+import { greeting } from '../../lib/personalise';
+import { getSettings } from '../../lib/settingsStore';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -152,6 +155,7 @@ export default function TodayScreen() {
   const [pedometerAvailable, setPedometerAvailable] = useState(true);
   const [selfiePhotoUri, setSelfiePhotoUri] = useState<string | null>(null);
 
+  const [firstName, setFirstName] = useState('');
   const [levelName, setLevelName] = useState('');
   const [programDay, setProgramDay] = useState(1);
   const [todayChallengeTitle, setTodayChallengeTitle] = useState<string | null>(null);
@@ -272,6 +276,8 @@ export default function TodayScreen() {
   useFocusEffect(
     useCallback(() => {
       markScreenVisited('today');
+      // Re-read on focus so a name changed in Settings shows the moment you come back.
+      getSettings().then((s) => setFirstName(s.firstName)).catch(() => {});
       refreshLevels();
       refreshDayStatuses();
       if (isToday) {
@@ -483,6 +489,8 @@ export default function TodayScreen() {
         {/* Tagline cut follows the ground, not the brand - the white cut vanishes on ivory. */}
         <Image source={LOGO_IS_HERE[t.logoTone]} style={styles.logo} resizeMode="contain" />
 
+        {/* Only when there's a name - without one, a bare "Good morning" adds nothing. */}
+        {isToday && !!firstName.trim() && <Text style={styles.greeting}>{greeting(firstName)}</Text>}
         <Text style={styles.headerTitle}>Today iTHRIVE.</Text>
         <Text style={styles.levelLabel}>{levelName} · Day {programDay} of 30</Text>
         {isToday && !!todayChallengeTitle && (
@@ -499,6 +507,8 @@ export default function TodayScreen() {
             <Ionicons name="chevron-forward" size={18} color={t.primaryDim} />
           </Pressable>
         )}
+
+        {isToday && <ReminderOffer hasLoggedAnything={Object.values(dayHasData).some(Boolean)} />}
 
         {allComplete && isToday && (
           <Animated.View style={[styles.celebrateBanner, { transform: [{ scale: celebrateAnim }], opacity: celebrateAnim }]}>
@@ -891,6 +901,7 @@ const createStyles = (t: Theme) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: t.ground },
     logo: { width: '100%', height: 88, marginBottom: 8 },
+    greeting: { color: t.secondary, fontSize: 15, fontWeight: '600', marginBottom: 2 },
     headerTitle: { color: t.primary, fontSize: 24, fontWeight: '800', marginBottom: 2 },
     levelLabel: { color: t.primaryDim, fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 14 },
     dayHeaderTextWrap: { flex: 1 },

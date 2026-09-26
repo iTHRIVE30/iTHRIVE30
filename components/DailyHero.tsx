@@ -5,6 +5,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { DailyHeroContent } from '../lib/dailyHero';
 import { LOGO_CGE } from '../lib/brand';
 import { DarkTheme } from '../constants/theme';
+import { greeting } from '../lib/personalise';
 
 // Like the opening sequence, the Daily Hero stays on the brand palette in BOTH themes.
 // Its ground is a dark photo scrim either way, so the light palette's sage primary would
@@ -22,9 +23,12 @@ const BLACK = DarkTheme.ground;
  */
 export default function DailyHero({
   content,
+  firstName,
   onDismiss,
 }: {
   content: DailyHeroContent;
+  /** Optional. "Good morning, Andrew" with it, plain "Good morning" without. */
+  firstName?: string;
   onDismiss: () => void;
 }) {
   const { width, height } = useWindowDimensions();
@@ -88,6 +92,8 @@ export default function DailyHero({
         </Animated.View>
 
         <Animated.View style={[styles.middle, { opacity: enter, transform: [{ translateY: rise }] }]}>
+          <Text style={styles.greeting}>{greeting(firstName)}</Text>
+
           {!!content.levelName && (
             <Text style={styles.eyebrow}>
               {content.levelName.toUpperCase()}
@@ -141,6 +147,7 @@ const styles = StyleSheet.create({
   logo: { width: 190, height: 76, alignSelf: 'center' },
 
   middle: { flex: 1, justifyContent: 'center', paddingBottom: 20 },
+  greeting: { color: '#fff', fontSize: 20, fontWeight: '600', marginBottom: 14, ...TEXT_SHADOW },
   eyebrow: { color: GOLD, fontSize: 11, fontWeight: '800', letterSpacing: 2.2, marginBottom: 18, ...TEXT_SHADOW },
   quoteMark: { color: GOLD, fontSize: 62, lineHeight: 62, height: 40, fontWeight: '700', opacity: 0.55, ...TEXT_SHADOW },
   quote: { color: '#fff', fontSize: 26, lineHeight: 36, fontWeight: '600', fontStyle: 'italic', ...TEXT_SHADOW },

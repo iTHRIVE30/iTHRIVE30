@@ -322,6 +322,9 @@ const BESPOKE_RULES = {
  * that describes a mechanic that has since been removed.
  */
 const TEXT_OVERRIDES = {
+  // Level 1 was renamed from Foundation to "Your Next Best Self Awaits" with the v5
+  // rewrite. The badge keeps its own name; only the requirement names the level.
+  203: 'Complete all 30 days of Level 1',
   226: 'Unlock Level 2 by completing Level 1',
   227: 'Unlock Level 4 by completing Level 3',
   228: 'Unlock Level 8 by completing Level 7',

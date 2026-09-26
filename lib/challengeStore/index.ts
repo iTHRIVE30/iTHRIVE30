@@ -20,15 +20,25 @@ const LEVEL_START_KEY_PREFIX = 'ithrive30_level_start_';
 const RESPONSES_KEY = 'ithrive30_challenge_responses_v4';
 
 // ---------- Levels ----------
-// Level 1 is Foundation (the real, live iThrive30 Level 1 course). Discovery moved to Level 3
-// (its old slot at Level 1 is taken, and Level 3/Compass had no content yet, so nothing real
-// gets displaced). Awareness stays at Level 2.
+// Level 1 is "Your Next Best Self Awaits" (draft v5 of the real, live iThrive30 Level 1
+// course). Discovery moved to Level 3 (its old slot at Level 1 is taken, and Level 3/Compass
+// had no content yet, so nothing real gets displaced). Awareness stays at Level 2.
+//
+// These names are the single source of truth for level names everywhere, including the
+// Growth Tree. Levels 2 and 3 still read Awareness and Discovery here; the Growth Tree
+// design sheet calls them "Design Your Life" and "The Choice is Yours". Rename them here
+// once that is confirmed and the tree follows automatically.
 
 const NAMED_LEVELS: { number: number; name: string; introMessage?: string }[] = [
   {
     number: 1,
-    name: 'Foundation',
-    introMessage: `Welcome to iTHRIVE30! Your next best self awaits. Dive into this first challenge and lean into each step as it guides you through change, supports you to grow and ultimately evolve!`,
+    name: 'Your Next Best Self Awaits',
+    // The v5 "Before You Begin" screens, one line each, in order.
+    introMessage: `Welcome, and well done.
+Your future Next Best Self already exists.
+They are waiting for you on the other side of this challenge.
+The changes you want are in the work you have been avoiding.
+Let's begin.`,
   },
   { number: 2, name: 'Awareness' },
   { number: 3, name: 'Discovery' },
