@@ -71,9 +71,11 @@ day after it shipped).
 - `lib/settingsStore.ts` / `lib/backupStore.ts` / `lib/monitoring.ts` /
   `lib/reminders.ts` — Settings, data export/restore/erase, crash reporting, and
   daily notifications (see their own sections below)
+- `lib/entitlements.ts` — what the user has paid for. No purchasing yet; it marks where the
+  in-app purchase checks go (tracker-only here, Levels in `isLevelUnlocked()`)
 - `constants/theme.ts` / `hooks/useTheme.tsx` — the theme token layer.
   **No screen may hardcode a colour any more** (see below)
-- `lib/growthTree.ts` / `app/(tabs)/growth-tree.tsx` — the Growth Tree (see below)
+- `lib/growthTree.ts` / `components/GrowthTree.tsx` — the Growth Tree, inside Challenges (see below)
 - `lib/montageStore.ts` / `components/TransformationTile.tsx` /
   `app/(tabs)/montage.tsx` — transformation montages (see below)
 - `legal/privacy-policy.md` (source of truth, hand-edited) and
@@ -118,9 +120,20 @@ day after it shipped).
   content and are scheduled for a major rewrite. **Do not edit
   `level2-awareness.ts` or `level3-discovery.ts` content, or build features
   that assume their current content is final, without explicit instruction.**
-- `isLevelUnlocked()` / `getLevelProgress()` define "level complete" as *all
-  currently-written days having a submitted response* — not literal day 30.
-  That's intentional; content is still being filled in.
+- **Levels are 1-6 only** (`LEVEL_COUNT` in `challengeStore/index.ts`). 1-3 are written;
+  4-6 are unnamed "Coming soon" teasers — any level with no content renders as one. Levels
+  7-30 were deleted; raise `LEVEL_COUNT` only when more are actually planned.
+- **A level unlocks when the previous level's final day (Day 30) is answered** —
+  `isLevelUnlocked()`. Skipped earlier days don't hold it back; they stay open. This is
+  the **single gate between levels and is where the in-app purchase check will go** (own
+  the level, or hold a 3/6-month, annual or lifetime bundle). Keep every screen going
+  through it so the paywall lands everywhere at once.
+- **The day someone is "up to"** is `getCurrentChallengeDay()`: the first unanswered day
+  that has opened on the calendar (skip Days 5-6 → Day 5). Days within a level still open
+  one per calendar day from its start date. The current level is the highest level the
+  user has **started** (`getCurrentLevelNumber()`) — unlocking is not starting.
+- `getLevelProgress()` is a count of answered days — badges and the Growth Tree read "every
+  day answered" from it. It is **not** the unlock rule.
 
 ## Today tab
 - Autosave throughout, no submit button, no single journal-entry field.
@@ -131,11 +144,27 @@ day after it shipped).
 - Per-habit detail panels already exist in `habitStore`: activity
   (multi-select + other), fruit (free text), water (0-10 glass scale, goal 8),
   reading (book title/author or podcast title/host/guest).
-- The day strip runs **a whole Level, Day 1 to today** — scroll right back to where the
-  Level started. A picker above it switches between Levels already begun, which is how
-  older history is reached. `getStartedLevels()` supplies the day-number -> real-date
-  mapping; `getLevelStartDate()` is deliberately read-only so merely *viewing* a Level
-  never starts its 30-day clock.
+- **The day strip follows the Level and never holds more than 30 days**
+  (`STRIP_MAX_DAYS`). Inside a Level it is Day 1 to today, tiles labelled D1-D30. Past
+  Day 30 with the next Level not yet started it **rolls** — add today, drop the oldest —
+  so today is always on it (tiles outside a Level show the month instead of a D-number).
+  An earlier version stopped at Day 30, leaving today off the strip. A Level picker
+  switches to finished Levels as HISTORY (their own 30 days). Everything older than the
+  strip is reached from the Progress **Calendar**, which opens a date here via the `date`
+  route param.
+- A brief calendar-only version (180-day strip, no Level picker) was built and reverted
+  the same day: calendar-only is now the paid **tracker-only** mode, not the default.
+- The header link ("Level · Day N of 30" + challenge title) shows
+  `getCurrentChallengeDay()` and opens that day on Challenges. The "Today's Challenge"
+  habit auto-ticks when *any* challenge day was first answered today (`answeredToday`).
+- **Day 30 answered → a choice card on Today:** start the next Level, or "Keep tracking my
+  habits only". The next Level's clock does **not** start by itself — only `startLevel()`
+  or opening it on the Challenges tab starts it.
+- **Tracker-only mode** (`settings.trackerOnly`): no Level running, the strip rolls by date
+  (30 max, back to the first day ever), no challenge link, and `getHabits()` leaves out
+  "Today's Challenge" everywhere so a full day still reaches 100%. It is a **paid option**:
+  `canUseTrackerOnly()` in `lib/entitlements.ts` returns true until purchasing exists. The
+  way back is the "Habit tracker only" card in Settings, shown only while it is on.
 - Day dots come from `getDaysWithData()` (two storage reads for the whole strip). The
   per-date `hasAnyDataForDate` would be hundreds of reads across 30 days.
 - **Scrolling the strip LOOKS. Only a tap SELECTS.** Do not add an `onScroll` /
@@ -175,7 +204,11 @@ day after it shipped).
   and its Cancel button are gone.
 
 ## Progress tab
-Four segments: **Table** (default) / **Graph** / **Goals** / **Milestones**.
+Five segments: **Table** (default) / **Calendar** / **Graph** / **Goals** / **Milestones**.
+- **Calendar** (`components/HabitCalendar.tsx`): every tracked day, month by month, back
+  to the first. Each Level's 30 days are shaded as a block in its `levelColors` colour with
+  D-numbers; Level chips jump to the month it began; a dot marks days with anything logged.
+  Tapping a day up to today opens it on Today (`router.push({ pathname: '/', params: { date } })`).
 - **Table**: 30-day habit tracker, green ticks only (no "missed" marker),
   horizontally scrollable, with a current/best streak column per habit and a
   daily %-complete summary row — modelled directly on Andrew's own Excel
@@ -309,8 +342,8 @@ credentials, which is investment-gated.
   highlights the card — the feature is available at any age, and a blank date of birth is
   never read as "probably a minor". Withholding anything by age would make it supervision
   imposed on a minor rather than something anyone can choose. Minimum age is **16**.
-- Settings has these cards: Your details, Appearance, Share your progress, Reminders,
-  Your data, Privacy, About.
+- Settings has these cards: Your details, Appearance, Share your progress, Habit tracker
+  only (shown only while tracker-only is on), Reminders, Your data, Privacy, About.
   Every one of its controls does something — **don't add a switch for a feature that
   isn't built**, which is the thing we fixed on Teams. Where a feature exists but can't
   run in the current environment (reminders in Expo Go), the row explains why instead.
@@ -371,7 +404,9 @@ the one place it is counted.)
   "after" would be the app editorialising about someone's body.
 
 ## Growth Tree
-`app/(tabs)/growth-tree.tsx` + `lib/growthTree.ts`, reached from the header menu. One
+`components/GrowthTree.tsx` + `lib/growthTree.ts`, shown as the **Growth Tree** view of the
+Challenges tab (a Levels / Growth Tree switch at the top) — not a separate screen, so there
+is one set of levels, not two. Tapping an open trunk level opens it. One
 picture of the whole programme: the trunk everyone climbs (Levels 1-3), the fork (Level 4),
 then a branch per **area of life**, each holding the levels allocated to it. It fills in
 from real progress, so it reads as growth over time rather than as a map.
@@ -384,16 +419,12 @@ from real progress, so it reads as growth over time rather than as a map.
 - **Level names are never stored here.** They come from `LEVELS` in `challengeStore`, so
   the tree and the Challenges tab cannot disagree. A level still named `Level 7` reads as
   "Locked" until it is named there.
-- **`REVEAL_AT_LEVEL = 3` is deliberate — do not remove it as a "never-blocking" fix.**
-  Never-blocking is about the user's own progress: days and challenges always unlock on
-  schedule and nothing earned is withheld. This is different. Showing a sixteen-level map
-  to someone on day three buries the one step they are meant to take today under a picture
-  of everything they have not done. Andrew's call, for that reason — note it points the
-  other way from the montage decision above, which is about a thing the user has *made*.
-- **The locked screen shows nothing of the tree** — no branches, no level count, no greyed
-  silhouette. A greyed-out map is still a map. The header menu row stays visible but
-  dimmed with a lock, so it does not appear from nowhere weeks later.
-- Branch names are placeholders until Sharyn and Andrew decide them.
+- **No reveal lock.** It used to stay hidden until Level 3 (`REVEAL_AT_LEVEL`) with a
+  locked header-menu row. Andrew removed that when the tree moved into Challenges: it is
+  visible from day one.
+- Branch names are placeholders until Sharyn and Andrew decide them. `BRANCHES` still
+  points at levels 5-16, which no longer exist in `LEVELS` — they draw as "Locked"
+  placeholders until the branch structure is decided.
 
 ## Reminders (`lib/reminders.ts`)
 Morning and evening, both off by default, each with its own time. **Local notifications

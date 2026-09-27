@@ -2,7 +2,7 @@ import { Share } from 'react-native';
 
 import { getSettings } from './settingsStore';
 import { getPerfectDayStreak, getTotalChallengesCompleted, getHabitStreaks } from './analytics';
-import { getCurrentLevelNumber, getLevelProgramDay, LEVELS } from './challengeStore';
+import { getCurrentLevelNumber, getCurrentChallengeDay, LEVELS } from './challengeStore';
 import { getGoals } from './journeyStore';
 
 /**
@@ -46,7 +46,7 @@ export async function buildProgressSummary(): Promise<ProgressSummary> {
     getGoals(),
   ]);
 
-  const levelDay = await getLevelProgramDay(levelNumber);
+  const levelDay = await getCurrentChallengeDay(levelNumber);
   const level = LEVELS.find((l) => l.number === levelNumber);
   const name = settings.firstName.trim();
 

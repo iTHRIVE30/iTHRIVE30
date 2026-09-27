@@ -20,7 +20,7 @@ const LEVEL_START_KEY_PREFIX = 'ithrive30_level_start_';
 const RESPONSES_KEY = 'ithrive30_challenge_responses_v4';
 
 // ---------- Levels ----------
-// Level 1 is "Your Next Best Self Awaits" (draft v5 of the real, live iThrive30 Level 1
+// Level 1 is "Your Next Best Self Awaits" (draft v5 of the real, live iTHRIVE30 Level 1
 // course). Discovery moved to Level 3 (its old slot at Level 1 is taken, and Level 3/Compass
 // had no content yet, so nothing real gets displaced). Awareness stays at Level 2.
 //
@@ -42,12 +42,18 @@ Let's begin.`,
   },
   { number: 2, name: 'Awareness' },
   { number: 3, name: 'Discovery' },
-  { number: 4, name: 'Enhance' },
-  { number: 5, name: 'Elevate' },
-  { number: 6, name: 'AMPLIFY' },
+  // Levels 4-6 are deliberately unnamed: they show as "coming soon" teasers on the
+  // Challenges tab until their content is written. Name them here when it is.
 ];
 
-export const LEVELS: LevelDef[] = Array.from({ length: 30 }, (_, i) => {
+/**
+ * How many levels exist at all. Levels 1-3 are written; 4-6 are teasers. Levels 7-30
+ * were removed - raise this when more are planned, not before, or they reappear as
+ * empty cards.
+ */
+const LEVEL_COUNT = 6;
+
+export const LEVELS: LevelDef[] = Array.from({ length: LEVEL_COUNT }, (_, i) => {
   const number = i + 1;
   const named = NAMED_LEVELS.find((l) => l.number === number);
   return {
@@ -220,9 +226,9 @@ export async function getCompletedChallenges(): Promise<{ [challengeId: string]:
 // ---------- Level progress & unlocking ----------
 
 /**
- * A level "completes" once every day that currently HAS content has a saved response.
- * Since some levels are only partly written so far, this bar rises naturally as more
- * days get content added - it doesn't require all 30 slots filled to unlock the next level.
+ * How many of a level's written days have a response. This is a count, not the unlock
+ * rule - a level with skipped days still unlocks the next one (see isLevelUnlocked).
+ * Badges and the Growth Tree use it to mean "every day answered".
  */
 export async function getLevelProgress(levelNumber: number): Promise<LevelProgress> {
   const days = getLevelDays(levelNumber);
@@ -231,33 +237,96 @@ export async function getLevelProgress(levelNumber: number): Promise<LevelProgre
   return { completedContentDays, totalContentDays: days.length };
 }
 
-export async function isLevelUnlocked(levelNumber: number): Promise<boolean> {
-  if (levelNumber <= 1) return true;
-  const prevProgress = await getLevelProgress(levelNumber - 1);
-  return prevProgress.totalContentDays > 0 && prevProgress.completedContentDays >= prevProgress.totalContentDays;
+/** A level's last written day - Day 30 once the level is fully written. */
+function finalDayOf(levelNumber: number): ChallengeDayDef | undefined {
+  return getLevelDays(levelNumber).reduce<ChallengeDayDef | undefined>(
+    (last, d) => (!last || d.day > last.day ? d : last),
+    undefined
+  );
 }
 
-/** The level the Today screen should reflect: the earliest unlocked level that isn't fully done yet. */
+/**
+ * A level opens when the previous level's final day (Day 30) has been answered. Skipped
+ * days earlier in that level don't hold it back - they stay open to come back to.
+ *
+ * THIS IS THE ONE GATE BETWEEN LEVELS. When in-app purchase arrives, the paywall check
+ * belongs here ("...and the user owns this level, or holds a bundle / subscription that
+ * covers it"), so Today, Challenges and the Growth Tree all respect it at once.
+ */
+export async function isLevelUnlocked(levelNumber: number, known?: ChallengeResponses): Promise<boolean> {
+  if (levelNumber <= 1) return true;
+  if (!LEVELS.some((l) => l.number === levelNumber)) return false;
+  const final = finalDayOf(levelNumber - 1);
+  if (!final) return false;
+  const responses = known ?? (await getChallengeResponses());
+  return !!responses[final.id];
+}
+
+/**
+ * The level the user is working in: the highest level they have actually STARTED.
+ *
+ * Unlocking is not starting. Answering Day 30 unlocks the next level, but its 30-day clock
+ * only starts when the user chooses it (startLevel, or opening it on the Challenges tab) -
+ * because at that point they may instead choose to keep the habit tracker only.
+ */
 export async function getCurrentLevelNumber(): Promise<number> {
+  let current = 1;
   for (const level of LEVELS) {
-    const unlocked = await isLevelUnlocked(level.number);
-    if (!unlocked) return Math.max(1, level.number - 1);
-    const progress = await getLevelProgress(level.number);
-    const isFullyDone = progress.totalContentDays > 0 && progress.completedContentDays >= progress.totalContentDays;
-    if (!isFullyDone) return level.number;
+    if (level.number === 1 || getLevelDays(level.number).length === 0) continue;
+    if (await getLevelStartDate(level.number)) current = level.number;
   }
-  return LEVELS[LEVELS.length - 1].number;
+  return current;
+}
+
+/** Starts a level's 30-day clock (a no-op if it has already started). */
+export async function startLevel(levelNumber: number): Promise<void> {
+  if (!(await isLevelUnlocked(levelNumber))) return;
+  await getOrCreateLevelStartDate(levelNumber);
+}
+
+/**
+ * The challenge day the user is up to: the first unanswered day that has opened on the
+ * calendar. Skip Days 5 and 6 and this is Day 5. Fully caught up, it is the latest day
+ * that has opened (already done). 0 if the level hasn't started.
+ */
+export async function getCurrentChallengeDay(levelNumber: number): Promise<number> {
+  const calendarDay = await getLevelProgramDay(levelNumber);
+  if (!calendarDay) return 0;
+  const responses = await getChallengeResponses();
+  const firstOpen = getLevelDays(levelNumber)
+    .filter((d) => d.day <= calendarDay)
+    .sort((a, b) => a.day - b.day)
+    .find((d) => !responses[d.id]);
+  return firstOpen?.day ?? calendarDay;
+}
+
+function localDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 export async function getTodayChallengeInfo(): Promise<TodayChallengeInfo> {
   const levelNumber = await getCurrentLevelNumber();
   const level = LEVELS.find((l) => l.number === levelNumber) || LEVELS[0];
-  const levelDay = await getLevelProgramDay(levelNumber);
+  const levelDay = await getCurrentChallengeDay(levelNumber);
   const challenge = getChallengeDay(levelNumber, levelDay);
-  let isDone = false;
-  if (challenge) {
-    const responses = await getChallengeResponses();
-    isDone = !!responses[challenge.id];
-  }
-  return { level, levelDay, challenge, isDone };
+  const responses = await getChallengeResponses();
+  const isDone = challenge ? !!responses[challenge.id] : false;
+  // The Today tracker is calendar-based, so its "Today's Challenge" tick means "a challenge
+  // was answered today" - whichever day it was - not "the day you're up to is done".
+  const todayKey = localDateKey(new Date());
+  const answeredToday = Object.values(responses).some(
+    (r) => !!r.completedAt && localDateKey(new Date(r.completedAt)) === todayKey
+  );
+
+  // Day 30 answered: the level is finished and the user gets the choice - start the next
+  // level, or keep the habit tracker only.
+  const final = finalDayOf(levelNumber);
+  const levelFinished = !!final && !!responses[final.id];
+  const next = LEVELS.find((l) => l.number === levelNumber + 1);
+  const nextLevel =
+    levelFinished && next && getLevelDays(next.number).length > 0 && !(await getLevelStartDate(next.number))
+      ? next
+      : null;
+
+  return { level, levelDay, challenge, isDone, answeredToday, levelFinished, nextLevel };
 }

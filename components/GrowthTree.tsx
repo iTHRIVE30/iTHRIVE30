@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,17 +9,16 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
 
-import { useTheme, useThemedStyles } from '../../hooks/useTheme';
-import type { Theme } from '../../constants/theme';
+import { useTheme, useThemedStyles } from '../hooks/useTheme';
+import type { Theme } from '../constants/theme';
 import {
   getGrowthTreeState,
   type GrowthTreeState,
   type NodeState,
   type TreeNode,
-} from '../../lib/growthTree';
+} from '../lib/growthTree';
 
 /* ============================================================================
    THE GROWTH TREE
@@ -58,7 +58,11 @@ function isUnnamed(node: TreeNode): boolean {
   return /^Level \d+$/.test(node.level.name);
 }
 
-export default function GrowthTreeScreen() {
+/**
+ * Rendered as the "Growth Tree" view of the Challenges tab rather than as its own screen,
+ * so it is the same levels, one tap from the list. Tapping an open trunk level opens it.
+ */
+export default function GrowthTree({ onOpenLevel }: { onOpenLevel?: (levelNumber: number) => void }) {
   const t = useTheme();
   const styles = useThemedStyles(createStyles);
   const { width } = useWindowDimensions();
@@ -79,30 +83,6 @@ export default function GrowthTreeScreen() {
     return (
       <View style={styles.loading}>
         <ActivityIndicator color={t.primary} />
-      </View>
-    );
-  }
-
-  /*
-    Shut until Level 3. This screen deliberately shows NOTHING of the tree — no
-    branches, no level count, no silhouette. A greyed-out map is still a map,
-    and the whole reason for the wait is to keep the shape of the programme out
-    of view while the only thing that matters is today. See REVEAL_AT_LEVEL.
-  */
-  if (!state.unlocked) {
-    return (
-      <View style={styles.lockedScreen}>
-        <View style={styles.lockedBadge}>
-          <Ionicons name="leaf-outline" size={30} color={t.primary} />
-        </View>
-        <Text style={styles.lockedTitle}>The Growth Tree</Text>
-        <Text style={styles.lockedBody}>
-          Your tree opens at Level {state.revealAtLevel}.
-        </Text>
-        <Text style={styles.lockedBody}>
-          Until then, the only step that matters is today&apos;s. Keep going, and it will be
-          here waiting.
-        </Text>
       </View>
     );
   }
@@ -320,8 +300,10 @@ export default function GrowthTreeScreen() {
 
           {/* The trunk levels, highest first. */}
           {trunkDescending.map((node, i) => (
-            <View
+            <Pressable
               key={node.level.id}
+              disabled={!onOpenLevel || node.state === 'locked'}
+              onPress={() => onOpenLevel?.(node.level.number)}
               style={[
                 styles.trunkCard,
                 trunkCardStyle(t, node.state),
@@ -337,7 +319,7 @@ export default function GrowthTreeScreen() {
               >
                 {node.level.name}
               </Text>
-            </View>
+            </Pressable>
           ))}
 
           {/* Roots. */}
@@ -427,27 +409,6 @@ const createStyles = (t: Theme) =>
     screenContent: { paddingBottom: 48 },
     loading: { flex: 1, backgroundColor: t.ground, alignItems: 'center', justifyContent: 'center' },
 
-    lockedScreen: {
-      flex: 1,
-      backgroundColor: t.ground,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: 40,
-      gap: 14,
-    },
-    lockedBadge: {
-      width: 68,
-      height: 68,
-      borderRadius: 34,
-      borderWidth: 1,
-      borderColor: t.primaryTintBorder,
-      backgroundColor: t.primaryTint,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 6,
-    },
-    lockedTitle: { color: t.ink, fontSize: 22, fontWeight: '700' },
-    lockedBody: { color: t.secondary, fontSize: 15, lineHeight: 24, textAlign: 'center' },
 
     header: { paddingHorizontal: PAD, paddingTop: 22, paddingBottom: 26, alignItems: 'center' },
     kicker: { color: t.primary, fontSize: 11, fontWeight: '700', letterSpacing: 2.4 },

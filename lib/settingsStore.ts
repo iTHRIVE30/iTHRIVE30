@@ -50,6 +50,12 @@ export type Settings = {
   /** Opt-out for anonymous crash diagnostics. Default on, disclosed in the privacy policy. */
   crashReports: boolean;
   /**
+   * Habit tracker only, no Level running. Offered once a Level's Day 30 is answered (a
+   * paid option - see lib/entitlements.ts). While on: a rolling calendar strip on Today, no
+   * challenge link, and the "Today's Challenge" habit is hidden. Switch back in Settings.
+   */
+  trackerOnly: boolean;
+  /**
    * Anonymous, device-generated, never leaves the device except inside the user's own
    * backup file. Contains nothing derived from the person. If cloud sync ever ships this
    * is the key existing data migrates onto, instead of asking users to start over.
@@ -69,6 +75,7 @@ const DEFAULTS: Omit<Settings, 'installId'> = {
   reminderOfferAt: '',
   onboardedAt: '',
   crashReports: true,
+  trackerOnly: false,
   schemaVersion: SCHEMA_VERSION,
 };
 

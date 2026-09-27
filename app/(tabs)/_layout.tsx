@@ -44,7 +44,6 @@ export default function TabLayout() {
       <Tabs.Screen name="account" options={{ href: null }} />
       <Tabs.Screen name="teams" options={{ href: null }} />
       <Tabs.Screen name="montage" options={{ href: null }} />
-      <Tabs.Screen name="growth-tree" options={{ href: null }} />
       <Tabs.Screen name="settings" options={{ href: null }} />
     </Tabs>
   );

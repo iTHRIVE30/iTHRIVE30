@@ -366,6 +366,23 @@ export default function SettingsScreen() {
         </Pressable>
       </View>
 
+      {/* ---------- Tracker only ----------
+          Only shown while it is on - it is chosen on Today after a Level's Day 30, so there
+          is nothing to switch on from here. This is the way back. */}
+      {settings?.trackerOnly && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Habit tracker only</Text>
+          <Text style={styles.cardNote}>
+            You&apos;re tracking your habits with no Level running. Go back to Levels and Today
+            will offer the next one again.
+          </Text>
+          <Pressable style={styles.outlineButton} onPress={() => patch({ trackerOnly: false })}>
+            <Ionicons name="trail-sign-outline" size={16} color={t.primary} />
+            <Text style={styles.outlineButtonText}>Go back to Levels</Text>
+          </Pressable>
+        </View>
+      )}
+
       {/* ---------- Reminders ---------- */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Reminders</Text>

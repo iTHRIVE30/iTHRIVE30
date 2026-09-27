@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { BarChart, LineChart, PieChart, ChartPoint } from '../../components/Charts';
 import Fireworks from '../../components/Fireworks';
+import HabitCalendar from '../../components/HabitCalendar';
 import {
   getDailyCompletion,
   getHabitCompletionRates,
@@ -48,13 +49,14 @@ const GOAL_MAX_LENGTH = 250;
 const GOAL_QUOTE = 'A wish is not a plan, hope is not a strategy. What gets scheduled gets done.';
 const TABLE_DAYS = 30;
 
-type Segment = 'table' | 'graph' | 'goals' | 'milestones';
+type Segment = 'table' | 'calendar' | 'graph' | 'goals' | 'milestones';
 type RangeOption = 7 | 14 | 30;
 type ViewOption = 'daily' | 'habit' | 'mood' | 'monthly' | 'ytd' | 'levels';
 type ChartType = 'bar' | 'line' | 'pie';
 
 const SEGMENTS: { key: Segment; label: string }[] = [
   { key: 'table', label: 'Table' },
+  { key: 'calendar', label: 'Calendar' },
   { key: 'graph', label: 'Graph' },
   { key: 'goals', label: 'Goals' },
   { key: 'milestones', label: 'Milestones' },
@@ -311,6 +313,8 @@ export default function ProgressScreen() {
             </Pressable>
           ))}
         </View>
+
+        {segment === 'calendar' && <HabitCalendar />}
 
         {segment === 'table' && (
           <>

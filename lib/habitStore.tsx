@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as MediaLibrary from 'expo-media-library';
+import { getSettings } from './settingsStore';
 
 export type HabitDef = { id: string; label: string; editable: boolean; auto: boolean };
 export type DailyLog = { [habitId: string]: boolean };
@@ -72,7 +73,20 @@ export function getTodayKey(date: Date = new Date()): string {
  * won't either. Bumping HABITS_KEY would have worked too, but it would wipe the custom
  * labels people have set on their own three slots.
  */
+/** The habit that ticks itself when a challenge is answered. */
+export const CHALLENGE_HABIT_ID = 'app-tasks';
+
+/**
+ * The habits in play. In tracker-only mode (no Level running) "Today's Challenge" is left
+ * out everywhere - Today, the Progress table, percentages - so a full day can still reach
+ * 100%. It returns the moment the user goes back to Levels.
+ */
 export async function getHabits(): Promise<HabitDef[]> {
+  const [habits, settings] = await Promise.all([readHabits(), getSettings()]);
+  return settings.trackerOnly ? habits.filter((h) => h.id !== CHALLENGE_HABIT_ID) : habits;
+}
+
+async function readHabits(): Promise<HabitDef[]> {
   const raw = await AsyncStorage.getItem(HABITS_KEY);
   if (!raw) return DEFAULT_HABITS;
 

@@ -12,7 +12,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Pedometer } from 'expo-sensors';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -52,7 +52,8 @@ import {
   deleteNote,
   getDaysWithData,
 } from '../../lib/habitStore';
-import { getTodayChallengeInfo, getStartedLevels, StartedLevel } from '../../lib/challengeStore';
+import { getTodayChallengeInfo, getStartedLevels, startLevel, StartedLevel, LevelDef } from '../../lib/challengeStore';
+import { canUseTrackerOnly } from '../../lib/entitlements';
 import Fireworks from '../../components/Fireworks';
 import { LOGO_IS_HERE, LOGO_MARK } from '../../lib/brand';
 import {
@@ -64,7 +65,7 @@ import {
 import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
 import ReminderOffer from '../../components/ReminderOffer';
 import { greeting } from '../../lib/personalise';
-import { getSettings } from '../../lib/settingsStore';
+import { getSettings, saveSettings } from '../../lib/settingsStore';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -79,7 +80,32 @@ function formatDayTile(dateKey: string) {
   return {
     weekday: d.toLocaleDateString(undefined, { weekday: 'short' }),
     num: String(d.getDate()),
+    month: d.toLocaleDateString(undefined, { month: 'short' }),
   };
+}
+
+function formatMonth(dateKey: string): string {
+  return new Date(dateKey + 'T00:00:00').toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+}
+
+/** The strip never holds more than 30 days: add today, drop the oldest. */
+const STRIP_MAX_DAYS = 30;
+
+/**
+ * The rolling strip: up to 30 calendar dates ending today, oldest first, never reaching
+ * back before `start`. Inside a Level that is simply Day 1 to today; past Day 30 (or in
+ * tracker-only mode) it slides forward a day at a time, so today is always on it.
+ */
+function rollingStripDates(start: string | null, today: string): string[] {
+  const dates: string[] = [];
+  const cursor = new Date(today + 'T00:00:00');
+  for (let i = 0; i < STRIP_MAX_DAYS; i++) {
+    const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+    dates.unshift(key);
+    if (!start || key <= start) break;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return dates;
 }
 
 function formatFullDate(dateKey: string): string {
@@ -100,32 +126,40 @@ export default function TodayScreen() {
 
   const todayKey = getTodayKey();
 
-  // The day strip runs the whole of a Level, Day 1 to today, rather than the last five
-  // calendar days - so you can scroll right back to where a Level started. The picker
-  // switches between Levels you've already begun, which is how you reach older history.
+  // The day strip follows the Level: Day 1 to today, labelled D1-D30. Once a Level passes
+  // Day 30 without the next one started, it rolls (drop the oldest day, add today) so
+  // today is always on it. The picker switches to Levels already finished, as history.
+  // In tracker-only mode there is no Level running: the strip just rolls by date.
   const [startedLevels, setStartedLevels] = useState<StartedLevel[]>([]);
   const [viewedLevel, setViewedLevel] = useState<number | null>(null);
   const [levelPickerOpen, setLevelPickerOpen] = useState(false);
+  const [trackerOnly, setTrackerOnly] = useState(false);
 
+  const latestLevel = startedLevels[startedLevels.length - 1] ?? null;
   const activeLevel = useMemo(
     () => startedLevels.find((l) => l.level.number === viewedLevel) ?? null,
     [startedLevels, viewedLevel]
   );
+  const isCurrentLevel = trackerOnly || (!!activeLevel && activeLevel === latestLevel);
 
-  /**
-   * Days of the viewed Level up to today - there's nothing to fill in for a date that
-   * hasn't happened. A finished Level shows all 30.
-   */
   const stripDates = useMemo(() => {
+    if (trackerOnly) return rollingStripDates(startedLevels[0]?.startDate ?? null, todayKey);
     if (!activeLevel) return [todayKey];
+    if (activeLevel === latestLevel) return rollingStripDates(activeLevel.startDate, todayKey);
+    // A finished Level, viewed as history: its own 30 days.
     const upTo = activeLevel.dates.filter((d) => d <= todayKey);
     return upTo.length > 0 ? upTo : [activeLevel.dates[0]];
-  }, [activeLevel, todayKey]);
+  }, [trackerOnly, startedLevels, activeLevel, latestLevel, todayKey]);
+
+  /** Which Level day a date is, for the D-labels. Past Day 30 a date has none. */
+  const levelDayByDate = useMemo(() => {
+    const map: Record<string, number> = {};
+    startedLevels.forEach((l) => l.dates.forEach((d, i) => { map[d] = i + 1; }));
+    return map;
+  }, [startedLevels]);
 
   const [activeDateKey, setActiveDateKey] = useState(todayKey);
-  const activeIndex = Math.max(0, stripDates.indexOf(activeDateKey));
   const isToday = activeDateKey === todayKey;
-  const isCurrentLevel = !!activeLevel && activeLevel.dates.includes(todayKey);
 
   // Every day - today or a past one, blank or already filled in - stays fully editable.
   // dayHasData just drives the little dot on the day strip, it's not a lock.
@@ -161,6 +195,10 @@ export default function TodayScreen() {
   const [todayChallengeTitle, setTodayChallengeTitle] = useState<string | null>(null);
   const [todayChallengeTheme, setTodayChallengeTheme] = useState<string | null>(null);
   const [todayLevelNumber, setTodayLevelNumber] = useState<number | null>(null);
+  // Day 30 answered: the choice between the next Level and keeping the tracker only.
+  const [levelFinished, setLevelFinished] = useState(false);
+  const [nextLevel, setNextLevel] = useState<LevelDef | null>(null);
+  const [trackerOnlyOffered, setTrackerOnlyOffered] = useState(false);
 
   const [celebrateTrigger, setCelebrateTrigger] = useState(0);
   const [celebrateAnim] = useState(() => new Animated.Value(0));
@@ -203,10 +241,13 @@ export default function TodayScreen() {
       setProgramDay(info.levelDay || 1);
       setTodayChallengeTitle(info.challenge ? info.challenge.title : null);
       setTodayChallengeTheme(info.challenge ? info.challenge.theme : null);
+      setLevelFinished(info.levelFinished);
+      setNextLevel(info.nextLevel);
+      setTrackerOnlyOffered(await canUseTrackerOnly());
 
       const currentDay = await getLogForDate(todayKey);
-      if (info.isDone !== !!currentDay['app-tasks']) {
-        const updated = await setHabitValue(todayKey, 'app-tasks', info.isDone);
+      if (info.answeredToday !== !!currentDay['app-tasks']) {
+        const updated = await setHabitValue(todayKey, 'app-tasks', info.answeredToday);
         setChecked(updated);
       }
     } catch (err) {
@@ -249,15 +290,14 @@ export default function TodayScreen() {
     setDayHasData(await getDaysWithData(stripDates));
   }, [stripDates]);
 
-  /** Which Levels have been started, and therefore which history is reachable. */
+  /** Which Levels have been started (and so which history is reachable), and the mode. */
   const refreshLevels = useCallback(async () => {
-    const levels = await getStartedLevels();
+    const [levels, settings] = await Promise.all([getStartedLevels(), getSettings()]);
     setStartedLevels(levels);
+    setTrackerOnly(settings.trackerOnly);
     setViewedLevel((current) => {
       if (current !== null && levels.some((l) => l.level.number === current)) return current;
-      // Default to the Level today falls inside, else the most recent one started.
-      const containingToday = levels.find((l) => l.dates.includes(getTodayKey()));
-      return containingToday?.level.number ?? levels[levels.length - 1]?.level.number ?? null;
+      return levels[levels.length - 1]?.level.number ?? null;
     });
   }, []);
 
@@ -282,11 +322,32 @@ export default function TodayScreen() {
       refreshDayStatuses();
       if (isToday) {
         refreshSteps();
-        refreshTodayChallenge();
+        // Level 1's clock starts inside this on a first run, so re-read the Levels after it.
+        refreshTodayChallenge().then(refreshLevels);
         loadDayData(todayKey);
       }
     }, [isToday, todayKey, refreshLevels, refreshDayStatuses, refreshSteps, refreshTodayChallenge, loadDayData])
   );
+
+  /** Starts the next Level from the Day 30 choice card. */
+  const handleStartNextLevel = async () => {
+    if (!nextLevel) return;
+    await startLevel(nextLevel.number);
+    if (trackerOnly) await saveSettings({ trackerOnly: false });
+    setViewedLevel(nextLevel.number);
+    setActiveDateKey(todayKey);
+    await refreshTodayChallenge();
+    await refreshLevels();
+    // The habit list changes back to 13 when leaving tracker-only.
+    loadDayData(todayKey);
+  };
+
+  /** Keeps the habit tracker going with no Level running. */
+  const handleKeepTrackerOnly = async () => {
+    await saveSettings({ trackerOnly: true });
+    await refreshLevels();
+    loadDayData(todayKey);
+  };
 
   const scrollToDay = useCallback((index: number, animated: boolean) => {
     dayScrollRef.current?.scrollTo({ x: index * (TILE_WIDTH + TILE_GAP), animated });
@@ -310,14 +371,39 @@ export default function TodayScreen() {
   const lastStripKey = useRef<string | null>(null);
   useEffect(() => {
     if (stripDates.length === 0) return;
-    const stripKey = `${viewedLevel ?? 'none'}:${stripDates[0]}:${stripDates.length}`;
+    const stripKey = `${stripDates[0]}:${stripDates.length}`;
     if (stripKey === lastStripKey.current) return;
     lastStripKey.current = stripKey;
 
     const index = Math.max(0, stripDates.indexOf(activeDateKey));
     // Not animated: this is the strip arriving, not the user being moved.
     scrollToDay(index, false);
-  }, [viewedLevel, stripDates, activeDateKey, scrollToDay]);
+  }, [stripDates, activeDateKey, scrollToDay]);
+
+  /**
+   * Arriving from the Progress calendar, which opens a specific date here. Consumed once -
+   * the tab keeps its params, so without the guard it would re-open that date on every visit.
+   * Lands on whichever Level's strip holds that date, so the tile is there to see.
+   */
+  const params = useLocalSearchParams<{ date?: string }>();
+  const consumedDate = useRef<string | null>(null);
+  // Syncing with navigation params (an external input) is what effects are for.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    const date = params.date;
+    if (!date || consumedDate.current === date || startedLevels.length === 0) return;
+    consumedDate.current = date;
+    if (!trackerOnly) {
+      const inRolling = latestLevel && rollingStripDates(latestLevel.startDate, todayKey).includes(date);
+      const holder = inRolling ? latestLevel : startedLevels.find((l) => l.dates.includes(date));
+      if (holder) setViewedLevel(holder.level.number);
+    }
+    setActiveDateKey(date);
+    lastStripKey.current = null; // re-centre the strip on the arriving date
+    // A date older than the rolling strip has no dot status yet - read it for the banner.
+    getDaysWithData([date]).then((d) => setDayHasData((prev) => ({ ...prev, ...d })));
+  }, [params.date, startedLevels, latestLevel, trackerOnly, todayKey]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   /**
    * Tapping today's challenge title jumps straight to it on the Challenges tab, rather than
@@ -346,10 +432,15 @@ export default function TodayScreen() {
     if (levelNumber === viewedLevel) return;
     const target = startedLevels.find((l) => l.level.number === levelNumber);
     if (!target) return;
-    const upTo = target.dates.filter((d) => d <= todayKey);
     setViewedLevel(levelNumber);
-    setActiveDateKey(upTo[upTo.length - 1] ?? target.dates[0]);
+    if (target === latestLevel) {
+      setActiveDateKey(todayKey);
+    } else {
+      const upTo = target.dates.filter((d) => d <= todayKey);
+      setActiveDateKey(upTo[upTo.length - 1] ?? target.dates[0]);
+    }
   };
+
 
   const handleToggle = async (id: string) => {
     const habit = habits.find((h) => h.id === id);
@@ -492,8 +583,10 @@ export default function TodayScreen() {
         {/* Only when there's a name - without one, a bare "Good morning" adds nothing. */}
         {isToday && !!firstName.trim() && <Text style={styles.greeting}>{greeting(firstName)}</Text>}
         <Text style={styles.headerTitle}>Today iTHRIVE.</Text>
-        <Text style={styles.levelLabel}>{levelName} · Day {programDay} of 30</Text>
-        {isToday && !!todayChallengeTitle && (
+        <Text style={styles.levelLabel}>
+          {trackerOnly ? 'Habit tracker' : `${levelName} · Day ${programDay} of 30`}
+        </Text>
+        {isToday && !trackerOnly && !!todayChallengeTitle && (
           <Pressable
             style={styles.dayHeaderCard}
             onPress={openTodayChallenge}
@@ -508,6 +601,30 @@ export default function TodayScreen() {
           </Pressable>
         )}
 
+        {/*
+          Day 30 answered: the challenge and the tracker can split here. Start the next Level,
+          or keep the habit tracker only (a paid option - see lib/entitlements.ts). Neither is
+          pushed: skipped days of this Level stay open whichever is chosen.
+        */}
+        {isToday && !trackerOnly && levelFinished && (nextLevel || trackerOnlyOffered) && (
+          <View style={styles.choiceCard}>
+            <Text style={styles.choiceTitle}>{levelName} is complete.</Text>
+            <Text style={styles.choiceBody}>What comes next is your call.</Text>
+            {!!nextLevel && (
+              <Pressable style={styles.choicePrimary} onPress={handleStartNextLevel}>
+                <Text style={styles.choicePrimaryText}>
+                  Start Level {nextLevel.number} · {nextLevel.name}
+                </Text>
+              </Pressable>
+            )}
+            {trackerOnlyOffered && (
+              <Pressable style={styles.choiceSecondary} onPress={handleKeepTrackerOnly}>
+                <Text style={styles.choiceSecondaryText}>Keep tracking my habits only</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+
         {isToday && <ReminderOffer hasLoggedAnything={Object.values(dayHasData).some(Boolean)} />}
 
         {allComplete && isToday && (
@@ -519,22 +636,26 @@ export default function TodayScreen() {
 
         <View style={styles.dayStripWrap}>
           <View style={styles.stripHeaderRow}>
-            <Pressable
-              style={styles.levelPickerButton}
-              onPress={() => startedLevels.length > 1 && setLevelPickerOpen(true)}
-              disabled={startedLevels.length <= 1}
-            >
+            {trackerOnly ? (
               <Text style={styles.levelPickerText} numberOfLines={1}>
-                {activeLevel ? `Level ${activeLevel.level.number} · ${activeLevel.level.name}` : 'Today'}
+                {formatMonth(activeDateKey)}
               </Text>
-              {startedLevels.length > 1 && <Ionicons name="chevron-down" size={14} color={t.primary} />}
-            </Pressable>
-
-            {!isCurrentLevel && (
-              <Text style={styles.stripHistoryTag}>HISTORY</Text>
+            ) : (
+              <Pressable
+                style={styles.levelPickerButton}
+                onPress={() => startedLevels.length > 1 && setLevelPickerOpen(true)}
+                disabled={startedLevels.length <= 1}
+              >
+                <Text style={styles.levelPickerText} numberOfLines={1}>
+                  {activeLevel ? `Level ${activeLevel.level.number} · ${activeLevel.level.name}` : 'Today'}
+                </Text>
+                {startedLevels.length > 1 && <Ionicons name="chevron-down" size={14} color={t.primary} />}
+              </Pressable>
             )}
+
+            {!isCurrentLevel && <Text style={styles.stripHistoryTag}>HISTORY</Text>}
             {isCurrentLevel && !isToday && (
-              <Pressable onPress={() => handleSelectDay(stripDates.length - 1)} hitSlop={8}>
+              <Pressable onPress={() => setActiveDateKey(todayKey)} hitSlop={8}>
                 <Text style={styles.jumpToTodayText}>Jump to today</Text>
               </Pressable>
             )}
@@ -550,15 +671,19 @@ export default function TodayScreen() {
           >
             {stripDates.map((d, i) => {
               const tile = formatDayTile(d);
-              const isActive = i === activeIndex;
+              const isActive = d === activeDateKey;
               const dIsToday = d === todayKey;
+              // D1-D30 inside a Level; past Day 30 (and in tracker-only) the month instead.
+              const levelDay = trackerOnly ? undefined : levelDayByDate[d];
               return (
                 <Pressable key={d} onPress={() => handleSelectDay(i)} style={[styles.dayTile, isActive && styles.dayTileActive]}>
                   <Text style={[styles.dayTileWeekday, isActive && styles.dayTileTextActive]}>
                     {dIsToday ? 'Today' : tile.weekday}
                   </Text>
                   <Text style={[styles.dayTileNum, isActive && styles.dayTileTextActive]}>{tile.num}</Text>
-                  <Text style={[styles.dayTileDayNo, isActive && styles.dayTileTextActive]}>D{i + 1}</Text>
+                  <Text style={[styles.dayTileDayNo, isActive && styles.dayTileTextActive]}>
+                    {levelDay ? `D${levelDay}` : tile.month}
+                  </Text>
                   <View style={[styles.dayTileDot, dayHasData[d] && styles.dayTileDotFilled]} />
                 </Pressable>
               );
@@ -577,7 +702,7 @@ export default function TodayScreen() {
               <Text style={styles.pickerTitle}>View a Level</Text>
               {[...startedLevels].reverse().map((l) => {
                 const selected = l.level.number === viewedLevel;
-                const contains = l.dates.includes(todayKey);
+                const current = l === latestLevel;
                 return (
                   <Pressable
                     key={l.level.number}
@@ -594,7 +719,7 @@ export default function TodayScreen() {
                         Level {l.level.number} · {l.level.name}
                       </Text>
                       <Text style={styles.pickerRowSub}>
-                        {contains ? `Day ${l.currentDay} of 30 — in progress` : `Started ${formatFullDate(l.startDate)}`}
+                        {current ? `Current · started ${formatFullDate(l.startDate)}` : `Started ${formatFullDate(l.startDate)}`}
                       </Text>
                     </View>
                   </Pressable>
@@ -922,8 +1047,6 @@ const createStyles = (t: Theme) =>
     levelPickerButton: { flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 },
     levelPickerText: { color: t.primary, fontSize: 12, fontWeight: '800', letterSpacing: 0.4, flexShrink: 1 },
     stripHistoryTag: { color: t.primaryDim, fontSize: 10, fontWeight: '800', letterSpacing: 1 },
-    jumpToTodayText: { color: t.primaryDim, fontSize: 11, fontWeight: '700' },
-    dayTileDayNo: { color: t.faint, fontSize: 9, fontWeight: '700', marginTop: 1 },
     pickerBackdrop: { flex: 1, backgroundColor: t.scrim, justifyContent: 'center', padding: 28 },
     pickerCard: { backgroundColor: t.surface, borderRadius: 16, borderWidth: 1, borderColor: t.borderMuted, padding: 10, maxHeight: '70%' },
     pickerTitle: { color: t.primary, fontSize: 13, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', padding: 12, paddingBottom: 8 },
@@ -932,6 +1055,15 @@ const createStyles = (t: Theme) =>
     pickerRowText: { color: t.body, fontSize: 14, fontWeight: '600' },
     pickerRowTextSelected: { color: t.primary },
     pickerRowSub: { color: t.muted, fontSize: 11, marginTop: 2 },
+    choiceCard: { backgroundColor: t.surface, borderWidth: 1, borderColor: t.primary, borderRadius: 14, padding: 16, marginBottom: 16, gap: 8 },
+    choiceTitle: { color: t.primary, fontSize: 17, fontWeight: '800' },
+    choiceBody: { color: t.body, fontSize: 14, marginBottom: 4 },
+    choicePrimary: { backgroundColor: t.primary, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 12, alignItems: 'center' },
+    choicePrimaryText: { color: t.onPrimary, fontSize: 14, fontWeight: '800', textAlign: 'center' },
+    choiceSecondary: { borderWidth: 1, borderColor: t.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' },
+    choiceSecondaryText: { color: t.primary, fontSize: 14, fontWeight: '700' },
+    jumpToTodayText: { color: t.primaryDim, fontSize: 11, fontWeight: '700' },
+    dayTileDayNo: { color: t.faint, fontSize: 9, fontWeight: '700', marginTop: 1 },
     dayTileDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: t.borderStrong, marginTop: 6 },
     dayTileDotFilled: { backgroundColor: t.success },
 

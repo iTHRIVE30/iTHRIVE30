@@ -24,6 +24,7 @@ import {
   submitChallengeResponse,
   hasAnswerContent,
 } from '../../lib/challengeStore';
+import GrowthTree from '../../components/GrowthTree';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -167,6 +168,7 @@ export default function ChallengesScreen() {
   const t = useTheme();
   const styles = useThemedStyles(createStyles);
   const [view, setView] = useState<'levels' | 'days'>('levels');
+  const [levelsMode, setLevelsMode] = useState<'list' | 'tree'>('list');
   const [levelItems, setLevelItems] = useState<LevelListItem[]>([]);
 
   const [selectedLevel, setSelectedLevel] = useState<LevelDef | null>(null);
@@ -238,10 +240,16 @@ export default function ChallengesScreen() {
 
 
   const openLevel = async (item: LevelListItem) => {
-    if (!item.unlocked) return;
+    if (!item.unlocked || item.progress.totalContentDays === 0) return;
     setSelectedLevel(item.level);
     await loadLevelDetail(item.level);
     setView('days');
+  };
+
+  /** From the Growth Tree, which only knows level numbers. */
+  const openLevelNumber = (levelNumber: number) => {
+    const item = levelItems.find((i) => i.level.number === levelNumber);
+    if (item) openLevel(item);
   };
 
   const backToLevels = () => {
@@ -379,32 +387,71 @@ export default function ChallengesScreen() {
 
   // ---------- Levels list view ----------
   if (view === 'levels') {
-    return (
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
-        <Text style={styles.title}>Challenges</Text>
-        <Text style={styles.subtitle}>30 levels · 30 days each</Text>
-
-        {levelItems.map((item) => (
+    // Levels / Growth Tree are two views of the same levels. The segment sits outside both
+    // because the tree brings its own ScrollView - nesting it in the list's would break scrolling.
+    const segment = (
+      <View style={styles.segmentRow}>
+        {(['list', 'tree'] as const).map((mode) => (
           <Pressable
-            key={item.level.id}
-            style={[styles.card, !item.unlocked && styles.cardLocked]}
-            onPress={() => openLevel(item)}
-            disabled={!item.unlocked}
+            key={mode}
+            style={[styles.segment, levelsMode === mode && styles.segmentActive]}
+            onPress={() => setLevelsMode(mode)}
           >
-            <View style={styles.cardHeader}>
-              <Text style={styles.dayBadge}>LEVEL {item.level.number}</Text>
-              {!item.unlocked && <Ionicons name="lock-closed" size={18} color={t.faint} />}
-            </View>
-            <Text style={styles.cardTitle}>{item.level.name}</Text>
-            {item.unlocked ? (
-              <Text style={styles.cardDescription}>
-                {item.progress.completedContentDays} / {item.progress.totalContentDays || 30} completed
-              </Text>
-            ) : (
-              <Text style={styles.lockedLabel}>Complete Level {item.level.number - 1} to unlock</Text>
-            )}
+            <Text style={[styles.segmentText, levelsMode === mode && styles.segmentTextActive]}>
+              {mode === 'list' ? 'Levels' : 'Growth Tree'}
+            </Text>
           </Pressable>
         ))}
+      </View>
+    );
+
+    if (levelsMode === 'tree') {
+      return (
+        <View style={styles.container}>
+          <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>{segment}</View>
+          <GrowthTree onOpenLevel={openLevelNumber} />
+        </View>
+      );
+    }
+
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
+        {segment}
+        <Text style={styles.title}>Challenges</Text>
+        <Text style={styles.subtitle}>30 days per level · finish Day 30 to open the next</Text>
+
+        {levelItems.map((item) => {
+          // A level with no content yet is a teaser: no title, nothing to open.
+          const teaser = item.progress.totalContentDays === 0;
+          const locked = teaser || !item.unlocked;
+          return (
+            <Pressable
+              key={item.level.id}
+              style={[styles.card, locked && styles.cardLocked]}
+              onPress={() => openLevel(item)}
+              disabled={locked}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={styles.dayBadge}>LEVEL {item.level.number}</Text>
+                {locked && <Ionicons name="lock-closed" size={18} color={t.faint} />}
+              </View>
+              {teaser ? (
+                <Text style={styles.lockedLabel}>Coming soon</Text>
+              ) : (
+                <>
+                  <Text style={styles.cardTitle}>{item.level.name}</Text>
+                  {item.unlocked ? (
+                    <Text style={styles.cardDescription}>
+                      {item.progress.completedContentDays} / {item.progress.totalContentDays} completed
+                    </Text>
+                  ) : (
+                    <Text style={styles.lockedLabel}>Finish Day 30 of Level {item.level.number - 1} to unlock</Text>
+                  )}
+                </>
+              )}
+            </Pressable>
+          );
+        })}
       </ScrollView>
     );
   }
@@ -645,6 +692,11 @@ const createStyles = (t: Theme) =>
     container: { flex: 1, backgroundColor: t.ground },
     title: { color: t.primary, fontSize: 26, fontWeight: '700', marginBottom: 4 },
     subtitle: { color: t.secondary, fontSize: 14, marginBottom: 20 },
+    segmentRow: { flexDirection: 'row', backgroundColor: t.surface, borderRadius: 10, borderWidth: 1, borderColor: t.border, padding: 3, marginBottom: 18 },
+    segment: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
+    segmentActive: { backgroundColor: t.primary },
+    segmentText: { color: t.secondary, fontSize: 13, fontWeight: '700' },
+    segmentTextActive: { color: t.onPrimary },
     backRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 2 },
     backText: { color: t.primary, fontSize: 15, fontWeight: '600' },
     introBanner: { backgroundColor: t.surface, borderWidth: 1, borderColor: t.primary, borderRadius: 12, padding: 16, marginBottom: 16 },

@@ -56,5 +56,12 @@ export type TodayChallengeInfo = {
   level: LevelDef;
   levelDay: number;
   challenge: ChallengeDayDef | undefined;
+  /** The day the user is up to has a response. */
   isDone: boolean;
+  /** Any challenge day received its first response today (local date). */
+  answeredToday: boolean;
+  /** The current level's final day (Day 30) has been answered. */
+  levelFinished: boolean;
+  /** The next level, when it is unlocked, written, and waiting to be started. */
+  nextLevel: LevelDef | null;
 };

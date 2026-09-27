@@ -89,49 +89,20 @@ export type BranchState = {
   fraction: number;
 };
 
-/**
- * The tree stays shut until this level unlocks.
- *
- * THIS LOCK IS DELIBERATE — do not remove it as a "never-blocking" fix. The
- * never-blocking principle is about the user's own progress: days and
- * challenges always unlock on schedule and nothing they have earned is ever
- * withheld. This is different. The tree is a map of sixteen levels, and showing
- * all of it to someone on day three is overstimulating: it buries the one step
- * they are actually meant to take today under a picture of everything they have
- * not done. Andrew's call, for that reason.
- *
- * It costs the user nothing to wait — the tree shows no progress they could act
- * on, and by Level 3 the shape of the programme is something they have earned
- * the context to read.
+/*
+ * No reveal lock. The tree used to stay hidden until Level 3; now that it lives
+ * inside the Challenges tab as another view of the same levels, Andrew removed
+ * the lock - it is visible from day one.
  */
-export const REVEAL_AT_LEVEL = 3;
-
-export type GrowthTreeState =
-  | {
-      unlocked: false;
-      /** The level that opens the tree, for the locked screen's copy. */
-      revealAtLevel: number;
-    }
-  | {
-      unlocked: true;
-      revealAtLevel: number;
-      trunk: TreeNode[];
-      fork: TreeNode;
-      branches: BranchState[];
-      /** 0-1 across the trunk and the fork — how far up the shared climb the user is. */
-      trunkFraction: number;
-      /** True once the trunk and the fork are finished and the branches have opened. */
-      branchesOpen: boolean;
-    };
-
-/** Whether the Growth Tree has opened yet. Cheap enough for the header menu. */
-export async function isGrowthTreeUnlocked(): Promise<boolean> {
-  try {
-    return await isLevelUnlocked(REVEAL_AT_LEVEL);
-  } catch {
-    return false;
-  }
-}
+export type GrowthTreeState = {
+  trunk: TreeNode[];
+  fork: TreeNode;
+  branches: BranchState[];
+  /** 0-1 across the trunk and the fork — how far up the shared climb the user is. */
+  trunkFraction: number;
+  /** True once the trunk and the fork are finished and the branches have opened. */
+  branchesOpen: boolean;
+};
 
 async function nodeFor(levelNumber: number): Promise<TreeNode> {
   const level = LEVELS.find((l) => l.number === levelNumber);
@@ -149,8 +120,8 @@ async function nodeFor(levelNumber: number): Promise<TreeNode> {
   else state = 'open';
 
   return {
-    // LEVELS covers 1-30, so a branch can only point past it by being edited to
-    // a number above 30. Fall back rather than crash the screen.
+    // LEVELS only covers 1-6, so branch levels above that are unnamed placeholders
+    // and draw as "Locked". Fall back rather than crash the screen.
     level: level ?? { id: `level-${levelNumber}`, number: levelNumber, name: `Level ${levelNumber}` },
     state,
     fraction,
@@ -169,12 +140,6 @@ function weightedFraction(nodes: TreeNode[]): number {
  * here, so the screen does no progress maths of its own.
  */
 export async function getGrowthTreeState(): Promise<GrowthTreeState> {
-  // Short-circuit before any of the per-level reads: while the tree is shut
-  // there is nothing to draw, so there is nothing to work out.
-  if (!(await isGrowthTreeUnlocked())) {
-    return { unlocked: false, revealAtLevel: REVEAL_AT_LEVEL };
-  }
-
   const trunk: TreeNode[] = [];
   for (const n of TRUNK_LEVELS) trunk.push(await nodeFor(n));
 
@@ -190,8 +155,6 @@ export async function getGrowthTreeState(): Promise<GrowthTreeState> {
   const climb = [...trunk, fork];
 
   return {
-    unlocked: true,
-    revealAtLevel: REVEAL_AT_LEVEL,
     trunk,
     fork,
     branches,
