@@ -25,6 +25,8 @@ import {
   hasAnswerContent,
 } from '../../lib/challengeStore';
 import GrowthTree from '../../components/GrowthTree';
+import Fireworks from '../../components/Fireworks';
+import { getBadgeSummary } from '../../lib/achievements';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -164,11 +166,88 @@ function FieldInput({
 
 type LevelListItem = { level: LevelDef; unlocked: boolean; progress: LevelProgress };
 
+type Celebration = { finished: LevelDef; next: LevelDef | null; badges: string[] };
+
+/** Is this challenge day the last one written for its level (Day 30)? */
+function isFinalDay(levelNumber: number, dayId: string): boolean {
+  const days = getLevelDays(levelNumber);
+  if (days.length === 0) return false;
+  const last = days.reduce((a, b) => (b.day > a.day ? b : a));
+  return last.id === dayId;
+}
+
+async function earnedBadgeIds(): Promise<Set<string>> {
+  try {
+    const summary = await getBadgeSummary();
+    return new Set(summary.statuses.filter((s) => s.earned).map((s) => s.achievement.id));
+  } catch {
+    return new Set();
+  }
+}
+
+/**
+ * The card above the tree after a Day 30. Voice: short declaratives, no exclamation marks,
+ * same as the challenge content. "Level" never appears - challenges go by their titles.
+ */
+function CelebrationCard({
+  celebration,
+  onBegin,
+  onClose,
+}: {
+  celebration: Celebration;
+  onBegin?: () => void;
+  onClose: () => void;
+}) {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
+  const { finished, next, badges } = celebration;
+  return (
+    <View style={styles.celebrateCard}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.celebrateKicker}>DAY 30 · COMPLETE</Text>
+        <Pressable onPress={onClose} hitSlop={10}>
+          <Ionicons name="close" size={18} color={t.secondary} />
+        </Pressable>
+      </View>
+      <Text style={styles.celebrateTitle}>{finished.name}</Text>
+      <Text style={styles.celebrateBody}>You showed up for yourself. It shows.</Text>
+      {next ? (
+        <Text style={styles.celebrateBody}>Your tree just grew. {next.name} is waiting.</Text>
+      ) : (
+        <Text style={styles.celebrateBody}>Your tree keeps growing. More is on its way.</Text>
+      )}
+
+      {badges.length > 0 && (
+        <View style={styles.celebrateBadges}>
+          <Text style={styles.celebrateBadgesLabel}>{badges.length === 1 ? 'BADGE EARNED' : 'BADGES EARNED'}</Text>
+          {badges.map((b) => (
+            <View key={b} style={styles.celebrateBadgeRow}>
+              <Ionicons name="ribbon" size={16} color={t.accentGold} />
+              <Text style={styles.celebrateBadgeText}>{b}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {!!onBegin && next && (
+        <Pressable style={styles.completeButton} onPress={onBegin}>
+          <Text style={styles.completeButtonText}>Begin {next.name}</Text>
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
 export default function ChallengesScreen() {
   const t = useTheme();
   const styles = useThemedStyles(createStyles);
   const [view, setView] = useState<'levels' | 'days'>('levels');
-  const [levelsMode, setLevelsMode] = useState<'list' | 'tree'>('list');
+  // The Day 30 moment: fireworks, the next challenge revealing itself on the tree, and
+  // any badges it earned. See celebrateLevel.
+  const [celebration, setCelebration] = useState<Celebration | null>(null);
+  const [revealLevel, setRevealLevel] = useState<number | null>(null);
+  const [treeRefresh, setTreeRefresh] = useState(0);
+  const [fireworks, setFireworks] = useState(0);
   const [levelItems, setLevelItems] = useState<LevelListItem[]>([]);
 
   const [selectedLevel, setSelectedLevel] = useState<LevelDef | null>(null);
@@ -366,11 +445,41 @@ export default function ChallengesScreen() {
 
   const finalizeMood = async (mood: number) => {
     if (!pendingSubmit) return;
+    const finishing = selectedLevel && isFinalDay(selectedLevel.number, pendingSubmit.id) ? selectedLevel : null;
+    // Only for a Day 30: which badges were already earned, so the new ones can be named.
+    const before = finishing ? await earnedBadgeIds() : null;
     await persist(pendingSubmit.id, pendingSubmit.answers, mood);
     setShowMoodPopup(false);
     setPendingSubmit(null);
     setDraftMood(0);
     closeModal();
+    if (finishing && before) await celebrateLevel(finishing, before);
+  };
+
+  /**
+   * Day 30 answered for the first time. This is the link between one challenge and the
+   * next: back to the Growth Tree, fireworks, the next challenge revealing itself out of
+   * its outline with a new blank outline appearing above it, and a card naming what was
+   * finished and any badges it earned.
+   */
+  const celebrateLevel = async (finished: LevelDef, before: Set<string>) => {
+    const after = await getBadgeSummary().catch(() => null);
+    const badges = after
+      ? after.statuses.filter((s) => s.earned && !before.has(s.achievement.id)).map((s) => s.achievement.name)
+      : [];
+    const candidate = LEVELS.find((l) => l.number === finished.number + 1);
+    const next =
+      candidate && getLevelDays(candidate.number).length > 0 && (await isLevelUnlocked(candidate.number))
+        ? candidate
+        : null;
+
+    setView('levels');
+    setSelectedLevel(null);
+    loadLevels();
+    setRevealLevel(next?.number ?? null);
+    setTreeRefresh((k) => k + 1);
+    setCelebration({ finished, next, badges });
+    setFireworks((k) => k + 1);
   };
 
   const actionLabel = (activeDay?.doThisLabel || 'Do This').toUpperCase();
@@ -385,74 +494,24 @@ export default function ChallengesScreen() {
   const doThisLines = toReadableLines(shownDay?.doThis);
   const goDeeperLines = toReadableLines(shownDay?.goDeeper);
 
-  // ---------- Levels list view ----------
+  // ---------- Growth Tree (the front page) ----------
   if (view === 'levels') {
-    // Levels / Growth Tree are two views of the same levels. The segment sits outside both
-    // because the tree brings its own ScrollView - nesting it in the list's would break scrolling.
-    const segment = (
-      <View style={styles.segmentRow}>
-        {(['list', 'tree'] as const).map((mode) => (
-          <Pressable
-            key={mode}
-            style={[styles.segment, levelsMode === mode && styles.segmentActive]}
-            onPress={() => setLevelsMode(mode)}
-          >
-            <Text style={[styles.segmentText, levelsMode === mode && styles.segmentTextActive]}>
-              {mode === 'list' ? 'Levels' : 'Growth Tree'}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-    );
-
-    if (levelsMode === 'tree') {
-      return (
-        <View style={styles.container}>
-          <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>{segment}</View>
-          <GrowthTree onOpenLevel={openLevelNumber} />
-        </View>
-      );
-    }
-
     return (
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
-        {segment}
-        <Text style={styles.title}>Challenges</Text>
-        <Text style={styles.subtitle}>30 days per level · finish Day 30 to open the next</Text>
-
-        {levelItems.map((item) => {
-          // A level with no content yet is a teaser: no title, nothing to open.
-          const teaser = item.progress.totalContentDays === 0;
-          const locked = teaser || !item.unlocked;
-          return (
-            <Pressable
-              key={item.level.id}
-              style={[styles.card, locked && styles.cardLocked]}
-              onPress={() => openLevel(item)}
-              disabled={locked}
-            >
-              <View style={styles.cardHeader}>
-                <Text style={styles.dayBadge}>LEVEL {item.level.number}</Text>
-                {locked && <Ionicons name="lock-closed" size={18} color={t.faint} />}
-              </View>
-              {teaser ? (
-                <Text style={styles.lockedLabel}>Coming soon</Text>
-              ) : (
-                <>
-                  <Text style={styles.cardTitle}>{item.level.name}</Text>
-                  {item.unlocked ? (
-                    <Text style={styles.cardDescription}>
-                      {item.progress.completedContentDays} / {item.progress.totalContentDays} completed
-                    </Text>
-                  ) : (
-                    <Text style={styles.lockedLabel}>Finish Day 30 of Level {item.level.number - 1} to unlock</Text>
-                  )}
-                </>
-              )}
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      <View style={styles.container}>
+        <GrowthTree
+          onOpenLevel={openLevelNumber}
+          revealLevel={revealLevel}
+          refreshKey={treeRefresh}
+          banner={celebration ? (
+            <CelebrationCard
+              celebration={celebration}
+              onBegin={celebration.next ? () => openLevelNumber(celebration.next!.number) : undefined}
+              onClose={() => setCelebration(null)}
+            />
+          ) : null}
+        />
+        <Fireworks trigger={fireworks} />
+      </View>
     );
   }
 
@@ -464,12 +523,12 @@ export default function ChallengesScreen() {
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
       <Pressable onPress={backToLevels} style={styles.backRow} hitSlop={8}>
         <Ionicons name="chevron-back" size={20} color={t.primary} />
-        <Text style={styles.backText}>All Levels</Text>
+        <Text style={styles.backText}>Growth Tree</Text>
       </Pressable>
 
       <Text style={styles.title}>{selectedLevel?.name}</Text>
       <Text style={styles.subtitle}>
-        Level {selectedLevel?.number} · {completedCount} / {days.length} completed · Day {levelProgramDay} of 30
+        {completedCount} / {days.length} completed · Day {levelProgramDay} of 30
       </Text>
 
       {!!selectedLevel?.introMessage && (
@@ -692,11 +751,14 @@ const createStyles = (t: Theme) =>
     container: { flex: 1, backgroundColor: t.ground },
     title: { color: t.primary, fontSize: 26, fontWeight: '700', marginBottom: 4 },
     subtitle: { color: t.secondary, fontSize: 14, marginBottom: 20 },
-    segmentRow: { flexDirection: 'row', backgroundColor: t.surface, borderRadius: 10, borderWidth: 1, borderColor: t.border, padding: 3, marginBottom: 18 },
-    segment: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
-    segmentActive: { backgroundColor: t.primary },
-    segmentText: { color: t.secondary, fontSize: 13, fontWeight: '700' },
-    segmentTextActive: { color: t.onPrimary },
+    celebrateCard: { backgroundColor: t.surface, borderWidth: 2, borderColor: t.accentGold, borderRadius: 14, padding: 18, marginTop: 16, marginBottom: 8, gap: 6 },
+    celebrateKicker: { color: t.accentGold, fontSize: 11, fontWeight: '800', letterSpacing: 1.6 },
+    celebrateTitle: { color: t.primary, fontSize: 22, fontWeight: '800', marginBottom: 4 },
+    celebrateBody: { color: t.body, fontSize: 15, lineHeight: 22 },
+    celebrateBadges: { marginTop: 10, gap: 6 },
+    celebrateBadgesLabel: { color: t.secondaryDim, fontSize: 10, fontWeight: '700', letterSpacing: 1.4 },
+    celebrateBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    celebrateBadgeText: { color: t.ink, fontSize: 14, fontWeight: '600' },
     backRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 2 },
     backText: { color: t.primary, fontSize: 15, fontWeight: '600' },
     introBanner: { backgroundColor: t.surface, borderWidth: 1, borderColor: t.primary, borderRadius: 12, padding: 16, marginBottom: 16 },

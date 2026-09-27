@@ -52,7 +52,7 @@ const CARDS: Card[] = [
     icon: 'calendar-outline',
     title: 'Thirty days at a time',
     body:
-      'A Level is thirty days. Each one has a daily challenge and a set of habits to tick off. Finish it and the next Level opens.',
+      'Each challenge runs thirty days, with a daily task and a set of habits to tick off. Finish Day 30 and the next one opens.',
   },
   {
     icon: 'checkmark-circle-outline',

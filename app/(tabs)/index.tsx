@@ -613,7 +613,7 @@ export default function TodayScreen() {
             {!!nextLevel && (
               <Pressable style={styles.choicePrimary} onPress={handleStartNextLevel}>
                 <Text style={styles.choicePrimaryText}>
-                  Start Level {nextLevel.number} · {nextLevel.name}
+                  Start {nextLevel.name}
                 </Text>
               </Pressable>
             )}
@@ -647,7 +647,7 @@ export default function TodayScreen() {
                 disabled={startedLevels.length <= 1}
               >
                 <Text style={styles.levelPickerText} numberOfLines={1}>
-                  {activeLevel ? `Level ${activeLevel.level.number} · ${activeLevel.level.name}` : 'Today'}
+                  {activeLevel ? activeLevel.level.name : 'Today'}
                 </Text>
                 {startedLevels.length > 1 && <Ionicons name="chevron-down" size={14} color={t.primary} />}
               </Pressable>
@@ -699,7 +699,7 @@ export default function TodayScreen() {
         >
           <Pressable style={styles.pickerBackdrop} onPress={() => setLevelPickerOpen(false)}>
             <View style={styles.pickerCard}>
-              <Text style={styles.pickerTitle}>View a Level</Text>
+              <Text style={styles.pickerTitle}>View a challenge</Text>
               {[...startedLevels].reverse().map((l) => {
                 const selected = l.level.number === viewedLevel;
                 const current = l === latestLevel;
@@ -716,7 +716,7 @@ export default function TodayScreen() {
                     />
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.pickerRowText, selected && styles.pickerRowTextSelected]}>
-                        Level {l.level.number} · {l.level.name}
+                        {l.level.name}
                       </Text>
                       <Text style={styles.pickerRowSub}>
                         {current ? `Current · started ${formatFullDate(l.startDate)}` : `Started ${formatFullDate(l.startDate)}`}

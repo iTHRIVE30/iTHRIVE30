@@ -119,7 +119,7 @@ export default function MontageScreen() {
                   onPress={() => openLevel(m)}
                   style={[styles.levelChip, on && styles.levelChipOn]}
                 >
-                  <Text style={[styles.levelChipText, on && styles.levelChipTextOn]}>Level {m.level}</Text>
+                  <Text style={[styles.levelChipText, on && styles.levelChipTextOn]}>{m.levelName}</Text>
                 </Pressable>
               );
             })}
@@ -130,7 +130,7 @@ export default function MontageScreen() {
           <View style={styles.emptyCard}>
             <Ionicons name="hourglass-outline" size={30} color={t.muted} />
             <Text style={styles.emptyTitle}>
-              {active.photos.length === 0 ? 'No photos in this Level yet' : 'One photo so far'}
+              {active.photos.length === 0 ? 'No photos in this challenge yet' : 'One photo so far'}
             </Text>
             <Text style={styles.emptyBody}>
               A comparison needs two. Keep going — the second one is the whole point.
@@ -156,7 +156,7 @@ export default function MontageScreen() {
 
               <Text style={styles.pairMeta}>
                 {active.photos.length} {active.photos.length === 1 ? 'day' : 'days'} recorded
-                {active.levelComplete ? '  ·  Level complete' : ''}
+                {active.levelComplete ? '  ·  Challenge complete' : ''}
               </Text>
 
               <Pressable

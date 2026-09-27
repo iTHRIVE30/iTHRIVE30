@@ -121,8 +121,12 @@ day after it shipped).
   `level2-awareness.ts` or `level3-discovery.ts` content, or build features
   that assume their current content is final, without explicit instruction.**
 - **Levels are 1-6 only** (`LEVEL_COUNT` in `challengeStore/index.ts`). 1-3 are written;
-  4-6 are unnamed "Coming soon" teasers — any level with no content renders as one. Levels
+  4-6 have no content yet and appear only as blank outlines on the Growth Tree. Levels
   7-30 were deleted; raise `LEVEL_COUNT` only when more are actually planned.
+- **"Level" is an internal word only.** Users never see "Level 1" — each 30-day challenge
+  is shown by its title ("Your Next Best Self Awaits"). The number is how the code tells
+  challenges apart. (Badge names from the achievements spreadsheet still say "Level" —
+  change those in the sheet, not in `data.ts`.)
 - **A level unlocks when the previous level's final day (Day 30) is answered** —
   `isLevelUnlocked()`. Skipped earlier days don't hold it back; they stay open. This is
   the **single gate between levels and is where the in-app purchase check will go** (own
@@ -204,11 +208,13 @@ day after it shipped).
   and its Cancel button are gone.
 
 ## Progress tab
-Five segments: **Table** (default) / **Calendar** / **Graph** / **Goals** / **Milestones**.
-- **Calendar** (`components/HabitCalendar.tsx`): every tracked day, month by month, back
-  to the first. Each Level's 30 days are shaded as a block in its `levelColors` colour with
-  D-numbers; Level chips jump to the month it began; a dot marks days with anything logged.
-  Tapping a day up to today opens it on Today (`router.push({ pathname: '/', params: { date } })`).
+Four segments: **Table** (default) / **Graph** / **Goals** / **Milestones**.
+- **Calendar**, inside Table, under the table (`components/HabitCalendar.tsx`): every
+  tracked day, month by month, back to the first. Each challenge's 30 days are shaded as a
+  block in its `levelColors` colour with D-numbers. Challenge chips switch **the table
+  above** to that challenge's 30 days (`getHabitHistoryGridForDates`); "Last 30 days"
+  switches back. Tapping a day shows it underneath (habits ticked), with **Show detail**
+  (mood, intention, gratitude, notes) and **Open on Today** to edit it there.
 - **Table**: 30-day habit tracker, green ticks only (no "missed" marker),
   horizontally scrollable, with a current/best streak column per habit and a
   daily %-complete summary row — modelled directly on Andrew's own Excel
@@ -403,28 +409,26 @@ the one place it is counted.)
 - The before and after are **the same size, same treatment**. Enlarging or warming the
   "after" would be the app editorialising about someone's body.
 
-## Growth Tree
-`components/GrowthTree.tsx` + `lib/growthTree.ts`, shown as the **Growth Tree** view of the
-Challenges tab (a Levels / Growth Tree switch at the top) — not a separate screen, so there
-is one set of levels, not two. Tapping an open trunk level opens it. One
-picture of the whole programme: the trunk everyone climbs (Levels 1-3), the fork (Level 4),
-then a branch per **area of life**, each holding the levels allocated to it. It fills in
-from real progress, so it reads as growth over time rather than as a map.
-- **`lib/growthTree.ts` is the only file to edit when challenges get allocated to
-  branches.** `TRUNK_LEVELS`, `FORK_LEVEL` and `BRANCHES` define the shape and every
-  coordinate is computed from them — change a branch's levels, give branches different
-  lengths, add or remove a branch, and the screen redraws with no edit to the component.
-  Verified against 1, 2, 3 and 4 branches and an uneven 2/5/3 split. Past a readable
-  column width the canopy scrolls sideways rather than squeezing.
-- **Level names are never stored here.** They come from `LEVELS` in `challengeStore`, so
-  the tree and the Challenges tab cannot disagree. A level still named `Level 7` reads as
-  "Locked" until it is named there.
-- **No reveal lock.** It used to stay hidden until Level 3 (`REVEAL_AT_LEVEL`) with a
-  locked header-menu row. Andrew removed that when the tree moved into Challenges: it is
-  visible from day one.
-- Branch names are placeholders until Sharyn and Andrew decide them. `BRANCHES` still
-  points at levels 5-16, which no longer exist in `LEVELS` — they draw as "Locked"
-  placeholders until the branch structure is decided.
+## Growth Tree — the front page of the Challenges tab
+`components/GrowthTree.tsx` + `lib/growthTree.ts`. There is no separate levels list any
+more: the tree **is** the Challenges tab. Tapping a challenge on it opens its days.
+- **It grows.** Only challenges the user has reached (unlocked, with content) are drawn,
+  by title. Above the highest sit `OUTLINES_AHEAD` (2) faint, dashed, **blank** outlines —
+  a hint there is more, and nothing else: no names, no count, no map. On day one that is
+  the first challenge plus two outlines.
+- **Day 30 is the link between challenges** (`celebrateLevel` in `challenges.tsx`). On the
+  first save of a level's final day the modal closes onto the tree, fireworks fire, the
+  next challenge fades up out of its outline, a new blank outline appears above it, and a
+  gold card names what was finished plus any badges it earned (a before/after diff of
+  `getBadgeSummary()`), with a "Begin <next>" button. Voice: short declaratives, no
+  exclamation marks.
+- Header: "Educate · Enhance · Enlighten" over the tree, "Change · Grow · Evolve" at the
+  roots, and a credit line: the knowledge is developed and produced by Bondi Project Global.
+  **No explanation of how the tree works** — Andrew's call; it should speak for itself.
+- Titles come from `LEVELS` in `challengeStore`, never stored here.
+- The branching design (trunk 1-3, fork at 4, a branch per area of life) is set aside until
+  content past Level 3 exists; the fork and branches belong in `lib/growthTree.ts` then.
+  An earlier version drew all 16 levels behind a Level-3 reveal lock; both are gone.
 
 ## Reminders (`lib/reminders.ts`)
 Morning and evening, both off by default, each with its own time. **Local notifications

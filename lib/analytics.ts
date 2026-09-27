@@ -190,11 +190,15 @@ export async function getHabitCompletionCounts(days: number): Promise<HabitCompl
 
 /** Per-habit checked/unchecked grid for the last N days, oldest to newest. */
 export async function getHabitHistoryGrid(days: number): Promise<HabitHistoryGrid> {
-  const habits = await getHabits();
-  const log = await getFullLog();
   const todayKey = toDateKey(new Date());
   const startKey = addDays(todayKey, -(days - 1));
-  const dates = dateRange(startKey, todayKey);
+  return getHabitHistoryGridForDates(dateRange(startKey, todayKey));
+}
+
+/** The same grid for an explicit run of dates - a challenge's own 30 days, say. */
+export async function getHabitHistoryGridForDates(dates: string[]): Promise<HabitHistoryGrid> {
+  const habits = await getHabits();
+  const log = await getFullLog();
 
   const rows = habits.map((habit) => ({
     habitId: habit.id,

@@ -61,7 +61,7 @@ export async function buildProgressSummary(): Promise<ProgressSummary> {
 
   lines.push(name ? `${name}'s iTHRIVE30 progress` : 'My iTHRIVE30 progress');
   lines.push('');
-  lines.push(`Level ${levelNumber}${level ? ` — ${level.name}` : ''}, day ${levelDay} of 30`);
+  lines.push(`${level ? level.name : '30-day challenge'}, day ${levelDay} of 30`);
 
   if (challenges > 0) {
     lines.push(`${challenges} daily ${challenges === 1 ? 'challenge' : 'challenges'} completed`);

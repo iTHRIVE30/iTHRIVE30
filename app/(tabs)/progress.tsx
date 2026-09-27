@@ -15,6 +15,7 @@ import {
   getMonthlyCompletion,
   getYearToDateProgress,
   getHabitHistoryGrid,
+  getHabitHistoryGridForDates,
   getHabitStreaks,
   DayCompletion,
   RatingPoint,
@@ -38,7 +39,8 @@ import {
   toggleMilestone,
   deleteMilestone,
 } from '../../lib/goalsStore';
-import { getChallengeResponses, getLevelDays, CONTENT_BY_LEVEL, LEVELS, ChallengeResponses } from '../../lib/challengeStore';
+import { getChallengeResponses, getLevelDays, CONTENT_BY_LEVEL, LEVELS, ChallengeResponses, type StartedLevel } from '../../lib/challengeStore';
+import { getTodayKey } from '../../lib/habitStore';
 import Svg, { Polyline, Line as SvgLine, Text as SvgText } from 'react-native-svg';
 import { markScreenVisited, recordProgressGoalView } from '../../lib/rewardEvents';
 import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
@@ -49,14 +51,13 @@ const GOAL_MAX_LENGTH = 250;
 const GOAL_QUOTE = 'A wish is not a plan, hope is not a strategy. What gets scheduled gets done.';
 const TABLE_DAYS = 30;
 
-type Segment = 'table' | 'calendar' | 'graph' | 'goals' | 'milestones';
+type Segment = 'table' | 'graph' | 'goals' | 'milestones';
 type RangeOption = 7 | 14 | 30;
 type ViewOption = 'daily' | 'habit' | 'mood' | 'monthly' | 'ytd' | 'levels';
 type ChartType = 'bar' | 'line' | 'pie';
 
 const SEGMENTS: { key: Segment; label: string }[] = [
   { key: 'table', label: 'Table' },
-  { key: 'calendar', label: 'Calendar' },
   { key: 'graph', label: 'Graph' },
   { key: 'goals', label: 'Goals' },
   { key: 'milestones', label: 'Milestones' },
@@ -68,7 +69,7 @@ const VIEW_OPTIONS: { key: ViewOption; label: string; types: ChartType[] }[] = [
   { key: 'mood', label: 'Mood', types: ['bar', 'line'] },
   { key: 'monthly', label: 'Monthly', types: ['bar', 'line'] },
   { key: 'ytd', label: 'Year to Date', types: ['bar', 'line'] },
-  { key: 'levels', label: 'Levels', types: ['bar'] },
+  { key: 'levels', label: 'Challenges', types: ['bar'] },
 ];
 
 function formatShortDate(dateKey: string): string {
@@ -156,6 +157,8 @@ export default function ProgressScreen() {
   const [rewardText, setRewardText] = useState('');
 
   const [celebrateTrigger, setCelebrateTrigger] = useState(0);
+  // The table shows the last 30 days, or one challenge's own 30 days when picked on the calendar.
+  const [tableLevel, setTableLevel] = useState<StartedLevel | null>(null);
 
   const loadData = useCallback(async () => {
     const [completion, rates, counts, trend, month, year, streak, avg, goalList, grid, streakList, milestoneList, responses] =
@@ -169,7 +172,9 @@ export default function ProgressScreen() {
         getPerfectDayStreak(),
         getOverallRatingAverage(),
         getGoals(),
-        getHabitHistoryGrid(TABLE_DAYS),
+        tableLevel
+          ? getHabitHistoryGridForDates(tableLevel.dates.filter((d) => d <= getTodayKey()))
+          : getHabitHistoryGrid(TABLE_DAYS),
         getHabitStreaks(),
         getMilestones(),
         getChallengeResponses(),
@@ -187,7 +192,7 @@ export default function ProgressScreen() {
     setStreaks(streakList);
     setMilestones(milestoneList);
     setChallengeResponses(responses);
-  }, [range]);
+  }, [range, tableLevel]);
 
   useFocusEffect(
     useCallback(() => {
@@ -314,11 +319,9 @@ export default function ProgressScreen() {
           ))}
         </View>
 
-        {segment === 'calendar' && <HabitCalendar />}
-
         {segment === 'table' && (
           <>
-            <Text style={styles.sectionTitle}>Last {TABLE_DAYS} Days</Text>
+            <Text style={styles.sectionTitle}>{tableLevel ? tableLevel.level.name : `Last ${TABLE_DAYS} Days`}</Text>
             <Text style={styles.promptLabel}>Scroll sideways for the full month, plus your streak on the right.</Text>
             <View style={styles.trackerCard}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -370,6 +373,14 @@ export default function ProgressScreen() {
                 <Text style={styles.emptyText}>Start checking off habits on Today to fill in your table.</Text>
               )}
             </View>
+
+            {/* Every day, month by month. Picking a challenge switches the table above to
+                its 30 days; picking a day shows that day underneath. */}
+            <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Calendar</Text>
+            <HabitCalendar
+              selectedLevel={tableLevel?.level.number ?? null}
+              onSelectLevel={setTableLevel}
+            />
           </>
         )}
 
@@ -518,7 +529,7 @@ export default function ProgressScreen() {
                 style={styles.goalInput}
                 value={newGoalText}
                 onChangeText={(t) => setNewGoalText(t.slice(0, GOAL_MAX_LENGTH))}
-                placeholder="e.g. Complete Level 1 in 30 days by checking off every habit daily"
+                placeholder="e.g. Finish my first 30-day challenge, ticking every habit daily"
                 placeholderTextColor={t.muted}
                 maxLength={GOAL_MAX_LENGTH}
                 multiline
@@ -573,7 +584,7 @@ export default function ProgressScreen() {
                 style={styles.addInput}
                 value={targetText}
                 onChangeText={setTargetText}
-                placeholder="e.g. Day 30 of Level 1"
+                placeholder="e.g. Day 30 of my first challenge"
                 placeholderTextColor={t.muted}
               />
               <Text style={styles.milestoneFormLabel}>I get to...</Text>
