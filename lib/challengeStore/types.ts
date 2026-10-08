@@ -8,13 +8,50 @@ export type LevelDef = {
   introMessage?: string; // shown above Day 1 in the day list, e.g. a welcome message
 };
 
-export type ChallengeFieldType = 'text' | 'textarea' | 'rating5' | 'rating10' | 'multiselect' | 'dropdown';
+/**
+ * How a question is answered. The foundation challenge's question tags map onto these:
+ *   JOURNAL       -> 'textarea'
+ *   SELECT ONE    -> 'dropdown' (shown as chips, one at a time)
+ *   SELECT THREE  -> 'multiselect' with max: 3
+ *   SELECT ALL    -> 'multiselect'
+ *   SCALE 1 TO 10 -> 'rating10' for one thing, 'scale10' with items for several
+ */
+export type ChallengeFieldType =
+  | 'text'
+  | 'textarea'
+  | 'rating5'
+  | 'rating10'
+  | 'scale10'
+  | 'multiselect'
+  | 'dropdown';
 
 export type ChallengeField = {
   prompt: string;
   type: ChallengeFieldType;
   placeholder?: string;
   options?: string[]; // for multiselect / dropdown
+  /** multiselect only: the most that can be picked at once (SELECT THREE is 3). */
+  max?: number;
+  /** multiselect only: adds a "+ add your own" chip that takes a typed answer. */
+  allowCustom?: boolean;
+  /**
+   * scale10 only: the things being rated, each on its own 1-10 row. The answer is an array
+   * of the same length, '' for a row not rated yet.
+   */
+  items?: string[];
+};
+
+/**
+ * Shows an answer from an earlier day, read-only - e.g. the Day 7 reflection showing the
+ * three words chosen on Day 1. Nothing is copied: it reads the earlier day's response live,
+ * so editing Day 1 changes what Day 7 shows.
+ */
+export type ChallengeEcho = {
+  dayId: string;
+  fieldIndex: number;
+  label: string;
+  /** Shown when that day hasn't been answered yet. */
+  empty: string;
 };
 
 export type ChallengeDayDef = {
@@ -28,15 +65,30 @@ export type ChallengeDayDef = {
    */
   voice?: string;
   quote: string;
+  /**
+   * Who the quoted person is, in one short line, shown small under the attribution. Only on
+   * the FIRST day a person is quoted - later days quote them without it.
+   */
+  quoteNote?: string;
   lesson: string;
   /** The day's affirmation, in the Thriver's own first person. Set in quote marks by the UI. */
   affirmation?: string;
   /** An optional sourced fact. Only a handful of days carry one. */
   fact?: string;
+  /** Read-only answers from earlier days, shown above the questions. */
+  echoes?: ChallengeEcho[];
   worksheetTitle: string; // heading shown above the fields - empty = no heading shown
   fields: ChallengeField[]; // the interactive worksheet fields for this day
   doThisLabel: string; // empty string = falls back to "Do This" in the UI
   doThis: string; // optional extra display-only callout
+  /**
+   * A tick under the action ("Done"), for days whose action says to tick it off here. Its
+   * answer is stored one place after the last field: answers[fields.length].
+   */
+  actionCheck?: string;
+  /** "Why it works": one verified finding under the action, with its source in small type. */
+  actionProof?: string;
+  actionProofSource?: string;
   goDeeper: string; // optional extra display-only footer text
 };
 

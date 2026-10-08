@@ -23,10 +23,15 @@ const problems = [];
 const allWarnings = [];
 let warnings = allWarnings;
 
-/** Strips the editing-guide block comment so its examples aren't checked as content. */
+/**
+ * Blanks out the editing-guide block comment so its examples aren't checked as content.
+ * Its line breaks are kept, so every line number reported still matches the file.
+ */
 function withoutBlockComments(src) {
-  return src.replace(/\/\*[\s\S]*?\*\//g, '');
+  return src.replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ''));
 }
+
+const KNOWN_TYPES = ['text', 'textarea', 'rating5', 'rating10', 'scale10', 'multiselect', 'dropdown'];
 
 /** Every `field: \`value\`` pair in the file, with the line it starts on. */
 function readFields(src) {
@@ -103,11 +108,6 @@ for (const file of FILES) {
       }
     }
 
-    // 4. A prompt ending in a full stop reads oddly above an input box.
-    if (key === 'prompt' && /\.$/.test(value.trim()) && !/\?$/.test(value.trim())) {
-      warnings.push(`${at}: prompt ends in a full stop — most others don't.`);
-    }
-
     // 5. Smart quotes inside body copy are fine, but a lone “ or ” is usually a slip.
     if (key !== 'quote') {
       const open = (value.match(/“/g) || []).length;
@@ -130,6 +130,56 @@ for (const file of FILES) {
     if (key === 'quote' && value.includes('{name}')) {
       problems.push(`${at}: {name} can't go in a quote - those are someone else's words.`);
     }
+  }
+
+  // Question types: an unknown type shows nothing at all, so the question has no answer box.
+  for (const m of src.matchAll(/type: '([^']+)'/g)) {
+    const line = src.slice(0, m.index).split('\n').length;
+    if (!KNOWN_TYPES.includes(m[1])) {
+      problems.push(
+        `${file}:${line}: "${m[1]}" isn't a question type the app knows, so no answer box will show.\n` +
+          `   Use one of: ${KNOWN_TYPES.join(', ')}.`
+      );
+    }
+  }
+
+  // "+ add your own" is a switch (allowCustom: true), not an option. Typed into the list it
+  // would show as an ordinary chip that just says "+ add your own".
+  for (const m of src.matchAll(/options: \[[^\]]*add your own[^\]]*\]/gi)) {
+    const line = src.slice(0, m.index).split('\n').length;
+    problems.push(
+      `${file}:${line}: "+ add your own" is in an options list.\n` +
+        `   Take it out of the list and put  allowCustom: true  on the question instead.`
+    );
+  }
+
+  // "Who they are" notes: on the first day a person is quoted, and never again after.
+  if (!PLACEHOLDER_LEVELS.includes(file)) {
+    const seenPeople = new Set();
+    const blocks = src.split(/(?=id: ')/).slice(1);
+    let offset = src.indexOf("id: '");
+    for (const block of blocks) {
+      const line = src.slice(0, offset).split('\n').length;
+      offset += block.length;
+      const quote = /quote: `[^`]*~\s*([^,`]+)/.exec(block);
+      if (!quote) continue;
+      const person = quote[1].trim();
+      const hasNote = /quoteNote: `[^`]+`/.test(block);
+      const where = `${file}:${line} (${dayLabel(src, offset - 1)})`;
+      if (!seenPeople.has(person) && !hasNote) {
+        warnings.push(`${where}: first quote from ${person}, but no quoteNote saying who they are.`);
+      }
+      if (seenPeople.has(person) && hasNote) {
+        warnings.push(`${where}: ${person} has been quoted before, so this quoteNote shouldn't be here.`);
+      }
+      seenPeople.add(person);
+    }
+  }
+
+  // A 1-10 scale of several things needs the things.
+  for (const m of src.matchAll(/type: 'scale10'(?![^}]*items: \[)/g)) {
+    const line = src.slice(0, m.index).split('\n').length;
+    problems.push(`${file}:${line}: a scale10 question has no items: ['...'] list, so there is nothing to rate.`);
   }
 
   // 6. Day numbers should be unique and in order.

@@ -23,6 +23,8 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 /** How long the ring takes to sweep 0 -> 100%, and how long the whole thing fades out after. */
 const SWEEP_MS = 2200;
 const FADE_MS = 420;
+/** Longest the ring waits on `holdUntil` before letting the app open regardless. */
+export const HOLD_LIMIT_MS = 8000;
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -48,6 +50,11 @@ export default function SplashLoader({
   const [progress] = useState(() => new Animated.Value(0));
   const [fade] = useState(() => new Animated.Value(1));
   const finished = useRef(false);
+  // Held in a ref so a new `onDone` from the parent never restarts the effect below. It
+  // used to be a dependency: the parent re-rendered mid-fade, the cleanup cancelled the
+  // fade's callback, `finished` stopped the rerun, and the ring sat on screen forever.
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
   useEffect(() => {
     let cancelled = false;
@@ -63,8 +70,13 @@ export default function SplashLoader({
       }).start(() => resolve());
     });
 
-    // Wait for the animation AND any real work, whichever takes longer.
-    Promise.all([sweep, holdUntil ?? Promise.resolve()])
+    // Wait for the animation AND any real work, whichever takes longer - but never forever.
+    // A storage read that never settles must not trap someone on the loading ring.
+    const hold = Promise.race([
+      holdUntil ?? Promise.resolve(),
+      new Promise<void>((resolve) => setTimeout(resolve, HOLD_LIMIT_MS)),
+    ]);
+    Promise.all([sweep, hold])
       .catch(() => {})
       .then(() => {
         if (cancelled || finished.current) return;
@@ -75,14 +87,14 @@ export default function SplashLoader({
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }).start(() => {
-          if (!cancelled) onDone();
+          if (!cancelled) onDoneRef.current();
         });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [progress, fade, holdUntil, onDone]);
+  }, [progress, fade, holdUntil]);
 
   const [markSrc, isHereSrc, cgeSrc] = logoSequence(tone);
 

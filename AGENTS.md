@@ -111,11 +111,37 @@ day after it shipped).
   instead of extending it)
 
 ## Levels & challenge content
-- Level 1 ("Your Next Best Self Awaits") is fully written and live in testing. Its content
-  is draft v5 from `iTHRIVE30_Level1_YourNextBestSelfAwaits_v5_1.docx`: six cycles of five
-  days, each day carrying a `voice` line, quote, lesson, `affirmation` and sometimes a
-  `fact`. **The day ids stay `l1-d1`...`l1-d30`** — responses are stored against them, so
-  renaming them to the doc's `l1.d01` style would wipe existing testers' answers.
+- Level 1 ("Your Next Best Self Awaits") is **the foundation challenge, arc A**, being written
+  a week at a time. Week one (Days 1-7, revision 22) and week two (Days 8-14, draft 4,
+  generated word for word from `handoff/foundation-week2.json`) are in; **Days 15-30 are
+  deliberately absent and show "Coming soon"** until weeks three and four arrive. New weeks
+  arrive from Chat as JSON in `/handoff`: load the strings exactly, never retype or edit copy,
+  and log any copy question in `handoff/CHANGES.md` (see the Handoff section).
+  **`quoteNote`** (who the person is) sits only on the **first day a person is quoted** —
+  later quotes from them carry none (Andrew's rule); `check-content` warns either way.
+  Bylines are always the full attribution ("James Clear, Atomic Habits (2018)").
+  The old v5 cycle-based days were removed entirely. Each day: lower-case `title`, `quote`
+  (the anchor; empty when the anchor is plain logic, e.g. Day 5), `lesson` (the content
+  block, line breaks kept), `affirmation` (the carry-line; the UI adds "~ say that again…"),
+  `fields`, then `doThis` (the action, always last) with an optional `actionCheck` tick and
+  an `actionProof` + `actionProofSource` ("Why it works"). Reflection days use `echoes` to
+  show an earlier answer live (Day 7 shows the Day 1 three words). Question tags map to
+  types: JOURNAL `textarea`, SELECT ONE `dropdown`, SELECT THREE `multiselect` + `max: 3`,
+  SELECT ALL `multiselect`, SCALE 1 TO 10 `scale10` + `items`; "+ add your own" is
+  `allowCustom: true`, never an option. Internal roles and source notes never go in the app.
+  **The day ids stay `l1-d1`...`l1-d30`.**
+- **A level is complete only when all 30 days are written and answered** (`finalDayOf()` is
+  Day 30 itself, `isLevelComplete()`). An earlier "last written day" rule would have
+  celebrated and unlocked Awareness after Day 7 of a part-written level. Growth Tree, badges,
+  montages and the Progress Levels chart all count out of 30. Side effect: Level 2 has only
+  10 days, so Level 3 cannot unlock from it until Level 2 is rewritten.
+- **`lib/contentReset.ts` — one-time fresh start.** On first launch of a build with a new
+  `RESET_ID`, every device erases all app data once and replays onboarding (run before the
+  root layout renders anything). Used when the foundation challenge was replaced, because
+  answers are stored by position and old ones would land in the wrong questions. Change
+  `RESET_ID` only to deliberately wipe every tester again. Its marker key is the **one key
+  deliberately outside the `ithrive30_` prefix**, so backup/restore/Delete everything can't
+  remove it and trigger a second wipe.
 - Level 2 (Awareness) and Level 3 (Discovery) have partial/placeholder
   content and are scheduled for a major rewrite. **Do not edit
   `level2-awareness.ts` or `level3-discovery.ts` content, or build features
@@ -127,8 +153,8 @@ day after it shipped).
   is shown by its title ("Your Next Best Self Awaits"). The number is how the code tells
   challenges apart. (Badge names from the achievements spreadsheet still say "Level" —
   change those in the sheet, not in `data.ts`.)
-- **A level unlocks when the previous level's final day (Day 30) is answered** —
-  `isLevelUnlocked()`. Skipped earlier days don't hold it back; they stay open. This is
+- **A level unlocks when the previous level's final day (Day 30, which must exist) is
+  answered** — `isLevelUnlocked()`. Skipped earlier days don't hold it back; they stay open. This is
   the **single gate between levels and is where the in-app purchase check will go** (own
   the level, or hold a 3/6-month, annual or lifetime bundle). Keep every screen going
   through it so the paywall lands everywhere at once.
@@ -552,6 +578,11 @@ no visible quality loss.
 - App icons and splash assets are in a `PROTECTED` list and never touched:
   resizing them breaks the native icon pipeline.
 - Run it after dropping new images into `assets/`, then `npx expo start -c`.
+
+## Handoff
+Challenge copy comes from Chat through `/handoff/` (PROJECT.md, COPY.md, the week JSON,
+BUILD.md, CHANGES.md). Read them before challenge-content work. Copy is owned upstream:
+never edit strings by hand — log requests in `handoff/CHANGES.md`.
 
 ## Working conventions
 - Andrew is a non-developer. Prefer direct, complete edits over long

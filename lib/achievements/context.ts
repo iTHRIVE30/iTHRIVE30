@@ -18,7 +18,7 @@ import {
   ChallengeResponses,
   getChallengeResponses,
   getCurrentLevelNumber,
-  getLevelDays,
+  isLevelComplete,
 } from '../challengeStore';
 import { JourneyCategory, JourneyGoal, getCategories, getGoals } from '../journeyStore';
 import { RewardEvents, getRewardEvents } from '../rewardEvents';
@@ -229,10 +229,8 @@ export async function buildRewardContext(): Promise<RewardContext> {
 
   const completedLevels = Object.keys(CONTENT_BY_LEVEL)
     .map(Number)
-    .filter((level) => {
-      const levelDays = getLevelDays(level);
-      return levelDays.length > 0 && levelDays.every((d) => !!responses[d.id]);
-    })
+    // All 30 days written and answered - a level written a week at a time is never complete.
+    .filter((level) => isLevelComplete(level, responses))
     .sort((a, b) => a - b);
 
   const unlockedMontageLevels = await getUnlockedBadgeMontageLevels();

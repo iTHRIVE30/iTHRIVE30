@@ -60,6 +60,7 @@ export function personaliseDay(day: ChallengeDayDef, firstName: string | null | 
     fact: withName(day.fact, firstName),
     worksheetTitle: withName(day.worksheetTitle, firstName),
     doThis: withName(day.doThis, firstName),
+    actionProof: withName(day.actionProof, firstName),
     goDeeper: withName(day.goDeeper, firstName),
     fields: day.fields.map((field) => ({
       ...field,

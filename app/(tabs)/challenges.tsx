@@ -21,6 +21,7 @@ import {
   isLevelUnlocked,
   getChallengeDay,
   getChallengeResponses,
+  finalDayOf,
   submitChallengeResponse,
   hasAnswerContent,
 } from '../../lib/challengeStore';
@@ -68,38 +69,127 @@ function ChipSelector({
   options,
   selected,
   multiple,
+  max,
+  allowCustom,
   onChange,
+  onFocus,
 }: {
   options: string[];
   selected: string[];
   multiple: boolean;
+  /** The most that can be picked at once. Once reached, unpicked chips dim until one is let go. */
+  max?: number;
+  /** Adds "+ add your own", which takes a typed answer and adds it as a picked chip. */
+  allowCustom?: boolean;
   onChange: (next: string[]) => void;
+  onFocus?: () => void;
 }) {
+  const t = useTheme();
   const styles = useThemedStyles(createStyles);
+  const [adding, setAdding] = useState(false);
+  const [customText, setCustomText] = useState('');
+
+  const full = multiple && !!max && selected.length >= max;
+  // Typed answers live in the saved answer alongside the listed options, so they are drawn
+  // from it: they stay on screen as picked chips, and letting one go removes it.
+  const custom = selected.filter((s) => !options.includes(s));
 
   const toggle = (opt: string) => {
     if (multiple) {
-      const next = selected.includes(opt) ? selected.filter((o) => o !== opt) : [...selected, opt];
-      onChange(next);
+      if (selected.includes(opt)) onChange(selected.filter((o) => o !== opt));
+      else if (!full) onChange([...selected, opt]);
     } else {
       onChange([opt]);
     }
   };
 
+  const addCustom = () => {
+    const text = customText.trim();
+    setCustomText('');
+    setAdding(false);
+    if (!text) return;
+    const match = selected.find((s) => s.toLowerCase() === text.toLowerCase());
+    if (match) return;
+    const listed = options.find((o) => o.toLowerCase() === text.toLowerCase());
+    if (multiple) {
+      if (!full) onChange([...selected, listed ?? text]);
+    } else {
+      onChange([listed ?? text]);
+    }
+  };
+
   return (
-    <View style={styles.chipWrap}>
-      {options.map((opt) => {
-        const isSelected = selected.includes(opt);
-        return (
-          <Pressable
-            key={opt}
-            onPress={() => toggle(opt)}
-            style={[styles.optionChip, isSelected && styles.optionChipSelected]}
-          >
-            <Text style={[styles.optionChipText, isSelected && styles.optionChipTextSelected]}>{opt}</Text>
+    <View style={{ gap: 10 }}>
+      <View style={styles.chipWrap}>
+        {[...options, ...custom].map((opt) => {
+          const isSelected = selected.includes(opt);
+          return (
+            <Pressable
+              key={opt}
+              onPress={() => toggle(opt)}
+              style={[styles.optionChip, isSelected && styles.optionChipSelected, full && !isSelected && styles.optionChipDimmed]}
+            >
+              <Text style={[styles.optionChipText, isSelected && styles.optionChipTextSelected]}>{opt}</Text>
+            </Pressable>
+          );
+        })}
+        {allowCustom && !adding && !full && (
+          <Pressable onPress={() => setAdding(true)} style={[styles.optionChip, styles.optionChipAdd]}>
+            <Text style={styles.optionChipAddText}>+ add your own</Text>
           </Pressable>
-        );
-      })}
+        )}
+      </View>
+
+      {adding && (
+        <TextInput
+          style={styles.answerInputShort}
+          value={customText}
+          onChangeText={setCustomText}
+          onFocus={onFocus}
+          onSubmitEditing={addCustom}
+          onBlur={addCustom}
+          placeholder="Type it, then tap return"
+          placeholderTextColor={t.muted}
+          returnKeyType="done"
+          autoFocus
+        />
+      )}
+
+      {multiple && !!max && (
+        <Text style={styles.chipCount}>
+          {selected.length} of {max} chosen
+        </Text>
+      )}
+    </View>
+  );
+}
+
+/** Several things rated 1-10, one row each - e.g. Day 2's "Rate each of these today". */
+function Scale10List({
+  items,
+  value,
+  onChange,
+}: {
+  items: string[];
+  value: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const styles = useThemedStyles(createStyles);
+  return (
+    <View style={{ gap: 14 }}>
+      {items.map((item, i) => (
+        <View key={item} style={{ gap: 6 }}>
+          <Text style={styles.scaleItemLabel}>{item}</Text>
+          <Rating10
+            value={Number(value[i]) || 0}
+            onChange={(v) => {
+              const next = items.map((_, j) => value[j] ?? '');
+              next[i] = String(v);
+              onChange(next);
+            }}
+          />
+        </View>
+      ))}
     </View>
   );
 }
@@ -142,10 +232,28 @@ function FieldInput({
     return <Rating10 value={Number(value) || 0} onChange={(v) => onChange(String(v))} />;
   }
 
+  if (field.type === 'scale10') {
+    return (
+      <Scale10List
+        items={field.items || []}
+        value={Array.isArray(value) ? value : []}
+        onChange={(next) => onChange(next)}
+      />
+    );
+  }
+
   if (field.type === 'multiselect') {
     const selected = Array.isArray(value) ? value : [];
     return (
-      <ChipSelector options={field.options || []} selected={selected} multiple onChange={(next) => onChange(next)} />
+      <ChipSelector
+        options={field.options || []}
+        selected={selected}
+        multiple
+        max={field.max}
+        allowCustom={field.allowCustom}
+        onChange={(next) => onChange(next)}
+        onFocus={onFocus}
+      />
     );
   }
 
@@ -156,7 +264,9 @@ function FieldInput({
         options={field.options || []}
         selected={selected}
         multiple={false}
+        allowCustom={field.allowCustom}
         onChange={(next) => onChange(next[0] || '')}
+        onFocus={onFocus}
       />
     );
   }
@@ -168,12 +278,21 @@ type LevelListItem = { level: LevelDef; unlocked: boolean; progress: LevelProgre
 
 type Celebration = { finished: LevelDef; next: LevelDef | null; badges: string[] };
 
-/** Is this challenge day the last one written for its level (Day 30)? */
+/**
+ * Is this challenge day its level's Day 30? Day 30 itself, never just the last day written:
+ * a level written a week at a time would otherwise celebrate on Day 7.
+ */
 function isFinalDay(levelNumber: number, dayId: string): boolean {
-  const days = getLevelDays(levelNumber);
-  if (days.length === 0) return false;
-  const last = days.reduce((a, b) => (b.day > a.day ? b : a));
-  return last.id === dayId;
+  return finalDayOf(levelNumber)?.id === dayId;
+}
+
+/** A fresh, unanswered day: one empty answer per field, plus the action tick if it has one. */
+function blankAnswers(challenge: ChallengeDayDef): ChallengeAnswer[] {
+  const answers: ChallengeAnswer[] = challenge.fields.map((f) =>
+    f.type === 'multiselect' ? [] : f.type === 'scale10' ? (f.items || []).map(() => '') : ''
+  );
+  if (challenge.actionCheck) answers.push('');
+  return answers;
 }
 
 async function earnedBadgeIds(): Promise<Set<string>> {
@@ -342,7 +461,7 @@ export default function ChallengesScreen() {
     if (existing) {
       setDraftAnswers(existing.answers);
     } else {
-      setDraftAnswers(challenge.fields.map((f) => (f.type === 'multiselect' ? [] : '')));
+      setDraftAnswers(blankAnswers(challenge));
     }
     setActiveDay(challenge);
   };
@@ -641,6 +760,10 @@ export default function ChallengesScreen() {
                   {!!quote.attribution && (
                     <Text style={styles.quoteAuthor}>~ {quote.attribution}</Text>
                   )}
+                  {/* Who they are - only on the first day a person is quoted. */}
+                  {!!shownDay?.quoteNote && (
+                    <Text style={styles.quoteNote}>{shownDay.quoteNote}</Text>
+                  )}
                   <View style={styles.quoteRule} />
                 </View>
               )}
@@ -648,7 +771,7 @@ export default function ChallengesScreen() {
               {/* One sentence per line - the lessons are written as short declaratives and
                   read as admin when they're run together in a block. See lib/prose.ts. */}
               {lessonLines.length > 0 && (
-                <View style={styles.proseBlock}>
+                <View style={[styles.proseBlock, !quote.quote && styles.proseBlockNoQuote]}>
                   {lessonLines.map((line, i) => (
                     <Text key={i} style={styles.lessonText}>{line}</Text>
                   ))}
@@ -657,11 +780,26 @@ export default function ChallengesScreen() {
 
               {/* The affirmation closes the reading half of the day, in the Thriver's own
                   first person. It already carries its curly quote marks in the content. */}
+              {/* The carry-line is said twice: the prompt under it is part of the format,
+                  so it is added here rather than typed into every day. */}
               {!!shownDay?.affirmation && (
                 <View style={styles.affirmationBlock}>
                   <Text style={styles.affirmationText}>{shownDay.affirmation}</Text>
+                  <Text style={styles.sayAgainText}>~ say that again…</Text>
                 </View>
               )}
+
+              {/* Answers from earlier days, read live - Day 7 shows the Day 1 three words. */}
+              {shownDay?.echoes?.map((echo, i) => {
+                const earlier = responses[echo.dayId]?.answers[echo.fieldIndex];
+                const shown = Array.isArray(earlier) ? earlier.filter(Boolean).join(' · ') : String(earlier ?? '').trim();
+                return (
+                  <View key={i} style={styles.echoBlock}>
+                    <Text style={styles.echoLabel}>{echo.label.toUpperCase()}</Text>
+                    <Text style={shown ? styles.echoText : styles.echoEmpty}>{shown || echo.empty}</Text>
+                  </View>
+                );
+              })}
 
               {/* Only a handful of days carry a sourced fact. */}
               {!!shownDay?.fact && (
@@ -699,6 +837,36 @@ export default function ChallengesScreen() {
                   {doThisLines.map((line, i) => (
                     <Text key={i} style={styles.doThisText}>{line}</Text>
                   ))}
+                  {/* The action's tick is stored one place after the last field. */}
+                  {!!activeDay?.actionCheck && (() => {
+                    const index = activeDay.fields.length;
+                    const ticked = !!draftAnswers[index];
+                    return (
+                      <Pressable
+                        onPress={() => updateAnswer(index, ticked ? '' : activeDay.actionCheck!)}
+                        style={styles.actionCheckRow}
+                        hitSlop={8}
+                      >
+                        <Ionicons
+                          name={ticked ? 'checkmark-circle' : 'ellipse-outline'}
+                          size={24}
+                          color={t.primary}
+                        />
+                        <Text style={styles.actionCheckText}>{activeDay.actionCheck}</Text>
+                      </Pressable>
+                    );
+                  })()}
+                </View>
+              )}
+
+              {/* "Why it works": the proof sits under the action it explains, never above. */}
+              {!!shownDay?.actionProof && (
+                <View style={styles.factBlock}>
+                  <Text style={styles.factLabel}>WHY IT WORKS</Text>
+                  <Text style={styles.factText}>{shownDay.actionProof}</Text>
+                  {!!shownDay.actionProofSource && (
+                    <Text style={styles.proofSource}>{shownDay.actionProofSource}</Text>
+                  )}
                 </View>
               )}
 
@@ -810,6 +978,19 @@ const createStyles = (t: Theme) =>
       textAlign: 'center',
     },
 
+    sayAgainText: { color: t.secondaryDim, fontSize: 13, fontStyle: 'italic', textAlign: 'center', marginTop: 10 },
+    echoBlock: { marginTop: 24, paddingLeft: 14, borderLeftWidth: 2, borderLeftColor: t.primaryDim, gap: 6 },
+    echoLabel: { color: t.primary, fontSize: 10, fontWeight: '700', letterSpacing: 1.6 },
+    echoText: { color: t.ink, fontSize: 17, fontWeight: '600', lineHeight: 25 },
+    echoEmpty: { color: t.secondary, fontSize: 14, fontStyle: 'italic', lineHeight: 21 },
+    actionCheckRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, alignSelf: 'flex-start' },
+    actionCheckText: { color: t.inkSoft, fontSize: 15, fontWeight: '600' },
+    proofSource: { color: t.secondaryDim, fontSize: 12, lineHeight: 18 },
+    scaleItemLabel: { color: t.body, fontSize: 14 },
+    chipCount: { color: t.secondaryDim, fontSize: 12 },
+    optionChipDimmed: { opacity: 0.45 },
+    optionChipAdd: { borderStyle: 'dashed', backgroundColor: 'transparent' },
+    optionChipAddText: { color: t.primary, fontSize: 13, fontWeight: '600' },
     factBlock: { marginTop: 22, gap: 6 },
     factLabel: { color: t.secondaryDim, fontSize: 10, fontWeight: '700', letterSpacing: 1.6 },
     factText: { color: t.secondary, fontSize: 14, lineHeight: 22 },
@@ -832,7 +1013,9 @@ const createStyles = (t: Theme) =>
       textAlign: 'center',
       marginTop: 12,
     },
+    quoteNote: { color: t.secondaryDim, fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 6 },
     proseBlock: { gap: 10, marginBottom: 4 },
+    proseBlockNoQuote: { marginTop: 22 },
     lessonText: { color: t.body, fontSize: 15, lineHeight: 24 },
     worksheetTitle: { color: t.primary, fontSize: 16, fontWeight: '700', marginTop: 32 },
     noFieldsNote: { color: t.muted, fontSize: 13, fontStyle: 'italic', marginTop: 12 },

@@ -1,5 +1,5 @@
 import { getSelfiePhoto, getTodayKey } from './habitStore';
-import { getLevelProgress, getStartedLevels } from './challengeStore';
+import { DAYS_PER_LEVEL, getLevelProgress, getStartedLevels } from './challengeStore';
 import type { LevelProgress } from './challengeStore/types';
 
 /**
@@ -43,8 +43,9 @@ export type Montage = {
   last: MontagePhoto | null;
 };
 
+/** All 30 days written and answered - a partly written level never counts as complete. */
 function isComplete(progress: LevelProgress): boolean {
-  return progress.totalContentDays > 0 && progress.completedContentDays >= progress.totalContentDays;
+  return progress.totalContentDays >= DAYS_PER_LEVEL && progress.completedContentDays >= progress.totalContentDays;
 }
 
 /**

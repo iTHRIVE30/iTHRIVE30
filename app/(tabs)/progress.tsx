@@ -39,7 +39,7 @@ import {
   toggleMilestone,
   deleteMilestone,
 } from '../../lib/goalsStore';
-import { getChallengeResponses, getLevelDays, CONTENT_BY_LEVEL, LEVELS, ChallengeResponses, type StartedLevel } from '../../lib/challengeStore';
+import { getChallengeResponses, getLevelDays, CONTENT_BY_LEVEL, DAYS_PER_LEVEL, LEVELS, ChallengeResponses, type StartedLevel } from '../../lib/challengeStore';
 import { getTodayKey } from '../../lib/habitStore';
 import Svg, { Polyline, Line as SvgLine, Text as SvgText } from 'react-native-svg';
 import { markScreenVisited, recordProgressGoalView } from '../../lib/rewardEvents';
@@ -280,7 +280,8 @@ export default function ProgressScreen() {
   const levelSeries = levelNumbersWithContent.map((num, idx) => {
     const days = getLevelDays(num);
     const levelDef = LEVELS.find((l) => l.number === num);
-    const total = days.length;
+    // Out of all 30 days, so a level written a week at a time doesn't read 100% at Day 7.
+    const total = Math.max(days.length, DAYS_PER_LEVEL);
     const points = Array.from({ length: 30 }, (_, i) => {
       const day = i + 1;
       const doneSoFar = days.filter((d) => d.day <= day && !!challengeResponses[d.id]).length;

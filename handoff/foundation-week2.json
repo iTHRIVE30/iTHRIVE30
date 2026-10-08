@@ -1,0 +1,355 @@
+{
+  "brand": "iTHRIVE30",
+  "challenge": "foundation",
+  "arc": "A",
+  "version": "draft 4, 4 Oct 2026",
+  "days": [
+    {
+      "day": 8,
+      "week": 2,
+      "copy_id": "foundation.d08",
+      "type": "content",
+      "title": "build your system",
+      "quote": "The height of sophistication is simplicity.",
+      "quote_attribution": "Clare Boothe Luce, Stuffed Shirts (1931)",
+      "quote_note": "American writer, politician, diplomat and public intellectual. 1903–1987.",
+      "content": [
+        "Anything complex is simplified by a system, broken into bite-sized pieces. That is how this challenge gets done.",
+        "Your system starts with one habit: small enough to keep on your hardest day, big enough to create daily momentum.",
+        "Open your tracker in the Progress tab: find the gaps, and close them.",
+        "Last week you made the promise. This week you build what sustains it."
+      ],
+      "affirmation": "I keep it simple, and I keep it daily.",
+      "affirmation_prompt": "~ say that again…",
+      "fields": [
+        {
+          "id": "foundation.d08.q1",
+          "type": "select_one",
+          "prompt": "Pick the habit that starts your system.",
+          "options": [
+            "Move for 10 minutes",
+            "Read 10 pages",
+            "Write three lines",
+            "Water before coffee",
+            "Phone away at dinner",
+            "Plan tomorrow tonight"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d08.q2",
+          "type": "journal",
+          "prompt": "Your habit, in one line, small enough for your hardest day."
+        },
+        {
+          "id": "foundation.d08.q3",
+          "type": "scale_1_10",
+          "prompt": "How sure are you that you’ll do it on your worst day?"
+        }
+      ],
+      "action": "Under 8? Make it smaller. Then do it today and tick it off here before you sleep.",
+      "action_proof": null,
+      "pending_approval": [
+        "Clare Boothe Luce as a new voice"
+      ]
+    },
+    {
+      "day": 9,
+      "week": 2,
+      "copy_id": "foundation.d09",
+      "type": "content",
+      "title": "design your space",
+      "quote": "Environment is the invisible hand that shapes human behavior.",
+      "quote_attribution": "James Clear, Atomic Habits (2018)",
+      "quote_note": "American writer on habits and author of Atomic Habits. Born 1986.",
+      "content": [
+        "Your space makes more of your choices than you do.",
+        "The phone by the bed, the shoes by the door, the bowl on the bench: each is a decision already made.",
+        "Leave the room as it is, and it keeps choosing for you. Design it so your new habits become the easy choice.",
+        "On Day 1 you pictured the space to THRIVE. Today you start building it, one object at a time."
+      ],
+      "affirmation": "I design my space, and my space carries me.",
+      "affirmation_prompt": "~ say that again…",
+      "fields": [
+        {
+          "id": "foundation.d09.q1",
+          "type": "select_one",
+          "prompt": "Which space shapes your habit most?",
+          "options": [
+            "Bedroom",
+            "Kitchen",
+            "Desk",
+            "Car",
+            "Phone",
+            "Living room"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d09.q2",
+          "type": "select_all",
+          "prompt": "Which moves will you make?",
+          "options": [
+            "Put it in sight",
+            "Put it within reach",
+            "Move a distraction out of sight",
+            "Set it out the night before",
+            "Phone in another room"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d09.q3",
+          "type": "journal",
+          "prompt": "The one change you’ll make, in one line."
+        }
+      ],
+      "action": "Pics or it didn’t happen. Tonight, take a before of every space in your sanctuary, make your change, then take at least one after as evidence for tomorrow’s habit.",
+      "action_proof": null,
+      "pending_approval": []
+    },
+    {
+      "day": 10,
+      "week": 2,
+      "copy_id": "foundation.d10",
+      "type": "content",
+      "title": "learn from every day",
+      "quote": "Success leaves clues.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "Ten days in, every day has left you something: the days you kept show you what works, and any that slipped show you exactly where to build.",
+        "A missed day becomes a lesson the moment you review it to find why you avoided it.",
+        "How you respond is yours to choose. Read your days, and the road gets clearer with every one."
+      ],
+      "affirmation": "When I learn, I build. What I build, I keep.",
+      "affirmation_prompt": "~ say that again…",
+      "fields": [
+        {
+          "id": "foundation.d10.q1",
+          "type": "select_all",
+          "prompt": "What helped on your best days?",
+          "options": [
+            "Did it early",
+            "Had it ready",
+            "Knew my why",
+            "Someone checked in",
+            "Kept it small"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d10.q2",
+          "type": "select_all",
+          "prompt": "What got in the way on the harder days?",
+          "options": [
+            "Too tired",
+            "No time",
+            "Forgot",
+            "Plans changed",
+            "Lost my why"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d10.q3",
+          "type": "journal",
+          "prompt": "Your lesson, in one line: next time I will…"
+        }
+      ],
+      "action": "Write your lesson where you’ll see it, and use it on tomorrow’s habit, whatever today held.",
+      "action_proof": {
+        "text": "In a study of new habits, missing one day made no real difference to how they formed.",
+        "source": "Lally et al., European Journal of Social Psychology, 2010"
+      },
+      "pending_approval": []
+    },
+    {
+      "day": 11,
+      "week": 2,
+      "copy_id": "foundation.d11",
+      "type": "content",
+      "title": "momentum over motivation",
+      "quote": "If I only ran on the days I felt motivated to run, I wouldn’t run very much.",
+      "quote_attribution": "Nedd Brockmann, interview, Daily Advertiser (2026)",
+      "quote_note": "Australian ultramarathon runner and 2026 Young Australian of the Year, who ran 3,952 km across Australia in 47 days. Born 1999.",
+      "content": [
+        "Momentum over motivation: you build momentum, and momentum drives motivation.",
+        "Motivation arrives when it likes. Your system arrives every day: one habit, one cue, one tick.",
+        "Routine is built on the days you least feel like it, and rhythm grows from routine.",
+        "Keep the system running, and motivation catches up with you."
+      ],
+      "affirmation": "I keep the system, and the system keeps me.",
+      "affirmation_prompt": "~ say that again…",
+      "fields": [
+        {
+          "id": "foundation.d11.q1",
+          "type": "scale_1_10",
+          "prompt": "How steady has your system been this week?"
+        },
+        {
+          "id": "foundation.d11.q2",
+          "type": "select_one",
+          "prompt": "What will your habit follow each day?",
+          "options": [
+            "After I wake",
+            "After coffee",
+            "After the school run",
+            "After work",
+            "After dinner",
+            "Before bed"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d11.q3",
+          "type": "journal",
+          "prompt": "Your cue, in one line: After I ___, I will ___."
+        }
+      ],
+      "action": "Do your habit today straight after your cue, and tick it off the moment it’s done.",
+      "action_proof": null,
+      "pending_approval": []
+    },
+    {
+      "day": 12,
+      "week": 2,
+      "copy_id": "foundation.d12",
+      "type": "content",
+      "title": "decide it in advance",
+      "quote": "It is in your moments of decision that your destiny is shaped.",
+      "quote_attribution": "Tony Robbins, Awaken the Giant Within (1991)",
+      "quote_note": null,
+      "content": [
+        "The hardest moment to decide is the moment you’re in it: tired, rushed, tempted.",
+        "So decide now, while you’re clear. When the obstacle comes, your answer is already waiting.",
+        "An excuse needs a gap to grow in. A plan made in advance leaves it no room.",
+        "On Day 5 you named your excuses. Today you give each one its answer, before it speaks."
+      ],
+      "affirmation": "I decide before the moment decides for me.",
+      "affirmation_prompt": "~ say that again…",
+      "fields": [
+        {
+          "id": "foundation.d12.q1",
+          "type": "select_one",
+          "prompt": "Which moment is most likely to stop you?",
+          "options": [
+            "Running late",
+            "Too tired",
+            "Plans change",
+            "Low mood",
+            "Away from home"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d12.q2",
+          "type": "journal",
+          "prompt": "Your plan, in one line: If ___, then I will ___."
+        },
+        {
+          "id": "foundation.d12.q3",
+          "type": "select_one",
+          "prompt": "Where will your plan live?",
+          "options": [
+            "Phone lock screen",
+            "On the fridge",
+            "Beside my habit",
+            "Here in the app"
+          ],
+          "allow_custom": false
+        }
+      ],
+      "action": "Put your plan in place today, and read it aloud twice before bed tonight.",
+      "action_proof": {
+        "text": "Across 94 studies, people who made if-then plans reached their goals more often.",
+        "source": "Gollwitzer & Sheeran, Advances in Experimental Social Psychology, 2006"
+      },
+      "pending_approval": []
+    },
+    {
+      "day": 13,
+      "week": 2,
+      "copy_id": "foundation.d13",
+      "type": "content",
+      "title": "one notch up",
+      "quote": "Life is like riding a bicycle. To keep your balance you must keep moving.",
+      "quote_attribution": "Albert Einstein, letter to his son Eduard (1930)",
+      "quote_note": null,
+      "content": [
+        "Twelve days of showing up have built something that carries you now: momentum.",
+        "Balance comes from moving. Every tick keeps you steady, and every kept promise makes the next one believable.",
+        "Today you add one notch to what you already do.",
+        "Tomorrow you look back at the road. Today you give it something worth looking at."
+      ],
+      "affirmation": "I do better, I do more, I’m better than yesterday.",
+      "affirmation_prompt": "~ say that again…",
+      "fields": [
+        {
+          "id": "foundation.d13.q1",
+          "type": "scale_1_10",
+          "prompt": "Rate each of these today.",
+          "items": [
+            "Energy",
+            "Consistency",
+            "Self-belief"
+          ]
+        },
+        {
+          "id": "foundation.d13.q2",
+          "type": "select_one",
+          "prompt": "Your notch up today:",
+          "options": [
+            "Two more minutes",
+            "Start earlier",
+            "The harder version",
+            "Bring someone with you"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d13.q3",
+          "type": "journal",
+          "prompt": "One thing from these two weeks the Day 1 you would be proud of."
+        }
+      ],
+      "action": "Do your notched-up habit today, and tick it off before dinner.",
+      "action_proof": null,
+      "pending_approval": [
+        "Einstein as a new voice",
+        "First-person rewording of Sharyn’s signature in the affirmation"
+      ]
+    },
+    {
+      "day": 14,
+      "week": 2,
+      "copy_id": "foundation.d14",
+      "type": "reflection",
+      "title": "reflection",
+      "framing": [
+        "Fourteen days in, and your witness checks in today.",
+        "Tell them what you promised and what you did, plainly.",
+        "Every tool you picked up this week is still in your hands."
+      ],
+      "show_day1_vision": true,
+      "fields": [
+        {
+          "id": "foundation.d14.q1",
+          "type": "journal",
+          "prompt": "What did I learn?"
+        },
+        {
+          "id": "foundation.d14.q2",
+          "type": "journal",
+          "prompt": "What did I love?"
+        },
+        {
+          "id": "foundation.d14.q3",
+          "type": "journal",
+          "prompt": "What can I do better?"
+        }
+      ],
+      "pending_approval": []
+    }
+  ]
+}

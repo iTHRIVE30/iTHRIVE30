@@ -74,575 +74,336 @@ import { ChallengeDayDef } from './types';
    ============================================================================ */
 
 
-/* LEVEL 1: YOUR NEXT BEST SELF AWAITS - the full 30 days, from
-   iTHRIVE30_Level1_YourNextBestSelfAwaits_v5_1.docx (draft v5).
+/* LEVEL 1: THE FOUNDATION CHALLENGE (shown as "Your Next Best Self Awaits"), arc A.
+   Week one: revision 22 (28 September 2026). Week two: draft 4 (4 October 2026), taken
+   word for word from handoff/foundation-week2.json - each day and question carries its
+   copy id in a comment. Weeks three and four are not written yet, so Days 15-30 show as
+   "Coming soon" until they are added here.
 
-   Six cycles of five days - Start, Own, Face, Choose, Prove, Become - with every fifth
-   day a reflection. Each day carries, in order:
+   Each day carries, in order, and the app shows them in this order:
 
-     voice        the iTHRIVE30 line, the app speaking straight to the Thriver
-     quote        a sourced quote, verbatim, with its author after the ~
-     lesson       the body, one sentence per line
-     affirmation  the Thriver's own first-person line
-     fact         only on days 2, 16 and 27
+     title        the day's one idea, lower case, as Sharyn writes headings
+     quote        the anchor: an approved voice, verbatim, with the author after the ~.
+                  Empty on Day 5, whose anchor is plain logic and opens the lesson instead.
+     quoteNote    who the quoted person is, one short line under the byline. ONLY on the
+                  first day that person is quoted (Brockmann: Day 6, not Day 11).
+                  npm run check-content warns if a note is missing or repeated.
+     lesson       the content block, at most five lines, kept exactly as written
+     affirmation  the carry-line, in the Thriver's own words. The app adds
+                  "~ say that again…" under it, so don't type that here.
+     fields       the practice questions (see QUESTION TYPES below)
+     doThis       the action, which always closes the day
+     actionCheck  a "Done" tick under the action, on days that say to tick it off here
+     actionProof  "Why it works", under the action, with actionProofSource beneath it
 
-   The day ids (l1-d1 ... l1-d30) are deliberately unchanged from the previous version:
-   answers are stored against them, so renaming them to the doc's l1.d01 style would wipe
-   what existing testers have already written. */
+   QUESTION TYPES - what each tag in Sharyn's draft becomes
+     JOURNAL        type: 'textarea'
+     SELECT ONE     type: 'dropdown'
+     SELECT THREE   type: 'multiselect', max: 3
+     SELECT ALL     type: 'multiselect'
+     SCALE 1 TO 10  type: 'scale10', with the things being rated listed in items
+     "+ add your own" at the end of a list   ->   allowCustom: true
+                                                  (don't put it in the options list)
+
+   Internal roles ("meet the mentor") and the source notes stay in the draft. They never
+   show in the app.
+
+   The day ids (l1-d1 ... l1-d30) never change: answers are stored against them. */
 export const LEVEL_1_DAYS: ChallengeDayDef[] = [
   {
-    id: 'l1-d1', day: 1, title: `Start With a Bang`,
-    theme: `One step today. One step every day.`,
-    voice: `The whole point of this challenge is to take one step, every day, toward your Next Best Self. Be better than yesterday.`,
-    quote: `“Becoming is better than being.” ~ Carol Dweck`,
-    lesson: `Your Next Best Self already exists, waiting on the other side of these 30 days.
-Today, you take your first step toward them.
-Pick one action they'd take, and take it before the day ends.
-That's your first win. Momentum starts here.`,
-    affirmation: `“I start strong, and I start today.”`,
-    worksheetTitle: `Day One Win`,
+    id: 'l1-d1', day: 1, title: `meet your next best self`,
+    theme: ``,
+    quote: `“You are the Hero of your own story.” ~ Sharyn Brown`,
+    quoteNote: `Founder of Bondi Project Global and iTHRIVE30.`,
+    lesson: `The best version of yourself already exists within. Your Next Best Self awaits.
+The space to THRIVE, a clear purpose and the ability to show up give every hero a standard to meet.
+Heroes are made by decision: to act, to lead, to rise. Today you choose your direction.`,
+    affirmation: `I decide who I become, and I start today.`,
+    worksheetTitle: ``,
     fields: [
-      { prompt: `Who is my Next Best Self?`, type: 'text', placeholder: `Calm, clear, backs themselves…` },
-      { prompt: `How committed am I, right now?`, type: 'rating10' },
-      { prompt: `Theme words I'm carrying through these 30 days`, type: 'multiselect', options: ['Accountability', 'Balance', 'Consistency', 'Courage', 'Discipline', 'Focus', 'Growth', 'Happiness', 'Honesty', 'Inner harmony', 'Joy', 'Kindness', 'Persistence', 'Resilience', 'Self-trust'] },
-      { prompt: `The one action they'd take today`, type: 'textarea', placeholder: `Book the 6am class for tomorrow` },
-      { prompt: `Did I take it?`, type: 'dropdown', options: ['Done', 'Underway'] },
+      { prompt: `Who are you, living as your best? What do you do differently? How does it feel?`, type: 'textarea' },
+      { prompt: `Which words describe your Next Best Self?`, type: 'multiselect', max: 3, allowCustom: true, options: ['Confident', 'Calm', 'Focused', 'Energised', 'Disciplined', 'Generous', 'Courageous', 'Joyful', 'Free'] },
+      { prompt: `Where will your Next Best Self show up first?`, type: 'dropdown', options: ['Health', 'Relationships', 'Work', 'Money', 'Mindset', 'Joy & fun'] },
+    ],
+    doThisLabel: `Action`,
+    doThis: `Write your three words where you’ll see them first thing tomorrow. Do it before you sleep tonight.`,
+    goDeeper: ``,
+  },
+  {
+    id: 'l1-d2', day: 2, title: `the honest starting point`,
+    theme: ``,
+    quote: `“You do what you want, and for everything else you make excuses.” ~ Sharyn Brown`,
+    lesson: `Honesty gives you a true starting point. Ownership turns it into ground you can build on.
+Where you stand today is the sum of your choices.
+Knowing each choice can be made again, or differently, is the key.
+Like a map that has a “you are here” marker, so every journey has a beginning.
+Yesterday you chose your direction. Today you mark your starting point.`,
+    affirmation: `I own where I stand, and I own where I go.`,
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `Rate each of these today.`, type: 'scale10', items: ['Energy', 'Relationships', 'Work', 'Self-belief', 'Joy & fun'] },
+      { prompt: `Which one area will you own this month?`, type: 'dropdown', options: ['Health', 'Relationships', 'Work', 'Money', 'Mindset', 'Joy & fun'] },
+      { prompt: `Where have you been making an excuse? Name it plainly.`, type: 'textarea' },
+    ],
+    doThisLabel: `Action`,
+    doThis: `Copy down your one area and write the excuse beside it, before you close the app today.`,
+    goDeeper: ``,
+  },
+  {
+    id: 'l1-d3', day: 3, title: `success is a skill`,
+    theme: ``,
+    quote: `“As much as talent counts, effort counts twice.” ~ Angela Duckworth, Grit (2016)`,
+    quoteNote: `American psychologist and author of Grit. Born 1970.`,
+    lesson: `Success is a skill. This month you start to learn it.
+Talent gets the credit. Repetition does the work.
+Every skill you admire in someone else was paid for in reps.
+Long hours, revising, planning, choosing the vision. Trusting the process.
+Today you do your first rep. This life is more than a read-through.`,
+    affirmation: `Success is a skill, and I am practising it today.`,
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `Your first step, in one line.`, type: 'textarea' },
+      { prompt: `How long will it take?`, type: 'dropdown', options: ['2 minutes', '5 minutes', '10 minutes'] },
+      { prompt: `When will you do it today?`, type: 'dropdown', options: ['Morning', 'Midday', 'Afternoon', 'Evening'] },
+    ],
+    doThisLabel: `Action`,
+    doThis: `Do your step today at the time you named, then tick it off here.`,
+    actionCheck: `Done`,
+    goDeeper: ``,
+  },
+  {
+    id: 'l1-d4', day: 4, title: `your why`,
+    theme: ``,
+    quote: `“Every one of us has a WHY, a deep-seated purpose, cause or belief that is the source of our passion and inspiration.” ~ Simon Sinek, Find Your Why (2017)`,
+    quoteNote: `British-born American author and speaker, known for Start With Why. Born 1973.`,
+    lesson: `Your why is what gets you up on the days you’d rather stay down.
+Motivation rises and falls. A strong reason holds steady.
+When the why is vague, the excuses get specific.
+Find a reason bigger than your excuses, and it will carry you on the days nothing else will.`,
+    affirmation: `My why is bigger than my excuses.`,
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `What sits underneath your why?`, type: 'multiselect', options: ['Family', 'Health', 'Freedom', 'Purpose', 'Self-respect', 'Security', 'Joy', 'Legacy'] },
+      { prompt: `Why does this month matter to you? Write it, then ask “and why does that matter?” twice more.`, type: 'textarea' },
+      { prompt: `Who gains when you become your Next Best Self?`, type: 'multiselect', options: ['Me', 'My partner', 'My children', 'My family', 'My friends', 'My team', 'My community'] },
+    ],
+    doThisLabel: `Action`,
+    doThis: `Write your why in one sentence and read it aloud tonight, to yourself or to someone who will hold you to it.`,
+    goDeeper: ``,
+  },
+  {
+    id: 'l1-d5', day: 5, title: `discipline is a muscle`,
+    theme: ``,
+    // No quote: this day's anchor is plain logic, and it opens the lesson.
+    quote: ``,
+    lesson: `A muscle grows when you stretch it beyond the comfort zone, then give it time to rest. Repeatedly.
+Discipline is built the same way:
+the step done before the scroll,
+the early night before the early start,
+the promise kept when nobody is checking. These are gains.
+Every time you bargain your way out, you train the part of you that bargains. The opposite is equally as true.
+Today do the extra rep, because every rep compounds.`,
+    affirmation: `Every rep makes me stronger.`,
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `The slightly harder version of your step today.`, type: 'textarea' },
+      { prompt: `Which excuses will try to talk you out of it?`, type: 'multiselect', allowCustom: true, options: ['I’m tired', 'No time', 'Tomorrow', 'Not in the mood', 'It won’t matter'] },
+      { prompt: `What will you say back? One line.`, type: 'textarea' },
+    ],
+    doThisLabel: `Action`,
+    doThis: `Do the harder version before 6pm today, and record it here once it’s done.`,
+    actionCheck: `Done`,
+    goDeeper: ``,
+  },
+  {
+    id: 'l1-d6', day: 6, title: `the promise`,
+    theme: ``,
+    quote: `“If all you ever do is do what you say you’re going to do, you will get through the thing that’s uncomfortable.” ~ Nedd Brockmann, interview, Daily Advertiser (2026)`,
+    quoteNote: `Australian ultramarathon runner and 2026 Young Australian of the Year, who ran 3,952 km across Australia in 47 days. Born 1999.`,
+    lesson: `A promise kept to yourself is the foundation of self-trust.
+You keep your word to everyone else. The person you let down most easily is you.
+Writing it turns intention into commitment. Sharing it gives your word a witness.
+From today, your word to yourself carries the same weight as your word to anyone else.`,
+    affirmation: `I commit 100% to becoming my Next Best Self.`,
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `Complete this: For the rest of this month, I promise myself…`, type: 'textarea' },
+      { prompt: `Who will you tell?`, type: 'dropdown', options: ['Partner', 'Friend', 'Family member', 'Colleague', 'The Wins tab'] },
+      { prompt: `On the day you least feel like it, I will…`, type: 'dropdown', options: ['Do the two-minute version', 'Re-read my promise', 'Call my witness', 'Do it first thing'] },
+    ],
+    doThisLabel: `Action`,
+    doThis: `Share your promise with one person today, and ask them to check in with you on Day 14.`,
+    actionProof: `Across 138 studies, people reached their goals more often when their progress was written down or shared with someone.`,
+    actionProofSource: `Harkin et al., Psychological Bulletin, 2016`,
+    goDeeper: ``,
+  },
+  {
+    id: 'l1-d7', day: 7, title: `reflection`,
+    theme: ``,
+    quote: ``,
+    lesson: `Seven days in.
+Look at what you said you would do, and at what you did.
+Both are information, and both belong to you.`,
+    // The Day 1 vision: the three words chosen on Day 1 (its second question).
+    echoes: [
+      { dayId: 'l1-d1', fieldIndex: 1, label: `Your Next Best Self`, empty: `Your three words from Day 1 show here once you’ve chosen them.` },
+    ],
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `What did I learn?`, type: 'textarea' },
+      { prompt: `What did I love?`, type: 'textarea' },
+      { prompt: `What can I do better?`, type: 'textarea' },
     ],
     doThisLabel: ``, doThis: ``, goDeeper: ``,
   },
   {
-    id: 'l1-d2', day: 2, title: `One Habit, Upgraded`,
-    theme: `Your days are made of habits. Upgrade one today.`,
-    voice: `Your habits are your life on repeat. Let's upgrade one today.`,
-    quote: `“What you do every day matters more than what you do once in a while.” ~ Gretchen Rubin`,
-    lesson: `Your life right now is a mirror of your habits.
-Pick the one that costs you most.
-Swap it for one that lifts you, starting today.
-Small swap. Big direction.`,
-    affirmation: `“I choose the habits that build me.”`,
-    fact: `Research led by psychologist Wendy Wood found that around 43% of everyday actions are done out of habit, often while your mind is somewhere else.`,
-    worksheetTitle: `Habit Swap`,
+    // foundation.d08 · awaiting Sharyn: Clare Boothe Luce as a new voice
+    id: 'l1-d8', day: 8, title: `build your system`,
+    theme: ``,
+    quote: `“The height of sophistication is simplicity.” ~ Clare Boothe Luce, Stuffed Shirts (1931)`,
+    quoteNote: `American writer, politician, diplomat and public intellectual. 1903–1987.`,
+    lesson: `Anything complex is simplified by a system, broken into bite-sized pieces. That is how this challenge gets done.
+Your system starts with one habit: small enough to keep on your hardest day, big enough to create daily momentum.
+Open your tracker in the Progress tab: find the gaps, and close them.
+Last week you made the promise. This week you build what sustains it.`,
+    affirmation: `I keep it simple, and I keep it daily.`,
+    worksheetTitle: ``,
     fields: [
-      { prompt: `The habit that costs me most`, type: 'textarea', placeholder: `Scrolling in bed` },
-      { prompt: `What I'm swapping it for`, type: 'textarea', placeholder: `Reading ten pages` },
-      { prompt: `When the swap happens today`, type: 'text', placeholder: `9:30pm, phone on the kitchen bench` },
+      { prompt: `Pick the habit that starts your system.`, type: 'dropdown', allowCustom: true, options: ['Move for 10 minutes', 'Read 10 pages', 'Write three lines', 'Water before coffee', 'Phone away at dinner', 'Plan tomorrow tonight'] }, // foundation.d08.q1
+      { prompt: `Your habit, in one line, small enough for your hardest day.`, type: 'textarea' }, // foundation.d08.q2
+      { prompt: `How sure are you that you’ll do it on your worst day?`, type: 'rating10' }, // foundation.d08.q3
+    ],
+    doThisLabel: `Action`,
+    doThis: `Under 8? Make it smaller. Then do it today and tick it off here before you sleep.`,
+    actionCheck: `Done`,
+    goDeeper: ``,
+  },
+  {
+    // foundation.d09
+    id: 'l1-d9', day: 9, title: `design your space`,
+    theme: ``,
+    quote: `“Environment is the invisible hand that shapes human behavior.” ~ James Clear, Atomic Habits (2018)`,
+    quoteNote: `American writer on habits and author of Atomic Habits. Born 1986.`,
+    lesson: `Your space makes more of your choices than you do.
+The phone by the bed, the shoes by the door, the bowl on the bench: each is a decision already made.
+Leave the room as it is, and it keeps choosing for you. Design it so your new habits become the easy choice.
+On Day 1 you pictured the space to THRIVE. Today you start building it, one object at a time.`,
+    affirmation: `I design my space, and my space carries me.`,
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `Which space shapes your habit most?`, type: 'dropdown', allowCustom: true, options: ['Bedroom', 'Kitchen', 'Desk', 'Car', 'Phone', 'Living room'] }, // foundation.d09.q1
+      { prompt: `Which moves will you make?`, type: 'multiselect', allowCustom: true, options: ['Put it in sight', 'Put it within reach', 'Move a distraction out of sight', 'Set it out the night before', 'Phone in another room'] }, // foundation.d09.q2
+      { prompt: `The one change you’ll make, in one line.`, type: 'textarea' }, // foundation.d09.q3
+    ],
+    doThisLabel: `Action`,
+    doThis: `Pics or it didn’t happen. Tonight, take a before of every space in your sanctuary, make your change, then take at least one after as evidence for tomorrow’s habit.`,
+    goDeeper: ``,
+  },
+  {
+    // foundation.d10
+    id: 'l1-d10', day: 10, title: `learn from every day`,
+    theme: ``,
+    quote: `“Success leaves clues.” ~ Sharyn Brown`,
+    lesson: `Ten days in, every day has left you something: the days you kept show you what works, and any that slipped show you exactly where to build.
+A missed day becomes a lesson the moment you review it to find why you avoided it.
+How you respond is yours to choose. Read your days, and the road gets clearer with every one.`,
+    affirmation: `When I learn, I build. What I build, I keep.`,
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `What helped on your best days?`, type: 'multiselect', allowCustom: true, options: ['Did it early', 'Had it ready', 'Knew my why', 'Someone checked in', 'Kept it small'] }, // foundation.d10.q1
+      { prompt: `What got in the way on the harder days?`, type: 'multiselect', allowCustom: true, options: ['Too tired', 'No time', 'Forgot', 'Plans changed', 'Lost my why'] }, // foundation.d10.q2
+      { prompt: `Your lesson, in one line: next time I will…`, type: 'textarea' }, // foundation.d10.q3
+    ],
+    doThisLabel: `Action`,
+    doThis: `Write your lesson where you’ll see it, and use it on tomorrow’s habit, whatever today held.`,
+    actionProof: `In a study of new habits, missing one day made no real difference to how they formed.`,
+    actionProofSource: `Lally et al., European Journal of Social Psychology, 2010`,
+    goDeeper: ``,
+  },
+  {
+    // foundation.d11
+    id: 'l1-d11', day: 11, title: `momentum over motivation`,
+    theme: ``,
+    quote: `“If I only ran on the days I felt motivated to run, I wouldn’t run very much.” ~ Nedd Brockmann, interview, Daily Advertiser (2026)`,
+    lesson: `Momentum over motivation: you build momentum, and momentum drives motivation.
+Motivation arrives when it likes. Your system arrives every day: one habit, one cue, one tick.
+Routine is built on the days you least feel like it, and rhythm grows from routine.
+Keep the system running, and motivation catches up with you.`,
+    affirmation: `I keep the system, and the system keeps me.`,
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `How steady has your system been this week?`, type: 'rating10' }, // foundation.d11.q1
+      { prompt: `What will your habit follow each day?`, type: 'dropdown', allowCustom: true, options: ['After I wake', 'After coffee', 'After the school run', 'After work', 'After dinner', 'Before bed'] }, // foundation.d11.q2
+      { prompt: `Your cue, in one line: After I ___, I will ___.`, type: 'textarea' }, // foundation.d11.q3
+    ],
+    doThisLabel: `Action`,
+    doThis: `Do your habit today straight after your cue, and tick it off the moment it’s done.`,
+    actionCheck: `Done`,
+    goDeeper: ``,
+  },
+  {
+    // foundation.d12
+    id: 'l1-d12', day: 12, title: `decide it in advance`,
+    theme: ``,
+    quote: `“It is in your moments of decision that your destiny is shaped.” ~ Tony Robbins, Awaken the Giant Within (1991)`,
+    quoteNote: `American author, coach and motivational speaker. Born 1960.`,
+    lesson: `The hardest moment to decide is the moment you’re in it: tired, rushed, tempted.
+So decide now, while you’re clear. When the obstacle comes, your answer is already waiting.
+An excuse needs a gap to grow in. A plan made in advance leaves it no room.
+On Day 5 you named your excuses. Today you give each one its answer, before it speaks.`,
+    affirmation: `I decide before the moment decides for me.`,
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `Which moment is most likely to stop you?`, type: 'dropdown', allowCustom: true, options: ['Running late', 'Too tired', 'Plans change', 'Low mood', 'Away from home'] }, // foundation.d12.q1
+      { prompt: `Your plan, in one line: If ___, then I will ___.`, type: 'textarea' }, // foundation.d12.q2
+      { prompt: `Where will your plan live?`, type: 'dropdown', options: ['Phone lock screen', 'On the fridge', 'Beside my habit', 'Here in the app'] }, // foundation.d12.q3
+    ],
+    doThisLabel: `Action`,
+    doThis: `Put your plan in place today, and read it aloud twice before bed tonight.`,
+    actionProof: `Across 94 studies, people who made if-then plans reached their goals more often.`,
+    actionProofSource: `Gollwitzer & Sheeran, Advances in Experimental Social Psychology, 2006`,
+    goDeeper: ``,
+  },
+  {
+    // foundation.d13 · awaiting Sharyn: Einstein as a new voice; First-person rewording of Sharyn’s signature in the affirmation
+    id: 'l1-d13', day: 13, title: `one notch up`,
+    theme: ``,
+    quote: `“Life is like riding a bicycle. To keep your balance you must keep moving.” ~ Albert Einstein, letter to his son Eduard (1930)`,
+    quoteNote: `German-born physicist, best known for his theory of relativity. 1879–1955.`,
+    lesson: `Twelve days of showing up have built something that carries you now: momentum.
+Balance comes from moving. Every tick keeps you steady, and every kept promise makes the next one believable.
+Today you add one notch to what you already do.
+Tomorrow you look back at the road. Today you give it something worth looking at.`,
+    affirmation: `I do better, I do more, I’m better than yesterday.`,
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `Rate each of these today.`, type: 'scale10', items: ['Energy', 'Consistency', 'Self-belief'] }, // foundation.d13.q1
+      { prompt: `Your notch up today:`, type: 'dropdown', allowCustom: true, options: ['Two more minutes', 'Start earlier', 'The harder version', 'Bring someone with you'] }, // foundation.d13.q2
+      { prompt: `One thing from these two weeks the Day 1 you would be proud of.`, type: 'textarea' }, // foundation.d13.q3
+    ],
+    doThisLabel: `Action`,
+    doThis: `Do your notched-up habit today, and tick it off before dinner.`,
+    actionCheck: `Done`,
+    goDeeper: ``,
+  },
+  {
+    // foundation.d14
+    id: 'l1-d14', day: 14, title: `reflection`,
+    theme: ``,
+    quote: ``,
+    lesson: `Fourteen days in, and your witness checks in today.
+Tell them what you promised and what you did, plainly.
+Every tool you picked up this week is still in your hands.`,
+    // The Day 1 vision: the three words chosen on Day 1 (its second question).
+    echoes: [
+      { dayId: 'l1-d1', fieldIndex: 1, label: `Your Next Best Self`, empty: `Your three words from Day 1 show here once you’ve chosen them.` },
+    ],
+    worksheetTitle: ``,
+    fields: [
+      { prompt: `What did I learn?`, type: 'textarea' }, // foundation.d14.q1
+      { prompt: `What did I love?`, type: 'textarea' }, // foundation.d14.q2
+      { prompt: `What can I do better?`, type: 'textarea' }, // foundation.d14.q3
     ],
     doThisLabel: ``, doThis: ``, goDeeper: ``,
   },
-  {
-    id: 'l1-d3', day: 3, title: `Energy Is the Currency`,
-    theme: `Spend it like it matters.`,
-    voice: `Everything you're building runs on your energy. Top it up today.`,
-    quote: `“Energy, not time, is the fundamental currency of high performance.” ~ Jim Loehr & Tony Schwartz`,
-    lesson: `Your energy carries everything you're building.
-Sleep, water, movement, food. Pick one.
-Give it your full attention today and feel the difference by tonight.
-More energy, more momentum.`,
-    affirmation: `“I fuel the life I'm building.”`,
-    worksheetTitle: `Energy Boost`,
-    fields: [
-      { prompt: `How's my energy right now?`, type: 'rating10' },
-      { prompt: `The basic I'm levelling up today`, type: 'dropdown', options: ['Sleep', 'Water', 'Movement', 'Food'] },
-      { prompt: `Exactly what I'll do`, type: 'textarea', placeholder: `Two litres of water before 3pm` },
-      { prompt: `Tonight: how's my energy now?`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d4', day: 4, title: `Honest Eyes`,
-    theme: `The truth is the starting line.`,
-    voice: `The truth moves you faster than any plan. Say it straight today, then act on it.`,
-    quote: `“The first principle is that you must not fool yourself—and you are the easiest person to fool.” ~ Richard Feynman`,
-    lesson: `Pick one part of your life and tell the truth about it.
-Plain and clear.
-Then take the one step the truth asks of you.
-Honesty plus action is where change gets real.`,
-    affirmation: `“I see my life clearly, and I act on what I see.”`,
-    worksheetTitle: `The Honest Step`,
-    fields: [
-      { prompt: `One area I've been going easy on`, type: 'textarea', placeholder: `My sleep` },
-      { prompt: `The truth about it`, type: 'textarea', placeholder: `Five hours most nights` },
-      { prompt: `The step I'm taking today`, type: 'textarea', placeholder: `Lights out by 10:30 tonight` },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d5', day: 5, title: `Reflection I: Five Days of Momentum`,
-    theme: `Five days. Five moves. Look at them.`,
-    voice: `Five days, five moves. That's momentum, and it's yours.`,
-    quote: `“How we spend our days is, of course, how we spend our lives.” ~ Annie Dillard`,
-    lesson: `A win, a swap, a boost, a truth.
-That's momentum, and it's already building.
-Today, look at what moved.
-Then carry it into the next five.`,
-    affirmation: `“Every day I move, I build.”`,
-    worksheetTitle: `Reflection I`,
-    fields: [
-      { prompt: `The moment this week I felt the momentum`, type: 'textarea' },
-      { prompt: `What it showed me I'm capable of`, type: 'textarea' },
-      { prompt: `What I'm carrying into the next five days`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d6', day: 6, title: `Your Defaults, Your Call`,
-    theme: `Every setting in your life is yours to change.`,
-    voice: `You hold the pen on every default in your life. Today, rewrite one.`,
-    quote: `“We can be blind to the obvious, and we are also blind to our blindness.” ~ Daniel Kahneman`,
-    lesson: `Habits you picked up. Rules you were handed. Reactions you learned early.
-Every one of them is yours to keep or change.
-Today, catch one in the act and make the call.
-You're the one holding the settings.`,
-    affirmation: `“I own my responsibility, and that's where my power starts.”`,
-    worksheetTitle: `Own the Default`,
-    fields: [
-      { prompt: `One thing I do on autopilot`, type: 'textarea', placeholder: `Saying yes before checking my calendar` },
-      { prompt: `Where I picked it up`, type: 'textarea', placeholder: `Watching Mum say yes to everyone` },
-      { prompt: `My call`, type: 'dropdown', options: ['Keep it', 'Change it', 'Upgrade it'] },
-      { prompt: `What I'm doing about it today`, type: 'textarea', placeholder: `Checking my calendar before every yes` },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d7', day: 7, title: `What You Reach For`,
-    theme: `Own the reach and you own the choice.`,
-    voice: `When things get uncomfortable, your hand moves. Today, you decide where it goes.`,
-    quote: `“Discomfort is the price of admission to a meaningful life.” ~ Susan David`,
-    lesson: `The phone. The fridge. The next episode. Everyone has one.
-Today, catch the reach and swap it.
-Five minutes with the feeling first. Then choose.
-Your hand, your choice.`,
-    affirmation: `“I choose where my hand goes.”`,
-    worksheetTitle: `Own the Reach`,
-    fields: [
-      { prompt: `What I reach for when things get uncomfortable`, type: 'textarea', placeholder: `My phone` },
-      { prompt: `What I'm stepping around when I reach`, type: 'textarea', placeholder: `A conversation with my boss` },
-      { prompt: `My swap for next time`, type: 'textarea', placeholder: `Five minutes with the feeling, then a glass of water` },
-      { prompt: `Times I caught it today`, type: 'text', placeholder: `3` },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d8', day: 8, title: `Spend Your Hours on Purpose`,
-    theme: `Every hour is a choice. Make today's count.`,
-    voice: `You spend your hours the way you spend money. Today, spend them on what matters.`,
-    quote: `“There is nothing so useless as doing efficiently that which should not be done at all.” ~ Peter Drucker`,
-    lesson: `Make today's busy move you forward.
-Today, count your hours honestly.
-Then take one back and give it to what matters.
-Your time, your call.`,
-    affirmation: `“My time goes to what matters to me.”`,
-    worksheetTitle: `Own the Hours`,
-    fields: [
-      { prompt: `Where my hours actually went today`, type: 'textarea', placeholder: `Two hours on messages, one on socials…` },
-      { prompt: `One hour I'm taking back`, type: 'textarea', placeholder: `The hour I spent reorganising a folder` },
-      { prompt: `What matters that gets that hour`, type: 'textarea', placeholder: `Calling my sister` },
-      { prompt: `When I'm doing it`, type: 'text', placeholder: `Tomorrow, 6pm` },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d9', day: 9, title: `You Built This Room`,
-    theme: `Your space is doing exactly what you set it up to do.`,
-    voice: `Your space shapes your day. Set it up to back you.`,
-    quote: `“The question of what you want to own is actually the question of how you want to live your life.” ~ Marie Kondo`,
-    lesson: `Your space is always nudging you somewhere.
-Toward the couch, the phone, or the life you want.
-Today, change one thing so the good choice is the easy one.
-Set it once. It works for you every day after.`,
-    affirmation: `“I set up my world to back me.”`,
-    worksheetTitle: `Own the Room`,
-    fields: [
-      { prompt: `One thing in my space that makes a good habit easy`, type: 'textarea', placeholder: `Running shoes by the door` },
-      { prompt: `One thing that makes an unhelpful habit easy`, type: 'textarea', placeholder: `Phone charger by my pillow` },
-      { prompt: `The change I made today`, type: 'textarea', placeholder: `Charger moved to the kitchen` },
-      { prompt: `Status`, type: 'dropdown', options: ['Done', 'Doing it tonight'] },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d10', day: 10, title: `Reflection II: Owning It`,
-    theme: `You took the wheel this week.`,
-    voice: `Five days of full ownership. Feel how much more of your life is yours now.`,
-    quote: `“Pain + Reflection = Progress” ~ Ray Dalio`,
-    lesson: `This cycle you owned your defaults, your reach, your hours and your space.
-Ownership feels heavy at first. Then it feels like freedom.
-Everything you own, you can change.
-Ten days in, you're driving.`,
-    affirmation: `“What I own, I can change.”`,
-    worksheetTitle: `Reflection II`,
-    fields: [
-      { prompt: `The moment this week I took full ownership`, type: 'textarea' },
-      { prompt: `What changed once I owned it`, type: 'textarea' },
-      { prompt: `The next thing I'm ready to own`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d11', day: 11, title: `Name It`,
-    theme: `A feeling with a name is easier to hold.`,
-    voice: `Give every feeling its real name today. Named feelings lose their grip.`,
-    quote: `“Name it to tame it.” ~ Dr Dan Siegel`,
-    lesson: `Frustrated. Disappointed. Lonely. Excited. Get specific.
-The more precisely you name it, the more you run it.
-Name it, then choose your next move.
-Clarity is power.`,
-    affirmation: `“I name what I feel, and I choose what I do.”`,
-    worksheetTitle: `Name It to Tame It`,
-    fields: [
-      { prompt: `How am I feeling right now?`, type: 'multiselect', options: ['Anxious', 'Calm', 'Content', 'Disappointed', 'Excited', 'Frustrated', 'Grateful', 'Hopeful', 'Lonely', 'Overwhelmed', 'Proud', 'Restless', 'Tired'] },
-      { prompt: `Where do I feel it in my body?`, type: 'text', placeholder: `Tight chest` },
-      { prompt: `What it's telling me`, type: 'textarea', placeholder: `I've taken on too much this week` },
-      { prompt: `My next move`, type: 'textarea', placeholder: `Hand one task back` },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d12', day: 12, title: `Fear and Desire`,
-    theme: `They always turn up together.`,
-    voice: `Fear shows up because this matters. Let desire lead today.`,
-    quote: `“Stress is what arises when something you care about is at stake.” ~ Kelly McGonigal`,
-    lesson: `Want something that matters and fear arrives right beside it.
-That's proof you care.
-Today, let desire take the lead and take one step toward what you want.
-Fear can come along for the ride.`,
-    affirmation: `“Desire leads. I move.”`,
-    worksheetTitle: `The Dance`,
-    fields: [
-      { prompt: `Something I really want`, type: 'textarea', placeholder: `To start swimming again` },
-      { prompt: `The fear that turns up with it`, type: 'textarea', placeholder: `Feeling self-conscious at the pool` },
-      { prompt: `The step desire takes today`, type: 'textarea', placeholder: `Book the first swim` },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d13', day: 13, title: `Pressure Is a Privilege`,
-    theme: `The weight means you're in the game.`,
-    voice: `Heavy means it matters. Carry it like the privilege it is.`,
-    quote: `“Pressure is a privilege.” ~ Billie Jean King`,
-    lesson: `Pressure shows up where something worth having is at stake.
-It means you're in the game.
-Today, pick one pressure and carry it with pride.
-Same weight. Stronger you.`,
-    affirmation: `“I carry pressure because I show up for things that matter.”`,
-    worksheetTitle: `Carry the Pressure`,
-    fields: [
-      { prompt: `One pressure I'm feeling right now`, type: 'textarea', placeholder: `Hosting the family for Christmas` },
-      { prompt: `What it says about what I care about`, type: 'textarea', placeholder: `I want the people I love to feel welcome` },
-      { prompt: `How I'm carrying it today`, type: 'textarea', placeholder: `Enjoying the planning, one list at a time` },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d14', day: 14, title: `Kind to the Beginner`,
-    theme: `Kindness is fuel.`,
-    voice: `Kindness is the fastest fuel there is. Back yourself today.`,
-    quote: `“The curious paradox is that when I accept myself just as I am, then I can change.” ~ Carl Rogers`,
-    lesson: `Change grows fastest in kind soil.
-Today, talk to yourself like a great coach talks to someone two weeks into something new.
-Back yourself on the bits that feel slow.
-Encouraged people go further.`,
-    affirmation: `“I back myself while I grow.”`,
-    worksheetTitle: `Kind Words`,
-    fields: [
-      { prompt: `Something about myself I've been hard on lately`, type: 'textarea', placeholder: `How slowly this feels` },
-      { prompt: `What a great coach would say`, type: 'textarea', placeholder: `Two weeks in and showing up. Keep going.` },
-      { prompt: `One kind thing I'm doing for myself today`, type: 'textarea', placeholder: `Leaving work on time` },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d15', day: 15, title: `Reflection III: Halfway`,
-    theme: `Fifteen days. Look how far you've come.`,
-    voice: `Halfway. You started, you owned it, you faced it. The second half builds on all of it.`,
-    quote: `“Not everything that is faced can be changed, but nothing can be changed until it is faced.” ~ James Baldwin`,
-    lesson: `This cycle you named feelings, led with desire, carried pressure and backed yourself.
-That takes real courage.
-Fifteen days in, you face things head on.
-Halfway. Celebrate it.`,
-    affirmation: `“I face things, and I move through them.”`,
-    worksheetTitle: `Reflection III`,
-    fields: [
-      { prompt: `A feeling I faced head on this cycle`, type: 'textarea' },
-      { prompt: `What facing it made possible`, type: 'textarea' },
-      { prompt: `What I'm taking into the second half`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d16', day: 16, title: `Choose Your Circle`,
-    theme: `Your people shape your path.`,
-    voice: `Your people shape your path. Today, spend time with someone who lifts you.`,
-    quote: `“The quality of your relationships determines the quality of your life.” ~ Esther Perel`,
-    lesson: `Some people leave you lighter. Spend more time with them.
-Today, find the people who lift you and lean in.
-Choose where your best energy goes.
-Your circle, your call.`,
-    affirmation: `“I give my best energy to people who lift me.”`,
-    fact: `The Harvard Study of Adult Development has followed people since 1938. One of its clearest findings: close, warm relationships are among the strongest predictors of a healthy, happy life.`,
-    worksheetTitle: `Circle Check`,
-    fields: [
-      { prompt: `Someone who leaves me feeling lighter`, type: 'text' },
-      { prompt: `A relationship that drains me`, type: 'textarea' },
-      { prompt: `Who I'm spending 15 minutes with today`, type: 'text' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d17', day: 17, title: `Give to Grow`,
-    theme: `The fastest way out of your own head.`,
-    voice: `Stuck in your head? Be useful to someone. It lifts you both.`,
-    quote: `“What you do makes a difference, and you have to decide what kind of difference you want to make.” ~ Jane Goodall`,
-    lesson: `Helping someone else shifts everything, fast.
-A message. An hour. A hand.
-Today, make one person's day better.
-Then feel what it does to yours.`,
-    affirmation: `“I make a difference today, on purpose.”`,
-    worksheetTitle: `Give to Grow`,
-    fields: [
-      { prompt: `How I'm giving today`, type: 'dropdown', options: ['Time', 'Encouragement', 'Support', 'Something else'] },
-      { prompt: `In my own words`, type: 'textarea', placeholder: `Checking in on a friend who's been quiet` },
-      { prompt: `Who I'm giving it to`, type: 'text' },
-      { prompt: `Tonight: how did giving shift my energy?`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d18', day: 18, title: `Legacy Over Likes`,
-    theme: `Applause fades. What matters stays.`,
-    voice: `Do one thing today that matters for its own sake.`,
-    quote: `“I think everybody should get rich and famous and do everything they ever dreamed of so they can see that it's not the answer.” ~ Jim Carrey`,
-    lesson: `Likes feel good for a minute.
-What matters to you feels good for years.
-Today, do one thing that matters to you, for its own sake.
-That's the stuff that lasts.`,
-    affirmation: `“I build what lasts.”`,
-    worksheetTitle: `Temporary vs. Lasting`,
-    fields: [
-      { prompt: `One thing I did today for approval`, type: 'textarea', placeholder: `Checking how my post went, five times` },
-      { prompt: `One thing I did today that truly mattered`, type: 'textarea', placeholder: `Helped my neighbour with her shopping` },
-      { prompt: `What I'd do more of, for its own sake`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d19', day: 19, title: `Gratitude Is a Lens`,
-    theme: `Even hard days hold something good.`,
-    voice: `Gratitude sits right beside the hard stuff. Let it be the louder voice.`,
-    quote: `“I cannot pretend I am without fear. But my predominant feeling is one of gratitude.” ~ Oliver Sacks`,
-    lesson: `Gratitude sits right alongside the worry, the tired and the hard.
-Both can be true.
-Today, find the good inside something hard.
-Let gratitude be the louder one.`,
-    affirmation: `“I hold what's hard and I see what's good.”`,
-    worksheetTitle: `Gratitude Lens`,
-    fields: [
-      { prompt: `Three things I'm grateful for right now (1 of 3)`, type: 'text', placeholder: `A good coffee` },
-      { prompt: `Three things I'm grateful for right now (2 of 3)`, type: 'text', placeholder: `a friend who checked in` },
-      { prompt: `Three things I'm grateful for right now (3 of 3)`, type: 'text', placeholder: `a warm bed` },
-      { prompt: `Something hard I'm facing`, type: 'textarea' },
-      { prompt: `The good I can find inside it`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d20', day: 20, title: `Reflection IV: Chosen on Purpose`,
-    theme: `Your people, your giving, your standard, your lens.`,
-    voice: `You chose your people, your giving, your standard and your lens this week. All on purpose.`,
-    quote: `“It is good to have an end to journey toward; but it is the journey that matters, in the end.” ~ Ursula K. Le Guin`,
-    lesson: `This cycle you chose your people, your giving, your standard and your lens.
-Every choice built something.
-Twenty days in, you're choosing on purpose.
-Enjoy the ride you're on.`,
-    affirmation: `“I choose on purpose, every day.”`,
-    worksheetTitle: `Reflection IV`,
-    fields: [
-      { prompt: `A choice this cycle that lifted me`, type: 'textarea' },
-      { prompt: `What it showed me about what I need`, type: 'textarea' },
-      { prompt: `One way I'll shape my world in the final ten days`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d21', day: 21, title: `Keep One Promise`,
-    theme: `Momentum is kept promises.`,
-    voice: `Day 21. This is where momentum gets built for good. Keep one promise today.`,
-    quote: `“Enthusiasm is common. Endurance is rare.” ~ Angela Duckworth`,
-    lesson: `Three weeks in, this is where momentum locks in.
-Today, make one small promise to yourself.
-Small enough to be certain.
-Kept all the way.`,
-    affirmation: `“I keep the promises I make to myself.”`,
-    worksheetTitle: `One Kept Promise`,
-    fields: [
-      { prompt: `One small promise I'm making myself today`, type: 'textarea', placeholder: `A 10-minute walk after dinner` },
-      { prompt: `What might get in the way`, type: 'textarea', placeholder: `Being tired` },
-      { prompt: `Tonight: did I keep it?`, type: 'dropdown', options: ['Kept it', 'Partly', 'Back on it tomorrow'] },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d22', day: 22, title: `Before You're Ready`,
-    theme: `Ready shows up once you've started.`,
-    voice: `Ready shows up once you've started. So start.`,
-    quote: `“Great people do things before they're ready.” ~ Amy Poehler`,
-    lesson: `Readiness arrives after the first step.
-Today, take the step you've been holding.
-A little early. A little scared.
-Moving is how ready feels.`,
-    affirmation: `“I move first, and ready catches up.”`,
-    worksheetTitle: `Step In Early`,
-    fields: [
-      { prompt: `One thing I've been waiting to feel ready for`, type: 'textarea', placeholder: `Signing up for that class` },
-      { prompt: `The first step I'm taking today`, type: 'textarea', placeholder: `Look up the timetable and book` },
-      { prompt: `How it felt once I'd taken it`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d23', day: 23, title: `Messy Is Allowed`,
-    theme: `Everything great starts rough.`,
-    voice: `Rough and finished is how every great thing begins. Ship it.`,
-    quote: `“Early on, all of our movies suck.” ~ Ed Catmull`,
-    lesson: `Every great thing has an awkward first version.
-Today, let something be rough and finish it anyway.
-Finished gets better. Every time.
-Done is where improvement starts.`,
-    affirmation: `“I'm a beginner out loud, and proud of it.”`,
-    worksheetTitle: `Rough but Done`,
-    fields: [
-      { prompt: `Something I've been polishing for too long`, type: 'textarea', placeholder: `Rewriting the same message five times` },
-      { prompt: `What finished looks like today`, type: 'textarea', placeholder: `Send the first draft` },
-      { prompt: `Whose standard am I actually meeting?`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d24', day: 24, title: `The Team of Me`,
-    theme: `Past, present and future, all on the same side.`,
-    voice: `Your past self got you here. Your future self is counting on today. Back them both.`,
-    quote: `“I wish I'd had the courage to live a life true to myself, not the life others expected of me.” ~ Bronnie Ware`,
-    lesson: `You're a team: the you who got you here, the you reading this, and the you who's waiting.
-Your past self did their best. Your future self is counting on today.
-Make one choice they'll both thank you for.
-That's how the team builds trust.`,
-    affirmation: `“I'm building trust with who I'm becoming.”`,
-    worksheetTitle: `Team Meeting`,
-    fields: [
-      { prompt: `Something my past self did that I'm grateful for`, type: 'textarea', placeholder: `Kept going when it was hard` },
-      { prompt: `What my future self is asking of me today`, type: 'textarea', placeholder: `Book the appointment` },
-      { prompt: `The choice I'm making today that they'll thank me for`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d25', day: 25, title: `Reflection V: The Evidence Is In`,
-    theme: `You've been building proof all week.`,
-    voice: `Confidence is kept promises, stacked up. Look how high yours are.`,
-    quote: `“Courage doesn't always roar. Sometimes courage is the quiet voice at the end of the day saying, ‘I will try again tomorrow.’” ~ Mary Anne Radmacher`,
-    lesson: `This cycle you kept promises, started early, finished rough and backed your future self.
-Every one of those is evidence.
-Twenty-five days in, you trust yourself more than ever.
-Write the proof down. You'll use it.`,
-    affirmation: `“I have proof that I follow through.”`,
-    worksheetTitle: `Reflection V`,
-    fields: [
-      { prompt: `One piece of proof from this cycle that I follow through`, type: 'textarea' },
-      { prompt: `What it tells me about who I'm becoming`, type: 'textarea' },
-      { prompt: `The courage I'm keeping`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d26', day: 26, title: `Think From Your Future`,
-    theme: `Let the vision pull you forward.`,
-    voice: `Step into your Next Best Self today and look at your life from where they stand.`,
-    quote: `“No human is limited.” ~ Eliud Kipchoge`,
-    lesson: `Four days out, your Next Best Self is close enough to see.
-Today, think from where they stand.
-Borrow their eyes and make today's decisions with them.
-What do they do first? Do that.`,
-    affirmation: `“I think and act as my Next Best Self.”`,
-    worksheetTitle: `Borrow Their Eyes`,
-    fields: [
-      { prompt: `One limit I've been treating as permanent`, type: 'textarea', placeholder: `I'm a night person` },
-      { prompt: `How my Next Best Self sees it`, type: 'textarea' },
-      { prompt: `One thing I'm doing today as them`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d27', day: 27, title: `The Inner Coach`,
-    theme: `Change the voice, change the day.`,
-    voice: `You talk to yourself more than anyone else does. Make it a great coach.`,
-    quote: `“Don't let what you cannot do interfere with what you can do.” ~ John Wooden`,
-    lesson: `The voice in your head talks to you more than anyone.
-Today, give it a coach's voice.
-Honest, direct, and firmly on your side.
-Talk to yourself like someone you believe in.`,
-    affirmation: `“I talk to myself like someone I believe in.”`,
-    fact: `Psychologist Ethan Kross found that talking to yourself by your own name, the way a coach would, can help you stay calmer and think more clearly under stress.`,
-    worksheetTitle: `Upgrade the Voice`,
-    fields: [
-      { prompt: `Something my inner critic says often`, type: 'textarea', placeholder: `“You always mess this up”` },
-      { prompt: `What a great coach says`, type: 'textarea', placeholder: `“You're learning this. Go again.”` },
-      { prompt: `One thing I can do today`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d28', day: 28, title: `Hero of Your Own Story`,
-    theme: `Set down what you've been carrying.`,
-    voice: `Your story is proof of what you've come through. Today, you write the next chapter.`,
-    quote: `“Above all, be the heroine of your life, not the victim.” ~ Nora Ephron`,
-    lesson: `Your story is part of you. You're the one writing what comes next.
-Today, set one old weight down.
-Lighter hands carry more.
-Hero, from here.`,
-    affirmation: `“My story is proof of what I've come through, and I write what comes next.”`,
-    worksheetTitle: `Set It Down`,
-    fields: [
-      { prompt: `One thing I'm ready to put down`, type: 'textarea', placeholder: `Guilt about a slow start this month` },
-      { prompt: `Who or what I'm forgiving, myself included`, type: 'textarea' },
-      { prompt: `How I write myself as the hero from here`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d29', day: 29, title: `Keep Showing Up`,
-    theme: `Day 30 is a launch point.`,
-    voice: `Tomorrow is a floor you build on. Decide what you're taking with you.`,
-    quote: `“Be so good they can't ignore you.” ~ Steve Martin`,
-    lesson: `The goal was to become someone who keeps showing up.
-You are.
-Tomorrow is a launch point.
-Today, choose what you're taking with you.`,
-    affirmation: `“I keep going, with more of me.”`,
-    worksheetTitle: `What Comes With Me`,
-    fields: [
-      { prompt: `The habit from this month I'm keeping`, type: 'textarea' },
-      { prompt: `The thing I'm leaving behind`, type: 'textarea' },
-      { prompt: `What I want to get really good at next`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },
-  {
-    id: 'l1-d30', day: 30, title: `Celebration & Reflection VI: I Am the Creator`,
-    theme: `Thirty days. Look who showed up.`,
-    voice: `Thirty days. Look at who's standing here.`,
-    quote: `“Find out who you are and do it on purpose.” ~ Dolly Parton`,
-    lesson: `Thirty days ago you started. Today, look at what you've built.
-You started. You owned it. You faced it. You chose. You proved it.
-That's the foundation, and it's yours.
-This is a milestone. Celebrate it properly.`,
-    affirmation: `“I know who I am, and I live it on purpose.”`,
-    worksheetTitle: `Own Your Pen`,
-    fields: [
-      { prompt: `Read what I wrote on Day 1. What's changed?`, type: 'textarea' },
-      { prompt: `How committed am I now?`, type: 'rating10' },
-      { prompt: `One sentence I want to remember from these 30 days`, type: 'textarea' },
-      { prompt: `How I'm celebrating today`, type: 'dropdown', options: ['Telling someone', 'Doing something I love', 'Writing it somewhere permanent', 'My own way'] },
-      { prompt: `In my own words`, type: 'textarea' },
-    ],
-    doThisLabel: ``, doThis: ``, goDeeper: ``,
-  },];
+];

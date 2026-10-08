@@ -17,6 +17,7 @@ import SplashLoader from '@/components/SplashLoader';
 import DailyHero from '@/components/DailyHero';
 import Onboarding from '@/components/Onboarding';
 import { AppThemeProvider, useTheme } from '@/hooks/useTheme';
+import { runContentResetOnce } from '@/lib/contentReset';
 import { initMonitoring } from '@/lib/monitoring';
 import { syncReminders } from '@/lib/reminders';
 import { getSettings, saveSettings } from '@/lib/settingsStore';
@@ -42,6 +43,16 @@ type Phase = 'loading' | 'onboarding' | 'hero' | 'ready';
 type Opening = { hero: DailyHeroContent | null; needsOnboarding: boolean; firstName: string };
 
 export default function RootLayout() {
+  // The one-time fresh start (lib/contentReset.ts) has to finish before anything reads
+  // storage. If the tabs mounted first they would load the old data, and a write already
+  // in flight could land after the erase and bring part of it back. It takes milliseconds,
+  // and the native splash is still up while it runs - it is hidden by RootLayoutInner.
+  const [storageReady, setStorageReady] = useState(false);
+  useEffect(() => {
+    runContentResetOnce().finally(() => setStorageReady(true));
+  }, []);
+  if (!storageReady) return null;
+
   // The theme has to sit outside everything that reads it, including the opening sequence.
   return (
     <AppThemeProvider>
@@ -89,7 +100,6 @@ function RootLayoutInner() {
   useEffect(() => {
     SplashScreen.hideAsync().catch(() => {});
   }, []);
-
   // Crash reporting. No-ops in Expo Go, and stays silent until a DSN is configured and the
   // user's opt-out has been read - see lib/monitoring.ts. Never throws.
   useEffect(() => {
@@ -99,10 +109,22 @@ function RootLayoutInner() {
     syncReminders();
   }, []);
 
+  // Reads the resolved promise, not `opening` state, so it never acts on a stale default
+  // and its identity never changes while the loader is running.
+  // If startup reads never settle, open the app with no hero rather than wait forever.
   const handleLoaderDone = useCallback(() => {
-    if (opening.needsOnboarding) setPhase('onboarding');
-    else setPhase(opening.hero ? 'hero' : 'ready');
-  }, [opening]);
+    Promise.race([
+      prepare,
+      new Promise<Opening>((resolve) =>
+        setTimeout(() => resolve({ hero: null, needsOnboarding: false, firstName: '' }), 100)
+      ),
+    ])
+      .then((o) => {
+        if (o.needsOnboarding) setPhase('onboarding');
+        else setPhase(o.hero ? 'hero' : 'ready');
+      })
+      .catch(() => setPhase('ready'));
+  }, [prepare]);
 
   /**
    * First run ends here. The daily hero is deliberately skipped and marked seen: onboarding

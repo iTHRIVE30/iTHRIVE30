@@ -209,9 +209,14 @@ export async function submitChallengeResponse(
   return responses;
 }
 
-/** True if any field has actually been filled in - blank multiselects and whitespace don't count. */
+/**
+ * True if any field has actually been filled in - blank multiselects and whitespace don't
+ * count. A 1-10 scale of several items is an array with '' for each unrated row, so an
+ * array counts only when something in it is filled.
+ */
 export function hasAnswerContent(answers: ChallengeAnswer[]): boolean {
-  return answers.some((a) => (Array.isArray(a) ? a.length > 0 : !!String(a ?? '').trim()));
+  const filled = (v: unknown) => !!String(v ?? '').trim();
+  return answers.some((a) => (Array.isArray(a) ? a.some(filled) : filled(a)));
 }
 
 export async function getCompletedChallenges(): Promise<{ [challengeId: string]: string }> {
@@ -237,12 +242,27 @@ export async function getLevelProgress(levelNumber: number): Promise<LevelProgre
   return { completedContentDays, totalContentDays: days.length };
 }
 
-/** A level's last written day - Day 30 once the level is fully written. */
-function finalDayOf(levelNumber: number): ChallengeDayDef | undefined {
-  return getLevelDays(levelNumber).reduce<ChallengeDayDef | undefined>(
-    (last, d) => (!last || d.day > last.day ? d : last),
-    undefined
-  );
+/** Every level runs 30 days. */
+export const DAYS_PER_LEVEL = 30;
+
+/**
+ * A level's Day 30, or undefined while it isn't written yet.
+ *
+ * Deliberately Day 30 and not "the last day written": a level being written a week at a
+ * time (Level 1 has Days 1-7 so far) would otherwise count as finished after Day 7 -
+ * celebration, next level unlocked, the lot.
+ */
+export function finalDayOf(levelNumber: number): ChallengeDayDef | undefined {
+  return getLevelDays(levelNumber).find((d) => d.day === DAYS_PER_LEVEL);
+}
+
+/**
+ * Every one of a level's 30 days written and answered. This is what "level complete" means
+ * for badges, montages and the Growth Tree. A partly written level is never complete.
+ */
+export function isLevelComplete(levelNumber: number, responses: ChallengeResponses): boolean {
+  const days = getLevelDays(levelNumber);
+  return days.length >= DAYS_PER_LEVEL && days.every((d) => !!responses[d.id]);
 }
 
 /**

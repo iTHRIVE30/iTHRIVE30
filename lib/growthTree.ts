@@ -1,9 +1,11 @@
 import {
+  DAYS_PER_LEVEL,
   LEVELS,
   getChallengeResponses,
   getLevelDays,
   getLevelProgress,
   getLevelStartDate,
+  isLevelComplete,
   isLevelUnlocked,
   type LevelDef,
 } from './challengeStore';
@@ -59,8 +61,9 @@ export async function getGrowthPath(): Promise<GrowthPath> {
     if (total === 0 || !(await isLevelUnlocked(level.number, responses))) break;
     const { completedContentDays: answered } = await getLevelProgress(level.number);
     const started = level.number === 1 || !!(await getLevelStartDate(level.number));
-    const state: PathState = answered >= total ? 'complete' : started ? 'current' : 'open';
-    revealed.push({ level, state, answered, total });
+    const state: PathState = isLevelComplete(level.number, responses) ? 'complete' : started ? 'current' : 'open';
+    // Counted against all 30 days, not just the ones written so far.
+    revealed.push({ level, state, answered, total: DAYS_PER_LEVEL });
   }
 
   return {
