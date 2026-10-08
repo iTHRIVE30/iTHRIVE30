@@ -206,6 +206,11 @@ day after it shipped).
   the leftmost one. The strip is now scrolled programmatically **only when it is rebuilt**
   (first render or a Level change), guarded by a `lastStripKey` ref. After that the scroll
   position belongs to the user.
+- **Never give Today's focus effect a dependency rebuilt from stored data.** On 27 Sept the
+  app stopped opening: every focus stored a new `startedLevels` array → new `stripDates` →
+  new `refreshDayStatuses` → the focus effect re-ran, forever. The Today file was swapped
+  back to an old version to escape it, losing tracker-only mode and the strip; restored
+  8 Oct with the loop cut (strip read through a ref; `refreshLevels` keeps an unchanged array).
 - No day is ever locked (see Architecture principles).
 - `auto` habits (steps via Pedometer, Today's Challenge) stay automatic only
   on Today — on any other day they're manually toggleable, since there's no
