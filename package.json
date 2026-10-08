@@ -6,8 +6,8 @@
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "sync-archive": "node ./scripts/generate-archive.js",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
     "sync-achievements": "node ./scripts/generate-achievements.js",
@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.4",
+    "eas-cli": "^24.8.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~57.0.2",
     "sharp": "^0.35.4",
