@@ -285,15 +285,40 @@ export default function TodayScreen() {
     setNotes(dayNotes);
   }, []);
 
+  /*
+   * THE LOOP THAT STOPPED THE APP OPENING (27 Sept) - two links, both now cut.
+   * The focus effect below depends on refreshDayStatuses. It used to depend on stripDates,
+   * which is rebuilt from startedLevels, and refreshLevels stored a brand-new startedLevels
+   * array on every focus. So: focus -> new levels array -> new strip -> new
+   * refreshDayStatuses -> the focus effect runs again -> ... forever, re-reading storage
+   * and re-rendering until the screen never settled.
+   *
+   * 1. refreshDayStatuses reads the strip through a ref, so its identity never changes.
+   * 2. refreshLevels keeps the old array when nothing in it changed.
+   * Keep both. Don't give a focus-effect dependency anything rebuilt from stored data.
+   */
+  const stripDatesRef = useRef(stripDates);
+  // Declared before the dots effect below, so the ref is current by the time it runs.
+  useEffect(() => {
+    stripDatesRef.current = stripDates;
+  }, [stripDates]);
   const refreshDayStatuses = useCallback(async () => {
     // One bulk read - a 30-day strip through the per-date helper would be hundreds.
-    setDayHasData(await getDaysWithData(stripDates));
-  }, [stripDates]);
+    setDayHasData(await getDaysWithData(stripDatesRef.current));
+  }, []);
+
+  // The dots for a strip that has just changed (a Level switched, a new day rolled on).
+  // Keyed on the dates as text, so a rebuilt-but-identical strip doesn't refire it.
+  const stripSignature = stripDates.join(',');
+  useEffect(() => {
+    refreshDayStatuses();
+  }, [stripSignature, refreshDayStatuses]);
 
   /** Which Levels have been started (and so which history is reachable), and the mode. */
   const refreshLevels = useCallback(async () => {
     const [levels, settings] = await Promise.all([getStartedLevels(), getSettings()]);
-    setStartedLevels(levels);
+    // Same Levels as before: keep the existing array, so nothing built from it rebuilds.
+    setStartedLevels((prev) => (JSON.stringify(prev) === JSON.stringify(levels) ? prev : levels));
     setTrackerOnly(settings.trackerOnly);
     setViewedLevel((current) => {
       if (current !== null && levels.some((l) => l.level.number === current)) return current;
