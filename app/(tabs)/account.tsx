@@ -27,6 +27,11 @@ import {
 } from '../../lib/achievements';
 import { markScreenVisited } from '../../lib/rewardEvents';
 import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
+import FoundationsSection from '../../components/FoundationsSection';
+import { getFoundations, latestWheel } from '../../lib/foundations';
+import { getChallengeResponses } from '../../lib/challengeStore';
+import { LIFE_AREAS, toScores, zoneOf } from '../../lib/lifeWheel';
+import { copy } from '../../lib/challengeCopy';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
 
@@ -49,11 +54,22 @@ export default function MyJourneyScreen() {
   const [editDraft, setEditDraft] = useState<Draft>(EMPTY_DRAFT);
   const [showArchived, setShowArchived] = useState(false);
 
+  // Each area's latest wheel score, so its goals sit beside where it stands.
+  const [areaScores, setAreaScores] = useState<Record<string, number | null>>({});
+
   const loadData = useCallback(async () => {
-    const [cats, goalList, badges] = await Promise.all([getCategories(), getGoals(), getBadgeSummary()]);
+    const [cats, goalList, badges, store, responses] = await Promise.all([
+      getCategories(),
+      getGoals(),
+      getBadgeSummary(),
+      getFoundations(),
+      getChallengeResponses(),
+    ]);
     setCategories(cats);
     setGoals(goalList);
     setSummary(badges);
+    const scores = toScores(latestWheel(store, responses));
+    setAreaScores(Object.fromEntries(LIFE_AREAS.map((a, i) => [a.id, scores[i]])));
   }, []);
 
   const badgeGroups = useMemo(() => (summary ? groupByCategory(summary.statuses) : []), [summary]);
@@ -150,6 +166,8 @@ export default function MyJourneyScreen() {
         <Text style={styles.title}>My Journey</Text>
         <Text style={styles.subtitle}>Where I&apos;m going, across every part of my life</Text>
 
+        <FoundationsSection />
+
         {categories.map((cat) => {
           // Archived goals are hidden by default. They are kept, not deleted - a goal you
           // moved past is still part of the journey - but they shouldn't crowd the list.
@@ -162,6 +180,11 @@ export default function MyJourneyScreen() {
             <View key={cat.id} style={styles.categoryCard}>
               <View style={styles.categoryHeader}>
                 <Text style={styles.categoryTitle}>{cat.name}</Text>
+                {areaScores[cat.id] != null && (
+                  <Text style={styles.areaScore}>
+                    {copy('journey.area.score')} {areaScores[cat.id]} · {zoneOf(areaScores[cat.id])?.name}
+                  </Text>
+                )}
                 {!cat.isDefault && (
                   <Pressable onPress={() => handleDeleteCategory(cat.id)} hitSlop={8}>
                     <Ionicons name="trash-outline" size={16} color={t.muted} />
@@ -480,6 +503,7 @@ const createStyles = (t: Theme) =>
     categoryCard: { backgroundColor: t.surface, borderRadius: 14, borderWidth: 1, borderColor: t.border, padding: 16, marginBottom: 18 },
     categoryHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
     categoryTitle: { color: t.primary, fontSize: 17, fontWeight: '700' },
+    areaScore: { color: t.secondaryDim, fontSize: 12, fontWeight: '600', marginLeft: 'auto', marginRight: 8 },
     goalCard: { backgroundColor: t.surfaceAlt, borderRadius: 10, borderWidth: 1, borderColor: t.borderMuted, padding: 14, marginBottom: 12 },
     goalCardDone: { borderColor: t.primary },
     goalCardArchived: { opacity: 0.55, borderStyle: 'dashed' },

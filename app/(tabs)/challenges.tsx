@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { markScreenVisited, recordChallengeEdit } from '../../lib/rewardEvents';
@@ -25,6 +25,22 @@ import {
   submitChallengeResponse,
   hasAnswerContent,
 } from '../../lib/challengeStore';
+import {
+  answerById,
+  currentValue,
+  focusArea,
+  getFoundations,
+  isFieldVisible,
+  recordDayFoundations,
+  type FoundationStore,
+} from '../../lib/foundations';
+import { syncChallengeWins } from '../../lib/challengeActions';
+import { copy } from '../../lib/challengeCopy';
+import { areaIndexByName, toScores } from '../../lib/lifeWheel';
+import { getHabits, saveHabitLabel, CHALLENGE_HABIT_ID, type HabitDef } from '../../lib/habitStore';
+import { shareProgressSummary } from '../../lib/shareProgress';
+import { WheelField, PulseField } from '../../components/challenge/WheelInputs';
+import DayPanel from '../../components/challenge/DayPanels';
 import GrowthTree from '../../components/GrowthTree';
 import Fireworks from '../../components/Fireworks';
 import { getBadgeSummary } from '../../lib/achievements';
@@ -288,8 +304,14 @@ function isFinalDay(levelNumber: number, dayId: string): boolean {
 
 /** A fresh, unanswered day: one empty answer per field, plus the action tick if it has one. */
 function blankAnswers(challenge: ChallengeDayDef): ChallengeAnswer[] {
+  // A wheel, second look or pulse starts empty and only fills when an area is scored, so an
+  // untouched one never counts as an answer.
   const answers: ChallengeAnswer[] = challenge.fields.map((f) =>
-    f.type === 'multiselect' ? [] : f.type === 'scale10' ? (f.items || []).map(() => '') : ''
+    f.type === 'multiselect' || f.type === 'wheel' || f.type === 'second_look'
+      ? []
+      : f.type === 'scale10'
+        ? (f.items || []).map(() => '')
+        : ''
   );
   if (challenge.actionCheck) answers.push('');
   return answers;
@@ -376,6 +398,9 @@ export default function ChallengesScreen() {
   const [activeDay, setActiveDay] = useState<ChallengeDayDef | null>(null);
   const [firstName, setFirstName] = useState('');
   const [draftAnswers, setDraftAnswers] = useState<ChallengeAnswer[]>([]);
+  // Foundations (why, wheel, story...) and the habit list, for days that read them.
+  const [foundationStore, setFoundationStore] = useState<FoundationStore>({});
+  const [habitList, setHabitList] = useState<HabitDef[]>([]);
 
   const [showMoodPopup, setShowMoodPopup] = useState(false);
   const [draftMood, setDraftMood] = useState(0);
@@ -408,9 +433,16 @@ export default function ChallengesScreen() {
   }, []);
 
   const loadLevelDetail = useCallback(async (level: LevelDef) => {
-    const [day, resp] = await Promise.all([getLevelProgramDay(level.number), getChallengeResponses()]);
+    const [day, resp, store, habits] = await Promise.all([
+      getLevelProgramDay(level.number),
+      getChallengeResponses(),
+      getFoundations(),
+      getHabits().catch(() => [] as HabitDef[]),
+    ]);
     setLevelProgramDay(day || 1);
     setResponses(resp);
+    setFoundationStore(store);
+    setHabitList(habits);
   }, []);
 
   useFocusEffect(
@@ -487,6 +519,8 @@ export default function ChallengesScreen() {
       setSelectedLevel(level);
       setLevelProgramDay(programDay || 1);
       setResponses(resp);
+      setFoundationStore(await getFoundations());
+      setHabitList(await getHabits().catch(() => [] as HabitDef[]));
       setView('days');
       openDay(challenge, resp);
     })();
@@ -514,8 +548,18 @@ export default function ChallengesScreen() {
     // or simply opening and closing a day would rack it up.
     const existing = responses[id];
     const changed = !existing || JSON.stringify(existing.answers) !== JSON.stringify(answers);
-    const updated = await submitChallengeResponse(id, answers, mood);
+    let updated = await submitChallengeResponse(id, answers, mood);
     if (existing && changed) recordChallengeEdit();
+    // Foundations: a dated version for each one this day wrote, and a later day's update
+    // (Day 20's why, Day 29's second look) saved back into its home day. Then any option
+    // actions (Day 24's "Keep it in my Wins"). Both are best-effort.
+    const day = LEVELS.flatMap((l) => getLevelDays(l.number)).find((d) => d.id === id);
+    if (day) {
+      await recordDayFoundations(day, answers).catch(() => {});
+      await syncChallengeWins(day, answers);
+      updated = await getChallengeResponses();
+      setFoundationStore(await getFoundations());
+    }
     setResponses(updated);
     loadLevels();
     if (selectedLevel) loadLevelDetail(selectedLevel);
@@ -601,6 +645,93 @@ export default function ChallengesScreen() {
     setFireworks((k) => k + 1);
   };
 
+  // ---------- Questions that read other answers ----------
+
+  /** A field's options, resolved: live sources (Day 27) and score order (Day 1). */
+  const resolveOptions = (field: ChallengeField): string[] => {
+    let options = field.options || [];
+    if (field.optionsSource === 'tracker_habits') {
+      options = habitList.filter((h) => h.id !== CHALLENGE_HABIT_ID).map((h) => h.label);
+    } else if (field.optionsSource) {
+      const v = answerById(field.optionsSource, foundationStore, responses);
+      const text = Array.isArray(v) ? v.filter(Boolean).join(' · ') : String(v ?? '').trim();
+      options = text ? [text] : [];
+    }
+    if (field.optionsOrder === 'lowest_score_first' && activeDay) {
+      const scores = toScores(draftAnswers[activeDay.fields.findIndex((f) => f.type === 'wheel')]);
+      const scoreOf = (o: string) => scores[areaIndexByName(o)] ?? 11; // unscored areas last
+      options = [...options].sort((a, b) => scoreOf(a) - scoreOf(b));
+    }
+    return options;
+  };
+
+  /** Day 23: the new standard goes into one of the three habits the Thriver writes. */
+  const makeHabitFrom = (text: string) => {
+    const standard = text.trim();
+    if (!standard) {
+      Alert.alert(copy('standard.empty'));
+      return;
+    }
+    const slots = habitList.filter((h) => h.editable);
+    Alert.alert(copy('standard.make_habit'), copy('standard.pick_slot'), [
+      ...slots.map((slot) => ({
+        text: slot.label,
+        onPress: async () => {
+          setHabitList(await saveHabitLabel(slot.id, standard));
+          Alert.alert(copy('standard.saved'));
+        },
+      })),
+      { text: 'Cancel', style: 'cancel' as const },
+    ]);
+  };
+
+  const renderField = (field: ChallengeField, i: number) => {
+    const value = draftAnswers[i];
+    const set = (v: ChallengeAnswer) => updateAnswer(i, v);
+
+    if (field.type === 'wheel') return <WheelField value={value} onChange={set} />;
+
+    if (field.type === 'second_look') {
+      const base = currentValue('wheel', foundationStore, responses);
+      const baseline = base !== undefined ? toScores(base) : null;
+      return <WheelField value={value} baseline={baseline} onChange={set} />;
+    }
+
+    if (field.type === 'pulse') {
+      const area = focusArea(foundationStore, responses);
+      // Beside the ORIGINAL Day 1 score - the first version, before any second look.
+      const first = foundationStore.wheel?.[0]?.value ?? currentValue('wheel', foundationStore, responses);
+      const day1Score = area ? toScores(first)[areaIndexByName(area)] ?? null : null;
+      return <PulseField area={area} day1Score={day1Score} value={value} onChange={set} />;
+    }
+
+    // Opens on the Day 1 area, but only stored once touched - see ChallengeField.defaultFrom.
+    const isEmpty = value === undefined || value === '' || (Array.isArray(value) && value.length === 0);
+    const shown = field.defaultFrom === 'focus_area' && isEmpty ? focusArea(foundationStore, responses) : value;
+
+    const onChange = (v: ChallengeAnswer) => {
+      set(v);
+      if (typeof v === 'string' && field.optionActions?.[v] === 'share_progress') shareProgressSummary();
+    };
+
+    return (
+      <>
+        <FieldInput
+          field={{ ...field, options: resolveOptions(field) }}
+          value={shown}
+          onChange={onChange}
+          onFocus={() => handleFieldFocus(i)}
+        />
+        {/* Day 23's action asks for the standard to go on the tracker (CHANGES item 17). */}
+        {field.id === 'foundation.d23.q2' && (
+          <Pressable style={styles.inlineButton} onPress={() => makeHabitFrom(String(value ?? ''))}>
+            <Text style={styles.inlineButtonText}>{copy('standard.make_habit')}</Text>
+          </Pressable>
+        )}
+      </>
+    );
+  };
+
   const actionLabel = (activeDay?.doThisLabel || 'Do This').toUpperCase();
 
   // What the modal shows: the day with {name} filled in. Display only - saving still goes
@@ -612,6 +743,9 @@ export default function ChallengesScreen() {
   const lessonLines = toReadableLines(shownDay?.lesson);
   const doThisLines = toReadableLines(shownDay?.doThis);
   const goDeeperLines = toReadableLines(shownDay?.goDeeper);
+  const panelCtx = activeDay
+    ? { day: activeDay, answers: draftAnswers, store: foundationStore, responses }
+    : null;
 
   // ---------- Growth Tree (the front page) ----------
   if (view === 'levels') {
@@ -782,12 +916,22 @@ export default function ChallengesScreen() {
                   first person. It already carries its curly quote marks in the content. */}
               {/* The carry-line is said twice: the prompt under it is part of the format,
                   so it is added here rather than typed into every day. */}
+              {/* The prompt sits on the same line as the carry-line (JSON build note). */}
               {!!shownDay?.affirmation && (
                 <View style={styles.affirmationBlock}>
-                  <Text style={styles.affirmationText}>{shownDay.affirmation}</Text>
-                  <Text style={styles.sayAgainText}>~ say that again…</Text>
+                  <Text style={styles.affirmationText}>
+                    {shownDay.affirmation}{' '}
+                    <Text style={styles.sayAgainInline}>{shownDay.affirmationPrompt || '~ say that again…'}</Text>
+                  </Text>
                 </View>
               )}
+
+              {/* Earlier answers shown in place: the Day 2 words on reflection days, the
+                  Day 4 why on Day 20, the wheel reveal on Day 30, and what you did. */}
+              {panelCtx &&
+                shownDay?.panels
+                  ?.filter((p) => p.kind === 'vision' || p.kind === 'replay' || p.kind === 'wheel_reveal' || p.kind === 'said_and_did')
+                  .map((p, k) => <DayPanel key={k} panel={p} ctx={panelCtx} />)}
 
               {/* Answers from earlier days, read live - Day 7 shows the Day 1 three words. */}
               {shownDay?.echoes?.map((echo, i) => {
@@ -815,21 +959,28 @@ export default function ChallengesScreen() {
                 <Text style={styles.noFieldsNote}>This day has no worksheet fields yet.</Text>
               )}
 
-              {shownDay?.fields.map((field, i) => (
-                <View
-                  key={i}
-                  style={{ marginTop: 18 }}
-                  onLayout={(e) => { fieldOffsets.current[i] = e.nativeEvent.layout.y; }}
-                >
-                  <Text style={styles.promptLabel}>{field.prompt}</Text>
-                  <FieldInput
-                    field={field}
-                    value={draftAnswers[i]}
-                    onChange={(v) => updateAnswer(i, v)}
-                    onFocus={() => handleFieldFocus(i)}
-                  />
-                </View>
-              ))}
+              {shownDay?.fields.map((field, i) =>
+                activeDay && !isFieldVisible(activeDay, i, draftAnswers) ? null : (
+                  <View
+                    key={i}
+                    style={{ marginTop: 18 }}
+                    onLayout={(e) => { fieldOffsets.current[i] = e.nativeEvent.layout.y; }}
+                  >
+                    <Text style={styles.promptLabel}>{field.prompt}</Text>
+                    {renderField(field, i)}
+                    {panelCtx &&
+                      shownDay.panels
+                        ?.filter((p) => p.kind === 'after_save' && p.afterField === i)
+                        .map((p, k) => <DayPanel key={k} panel={p} ctx={panelCtx} />)}
+                  </View>
+                )
+              )}
+
+              {/* Day 2: the Day 1 wheel beside the three words, closing the day on the gap. */}
+              {panelCtx &&
+                shownDay?.panels
+                  ?.filter((p) => p.kind === 'wheel_contrast')
+                  .map((p, k) => <DayPanel key={k} panel={p} ctx={panelCtx} />)}
 
               {doThisLines.length > 0 && (
                 <View style={styles.doThisBox}>
@@ -979,6 +1130,9 @@ const createStyles = (t: Theme) =>
     },
 
     sayAgainText: { color: t.secondaryDim, fontSize: 13, fontStyle: 'italic', textAlign: 'center', marginTop: 10 },
+    sayAgainInline: { color: t.secondaryDim, fontSize: 13 },
+    inlineButton: { marginTop: 10, alignSelf: 'flex-start', borderWidth: 1, borderColor: t.primary, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 14 },
+    inlineButtonText: { color: t.primary, fontWeight: '700', fontSize: 13 },
     echoBlock: { marginTop: 24, paddingLeft: 14, borderLeftWidth: 2, borderLeftColor: t.primaryDim, gap: 6 },
     echoLabel: { color: t.primary, fontSize: 10, fontWeight: '700', letterSpacing: 1.6 },
     echoText: { color: t.ink, fontSize: 17, fontWeight: '600', lineHeight: 25 },

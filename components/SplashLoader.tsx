@@ -54,7 +54,9 @@ export default function SplashLoader({
   // used to be a dependency: the parent re-rendered mid-fade, the cleanup cancelled the
   // fade's callback, `finished` stopped the rerun, and the ring sat on screen forever.
   const onDoneRef = useRef(onDone);
-  onDoneRef.current = onDone;
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
   useEffect(() => {
     let cancelled = false;

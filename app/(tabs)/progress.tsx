@@ -44,6 +44,7 @@ import { getTodayKey } from '../../lib/habitStore';
 import Svg, { Polyline, Line as SvgLine, Text as SvgText } from 'react-native-svg';
 import { markScreenVisited, recordProgressGoalView } from '../../lib/rewardEvents';
 import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
+import WheelView from '../../components/WheelView';
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import { levelColors, type Theme } from '../../constants/theme';
 
@@ -51,13 +52,19 @@ const GOAL_MAX_LENGTH = 250;
 const GOAL_QUOTE = 'A wish is not a plan, hope is not a strategy. What gets scheduled gets done.';
 const TABLE_DAYS = 30;
 
-type Segment = 'table' | 'graph' | 'goals' | 'milestones';
+type Segment = 'table' | 'wheel' | 'graph' | 'goals' | 'milestones';
 type RangeOption = 7 | 14 | 30;
 type ViewOption = 'daily' | 'habit' | 'mood' | 'monthly' | 'ytd' | 'levels';
 type ChartType = 'bar' | 'line' | 'pie';
 
-const SEGMENTS: { key: Segment; label: string }[] = [
+// Andrew, 8 Oct: Table and Wheel are the two views that matter most, so they hold the top
+// selector on their own. Everything else sits in a smaller row beneath. One view shows at a
+// time, whichever row it came from.
+const PRIMARY_SEGMENTS: { key: Segment; label: string }[] = [
   { key: 'table', label: 'Table' },
+  { key: 'wheel', label: 'Wheel' },
+];
+const SECONDARY_SEGMENTS: { key: Segment; label: string }[] = [
   { key: 'graph', label: 'Graph' },
   { key: 'goals', label: 'Goals' },
   { key: 'milestones', label: 'Milestones' },
@@ -303,15 +310,15 @@ export default function ProgressScreen() {
         <Text style={styles.title}>Progress</Text>
         <Text style={styles.subtitle}>Your habits and mindset, over time</Text>
 
-        <View style={styles.segmentRow}>
-          {SEGMENTS.map((s) => (
+        <View style={[styles.segmentRow, styles.segmentRowPrimary]}>
+          {PRIMARY_SEGMENTS.map((s) => (
             <Pressable
               key={s.key}
               style={[styles.segmentButton, segment === s.key && styles.segmentButtonActive]}
               onPress={() => handleSelectSegment(s.key)}
             >
               <Text
-                style={[styles.segmentText, segment === s.key && styles.segmentTextActive]}
+                style={[styles.segmentText, styles.segmentTextPrimary, segment === s.key && styles.segmentTextActive]}
                 numberOfLines={1}
               >
                 {s.label}
@@ -319,6 +326,24 @@ export default function ProgressScreen() {
             </Pressable>
           ))}
         </View>
+        <View style={styles.secondaryRow}>
+          {SECONDARY_SEGMENTS.map((s) => (
+            <Pressable
+              key={s.key}
+              style={[styles.secondaryButton, segment === s.key && styles.secondaryButtonActive]}
+              onPress={() => handleSelectSegment(s.key)}
+            >
+              <Text
+                style={[styles.secondaryText, segment === s.key && styles.secondaryTextActive]}
+                numberOfLines={1}
+              >
+                {s.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {segment === 'wheel' && <WheelView />}
 
         {segment === 'table' && (
           <>
@@ -656,6 +681,13 @@ const createStyles = (t: Theme) =>
     segmentRow: { flexDirection: 'row', backgroundColor: t.surface, borderRadius: 12, borderWidth: 1, borderColor: t.border, padding: 4, marginBottom: 20 },
     segmentButton: { flex: 1, paddingVertical: 10, paddingHorizontal: 2, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
     segmentButtonActive: { backgroundColor: t.primary },
+    segmentRowPrimary: { marginBottom: 10 },
+    segmentTextPrimary: { fontSize: 14 },
+    secondaryRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 20 },
+    secondaryButton: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1, borderColor: t.border, backgroundColor: t.surface },
+    secondaryButtonActive: { borderColor: t.primary, backgroundColor: t.primaryTint },
+    secondaryText: { color: t.secondary, fontSize: 12, fontWeight: '600' },
+    secondaryTextActive: { color: t.primary, fontWeight: '700' },
     // "Milestones" is twice the length of "Table"/"Graph"/"Goals" and the four buttons share
     // the row equally, so at 12px it wrapped to two lines on narrow phones. 11px fits it on
     // one line with room to spare; numberOfLines={1} on the label is the hard guarantee.

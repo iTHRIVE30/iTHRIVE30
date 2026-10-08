@@ -1,5 +1,5 @@
 # BUILD: iTHRIVE30 foundation challenge (Days 1 to 30), Growth, foundations, habit frequency
-_Last updated: 8 October 2026 · Owner: Code · Draft 2, awaiting Andrew's confirmation_
+_Last updated: 8 October 2026 · Owner: Code · Build A built (awaiting device test); Build B next_
 **Brand: iTHRIVE30**, matches PROJECT.md
 
 Sources: `foundation-challenge.json` (consolidated, 8 Oct, replaces weeks one and two),

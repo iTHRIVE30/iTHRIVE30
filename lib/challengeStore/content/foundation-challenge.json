@@ -1,0 +1,2027 @@
+{
+  "brand": "iTHRIVE30",
+  "challenge": "foundation",
+  "arc": "A",
+  "level": 1,
+  "version": "consolidated, 8 Oct 2026 (Days 1–30, replaces week-one rev 22 and week-two draft 4)",
+  "notes_for_build": [
+    "Day ids follow the swap: foundation.d01 is the honest starting point, foundation.d02 meets the Next Best Self.",
+    "Load strings by id; never retype them. review_notes and status are for review only and never render.",
+    "affirmation_prompt renders after the affirmation, on the same line.",
+    "show_if hides a field until the condition is met. saves names the growth-record entry a field writes."
+  ],
+  "life_areas": [
+    {
+      "id": "health",
+      "name": "Health",
+      "a1": "Running on empty most days",
+      "a5": "Some good habits, not yet steady",
+      "a10": "Strong, rested, energised"
+    },
+    {
+      "id": "mindset",
+      "name": "Mindset",
+      "a1": "My thoughts work against me",
+      "a5": "Steady on good days, shaken on hard ones",
+      "a10": "Clear, calm, backing myself"
+    },
+    {
+      "id": "relationships",
+      "name": "Relationships",
+      "a1": "Distant or strained",
+      "a5": "Fine, with room to grow closer",
+      "a10": "Close, honest, supported"
+    },
+    {
+      "id": "family_friends",
+      "name": "Family & friends",
+      "a1": "Disconnected",
+      "a5": "In touch, less often than I'd like",
+      "a10": "Connected and present"
+    },
+    {
+      "id": "work",
+      "name": "Work",
+      "a1": "Stuck or drained by it",
+      "a5": "Doing the job, wanting more",
+      "a10": "Purposeful and proud of it"
+    },
+    {
+      "id": "money",
+      "name": "Money",
+      "a1": "Stressed, avoiding the numbers",
+      "a5": "Getting by, a plan forming",
+      "a10": "In control, saving, building"
+    },
+    {
+      "id": "space",
+      "name": "Space",
+      "a1": "My space drains me",
+      "a5": "Liveable, with corners I avoid",
+      "a10": "My space supports who I'm becoming"
+    },
+    {
+      "id": "joy_fun",
+      "name": "Joy & fun",
+      "a1": "I can't remember the last time",
+      "a5": "Some, when time is left over",
+      "a10": "Part of every week, by design"
+    }
+  ],
+  "zones": [
+    {
+      "id": "comfort",
+      "name": "comfort zone",
+      "min": 1,
+      "max": 4
+    },
+    {
+      "id": "growth",
+      "name": "growth zone",
+      "min": 5,
+      "max": 7
+    },
+    {
+      "id": "thrive",
+      "name": "thrive zone",
+      "min": 8,
+      "max": 10
+    }
+  ],
+  "growth_record": {
+    "location": "Progress tab, second view beside the habit tracker, labelled Growth",
+    "records": {
+      "wheel_snapshot": "level, day, kind (benchmark | pulse | return | second_look), scores by area id (pulse: focus area only), focus_area, date",
+      "action_log": "day, action copy id, set, done, date (feeds said and did)",
+      "promise": "text, witness, checked_in, dates",
+      "evidence": "day, field id, type (text | photo | choice), value",
+      "pivot": "source field id, previous value, new value, day changed, date"
+    },
+    "shows_on": {
+      "1": "creates the benchmark",
+      "2": "wheel beside the vision",
+      "7, 14, 21, 28": "pulse, said and did",
+      "14": "witness check-in",
+      "17, 22": "Thriver reads their own record",
+      "20": "first pivot (the why)",
+      "24": "note to Day 1 saved",
+      "29": "full re-rate and second look",
+      "30": "the reveal"
+    },
+    "rules": [
+      "Compare the Thriver only with themselves: no averages, rankings, percentiles or other Thrivers' wheels.",
+      "Nothing is overwritten: a pivot keeps the original and the new version, both dated.",
+      "Private by default; sharing is the Thriver's choice.",
+      "One level is one 30-day challenge. Every level's last day shows the same reveal, against Day 1 and the previous level.",
+      "Zones: 1 to 4 comfort, 5 to 7 growth, 8 to 10 thrive."
+    ]
+  },
+  "field_types": {
+    "select_one": "one choice",
+    "select_all": "any number",
+    "select_three": "exactly three",
+    "scale_1_10": "1 to 10; with items, one scale per item",
+    "journal": "typed answer",
+    "life_wheel": "one 1 to 10 slider per life area, each showing its 1, 5 and 10 anchors",
+    "second_look": "the Day 1 benchmark scores, each adjustable; optional; never overwrites the original"
+  },
+  "days": [
+    {
+      "day": 1,
+      "week": 1,
+      "copy_id": "foundation.d01",
+      "type": "content",
+      "status": "changed",
+      "role": "the honest starting point (moved from Day 2)",
+      "title": "the honest starting point",
+      "anchor_type": "sharyn",
+      "quote": "You do what you want, and for everything else you make excuses.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "Honesty gives you a true starting point. Ownership turns it into ground you can build on.",
+        "Where you stand today is the sum of your choices.",
+        "Knowing each choice can be made again, or differently, is the key.",
+        "Like a map that has a “you are here” marker, so every journey has a beginning.",
+        "Today you mark your starting point. Tomorrow you choose your direction."
+      ],
+      "affirmation": "I own where I stand, and I own where I go.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [
+        {
+          "kind": "after_save",
+          "text": "Saved to Growth in your Progress tab: your starting point, dated today."
+        }
+      ],
+      "fields": [
+        {
+          "id": "foundation.d01.q1",
+          "type": "life_wheel",
+          "prompt": "Rate each area of your life as it stands today. Honest beats flattering: this is the line every gain gets measured against.",
+          "areas": "life_areas",
+          "saves": "wheel_snapshot(kind=benchmark)"
+        },
+        {
+          "id": "foundation.d01.q2",
+          "type": "select_one",
+          "prompt": "Which one area will you own this month?",
+          "options": [
+            "Health",
+            "Mindset",
+            "Relationships",
+            "Family & friends",
+            "Work",
+            "Money",
+            "Space",
+            "Joy & fun"
+          ],
+          "allow_custom": false,
+          "options_order": "lowest_score_first",
+          "saves": "focus_area"
+        },
+        {
+          "id": "foundation.d01.q3",
+          "type": "journal",
+          "prompt": "Where have you been making an excuse? Name it plainly."
+        }
+      ],
+      "action": "Copy down your one area and write the excuse beside it, before you close the app today.",
+      "action_proof": {
+        "text": "Across 138 studies, people reached their goals more often when their progress was tracked and written down.",
+        "source": "Harkin et al., Psychological Bulletin, 2016"
+      },
+      "pending_approval": [],
+      "review_notes": {
+        "changed": [
+          "Day swap: Andrew's approved Day 2 wording moves here unchanged, except the bridge line, which flips to “Today you mark your starting point. Tomorrow you choose your direction.”",
+          "The life wheel replaces the five-item scale: eight areas, each with plain anchors at 1, 5 and 10.",
+          "“Which one area will you own” now offers the eight wheel areas, lowest scores first.",
+          "The proof line moves here from Day 6, because tracking is exactly what the benchmark does."
+        ]
+      }
+    },
+    {
+      "day": 2,
+      "week": 1,
+      "copy_id": "foundation.d02",
+      "type": "content",
+      "status": "changed",
+      "role": "meet the mentor (moved from Day 1)",
+      "title": "meet your next best self",
+      "anchor_type": "sharyn",
+      "quote": "You are the Hero of your own story.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "The best version of yourself already exists within. Your Next Best Self awaits.",
+        "The space to THRIVE, a clear purpose and the ability to show up give every hero a standard to meet.",
+        "Heroes are made by decision: to act, to lead, to rise.",
+        "Yesterday you marked your starting point. Today you choose your direction."
+      ],
+      "affirmation": "I decide who I become, and I start today.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [
+        {
+          "kind": "wheel_contrast",
+          "title": "your starting point, beside your direction",
+          "shows": [
+            "Day 1 benchmark wheel",
+            "the three words from q2"
+          ],
+          "text": "This is the gap you close. Day 30 shows how far you came."
+        }
+      ],
+      "fields": [
+        {
+          "id": "foundation.d02.q1",
+          "type": "journal",
+          "prompt": "Who are you, living as your best? What do you do differently? How does it feel?"
+        },
+        {
+          "id": "foundation.d02.q2",
+          "type": "select_three",
+          "prompt": "Which words describe your Next Best Self?",
+          "options": [
+            "Confident",
+            "Calm",
+            "Focused",
+            "Energised",
+            "Disciplined",
+            "Generous",
+            "Courageous",
+            "Joyful",
+            "Free"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d02.q3",
+          "type": "select_one",
+          "prompt": "Where will your Next Best Self show up first?",
+          "options": [
+            "Health",
+            "Mindset",
+            "Relationships",
+            "Family & friends",
+            "Work",
+            "Money",
+            "Space",
+            "Joy & fun"
+          ],
+          "allow_custom": false,
+          "default_from": "focus_area"
+        }
+      ],
+      "action": "Write your three words where you'll see them first thing tomorrow. Do it before you sleep tonight.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {
+        "changed": [
+          "Day swap: Andrew's tightened Day 1 moves here; its closing line becomes the bridge “Yesterday you marked your starting point. Today you choose your direction.”",
+          "Question 3 opens on the area chosen on Day 1, and offers the eight wheel areas.",
+          "New closing panel: the Day 1 wheel beside the three words, so the day ends on the gap and the direction together."
+        ]
+      }
+    },
+    {
+      "day": 3,
+      "week": 1,
+      "copy_id": "foundation.d03",
+      "type": "content",
+      "status": "unchanged",
+      "role": "success is a skill",
+      "title": "success is a skill",
+      "anchor_type": "quote",
+      "quote": "As much as talent counts, effort counts twice.",
+      "quote_attribution": "Angela Duckworth, Grit (2016)",
+      "quote_note": null,
+      "content": [
+        "Success is a skill. This month you start to learn it.",
+        "Talent gets the credit. Repetition does the work.",
+        "Every skill you admire in someone else was paid for in reps.",
+        "Long hours, revising, planning, choosing the vision. Trusting the process.",
+        "Today you do your first rep. This life is more than a read-through."
+      ],
+      "affirmation": "Success is a skill, and I am practising it today.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d03.q1",
+          "type": "journal",
+          "prompt": "Your first step, in one line."
+        },
+        {
+          "id": "foundation.d03.q2",
+          "type": "select_one",
+          "prompt": "How long will it take?",
+          "options": [
+            "2 minutes",
+            "5 minutes",
+            "10 minutes"
+          ],
+          "allow_custom": false
+        },
+        {
+          "id": "foundation.d03.q3",
+          "type": "select_one",
+          "prompt": "When will you do it today?",
+          "options": [
+            "Morning",
+            "Midday",
+            "Afternoon",
+            "Evening"
+          ],
+          "allow_custom": false
+        }
+      ],
+      "action": "Do your step today at the time you named, then tick it off here.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {}
+    },
+    {
+      "day": 4,
+      "week": 1,
+      "copy_id": "foundation.d04",
+      "type": "content",
+      "status": "unchanged",
+      "role": "the why",
+      "title": "your why",
+      "anchor_type": "quote",
+      "quote": "Every one of us has a WHY, a deep-seated purpose, cause or belief that is the source of our passion and inspiration.",
+      "quote_attribution": "Simon Sinek, Find Your Why (2017)",
+      "quote_note": null,
+      "content": [
+        "Your why is what gets you up on the days you'd rather stay down.",
+        "Motivation rises and falls. A strong reason holds steady.",
+        "When the why is vague, the excuses get specific.",
+        "Find a reason bigger than your excuses, and it will carry you on the days nothing else will."
+      ],
+      "affirmation": "My why is bigger than my excuses.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d04.q1",
+          "type": "select_all",
+          "prompt": "What sits underneath your why?",
+          "options": [
+            "Family",
+            "Health",
+            "Freedom",
+            "Purpose",
+            "Self-respect",
+            "Security",
+            "Joy",
+            "Legacy"
+          ],
+          "allow_custom": false
+        },
+        {
+          "id": "foundation.d04.q2",
+          "type": "journal",
+          "prompt": "Why does this month matter to you? Write it, then ask “and why does that matter?” twice more.",
+          "replayed_on": [
+            "foundation.d20"
+          ]
+        },
+        {
+          "id": "foundation.d04.q3",
+          "type": "select_all",
+          "prompt": "Who gains when you become your Next Best Self?",
+          "options": [
+            "Me",
+            "My partner",
+            "My children",
+            "My family",
+            "My friends",
+            "My team",
+            "My community"
+          ],
+          "allow_custom": false
+        }
+      ],
+      "action": "Write your why in one sentence and read it aloud tonight, to yourself or to someone who will hold you to it.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {}
+    },
+    {
+      "day": 5,
+      "week": 1,
+      "copy_id": "foundation.d05",
+      "type": "content",
+      "status": "changed",
+      "role": "the first stretch",
+      "title": "discipline is a muscle",
+      "anchor_type": "sharyn",
+      "quote": "Discipline is a muscle.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "A muscle grows when you stretch it beyond the comfort zone, then give it time to rest. Repeatedly.",
+        "Discipline is built the same way: the step done before the scroll, the early night before the early start, the promise kept when nobody is checking. These are gains.",
+        "Every time you bargain your way out, you train the part of you that bargains. The opposite is equally as true.",
+        "Today do the extra rep, because every rep compounds."
+      ],
+      "affirmation": "Every rep makes me stronger.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d05.q1",
+          "type": "journal",
+          "prompt": "The slightly harder version of your step today."
+        },
+        {
+          "id": "foundation.d05.q2",
+          "type": "select_all",
+          "prompt": "Which excuses will try to talk you out of it?",
+          "options": [
+            "I'm tired",
+            "No time",
+            "Tomorrow",
+            "Not in the mood",
+            "It won't matter"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d05.q3",
+          "type": "journal",
+          "prompt": "What will you say back? One line."
+        }
+      ],
+      "action": "Do the harder version before 6pm today, and record it here once it's done.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {
+        "changed": [
+          "The anchor was plain logic, which the challenge format rules out. Your confirmed line, “Discipline is a muscle.”, now leads.",
+          "The muscle line moves to open the content block. Every other word stays as approved."
+        ]
+      }
+    },
+    {
+      "day": 6,
+      "week": 1,
+      "copy_id": "foundation.d06",
+      "type": "content",
+      "status": "changed",
+      "role": "the promise",
+      "title": "the promise",
+      "anchor_type": "quote",
+      "quote": "If all you ever do is do what you say you're going to do, you will get through the thing that's uncomfortable.",
+      "quote_attribution": "Nedd Brockmann, interview, Daily Advertiser (2026)",
+      "quote_note": "Australian ultramarathon runner and 2026 Young Australian of the Year, who ran 3,952 km across Australia in 47 days. Born 1999.",
+      "content": [
+        "A promise kept to yourself is the foundation of self-trust.",
+        "You keep your word to everyone else. The person you let down most easily is you.",
+        "Writing it turns intention into commitment. Sharing it gives your word a witness.",
+        "From today, your word to yourself carries the same weight as your word to anyone else."
+      ],
+      "affirmation": "I commit 100% to becoming my Next Best Self.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d06.q1",
+          "type": "journal",
+          "prompt": "Complete this: For the rest of this month, I promise myself…",
+          "saves": "promise"
+        },
+        {
+          "id": "foundation.d06.q2",
+          "type": "select_one",
+          "prompt": "Who will you tell?",
+          "options": [
+            "Partner",
+            "Friend",
+            "Family member",
+            "Colleague",
+            "The Wins tab"
+          ],
+          "allow_custom": false,
+          "saves": "promise.witness"
+        },
+        {
+          "id": "foundation.d06.q3",
+          "type": "select_one",
+          "prompt": "On the day you least feel like it, I will…",
+          "options": [
+            "Do the two-minute version",
+            "Re-read my promise",
+            "Call my witness",
+            "Do it first thing"
+          ],
+          "allow_custom": false
+        }
+      ],
+      "action": "Share your promise with one person today, and ask them to check in with you on Day 14.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {
+        "changed": [
+          "The proof line moves to Day 1. The action and every other word stay as approved."
+        ]
+      }
+    },
+    {
+      "day": 7,
+      "week": 1,
+      "copy_id": "foundation.d07",
+      "type": "reflection",
+      "status": "changed",
+      "title": "reflection",
+      "framing": [
+        "Seven days in.",
+        "Look at what you said you would do, and at what you did.",
+        "Both are information, and both belong to you."
+      ],
+      "show_day2_vision": true,
+      "vision_source": "foundation.d02.q2",
+      "panels": [
+        {
+          "kind": "growth_pulse",
+          "prompt": "Your focus area today",
+          "area_source": "focus_area",
+          "type": "scale_1_10",
+          "shows_beside": "day 1 score for the focus area",
+          "saves": "wheel_snapshot(kind=pulse)"
+        },
+        {
+          "kind": "said_and_did",
+          "shows": "this week's actions set beside actions ticked done",
+          "source": "action_log"
+        }
+      ],
+      "fields": [
+        {
+          "id": "foundation.d07.q1",
+          "type": "journal",
+          "prompt": "What did I learn?"
+        },
+        {
+          "id": "foundation.d07.q2",
+          "type": "journal",
+          "prompt": "What did I love?"
+        },
+        {
+          "id": "foundation.d07.q3",
+          "type": "journal",
+          "prompt": "What can I do better?"
+        }
+      ],
+      "pending_approval": [],
+      "review_notes": {
+        "changed": [
+          "Growth pulse added: one tap on the focus area, shown beside its Day 1 score.",
+          "Said and did: the week's actions set beside the actions ticked. Your framing line already asks for exactly this.",
+          "The three journal questions stay identical."
+        ]
+      }
+    },
+    {
+      "day": 8,
+      "week": 2,
+      "copy_id": "foundation.d08",
+      "type": "content",
+      "status": "changed",
+      "role": "the first tool",
+      "title": "build your system",
+      "anchor_type": "sharyn",
+      "quote": "Often it's the simplicity of our own daily habits that we overlook in our efforts to achieve greatness.",
+      "quote_attribution": "Sharyn Brown, Be Inspired: Bondi (2021)",
+      "quote_note": null,
+      "content": [
+        "Anything complex is simplified by a system, broken into bite-sized pieces. That is how this challenge gets done.",
+        "Your system starts with one habit: small enough to keep on your hardest day, big enough to create daily momentum.",
+        "Open your tracker in the Progress tab: find the gaps, and close them.",
+        "Last week you made the promise. This week you build what sustains it."
+      ],
+      "affirmation": "I keep it simple, and I keep it daily.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d08.q1",
+          "type": "select_one",
+          "prompt": "Pick the habit that starts your system.",
+          "options": [
+            "Move for 10 minutes",
+            "Read 10 pages",
+            "Write three lines",
+            "Water before coffee",
+            "Phone away at dinner",
+            "Plan tomorrow tonight"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d08.q2",
+          "type": "journal",
+          "prompt": "Your habit, in one line, small enough for your hardest day."
+        },
+        {
+          "id": "foundation.d08.q3",
+          "type": "scale_1_10",
+          "prompt": "How sure are you that you'll do it on your worst day?"
+        }
+      ],
+      "action": "Under 8? Make it smaller. Then do it today and tick it off here before you sleep.",
+      "action_proof": null,
+      "pending_approval": [
+        "Sharyn to confirm the wording of her Be Inspired: Bondi line"
+      ],
+      "review_notes": {
+        "changed": [
+          "Anchor: your line from Be Inspired: Bondi replaces Clare Boothe Luce. Week two had five outside voices to one of yours; this evens it and clears Luce's pending approval.",
+          "Content, carry-line, questions and action stay as approved."
+        ]
+      }
+    },
+    {
+      "day": 9,
+      "week": 2,
+      "copy_id": "foundation.d09",
+      "type": "content",
+      "status": "unchanged",
+      "role": "the space",
+      "title": "design your space",
+      "anchor_type": "quote",
+      "quote": "Environment is the invisible hand that shapes human behavior.",
+      "quote_attribution": "James Clear, Atomic Habits (2018)",
+      "quote_note": "American writer on habits and author of Atomic Habits. Born 1986.",
+      "content": [
+        "Your space makes more of your choices than you do.",
+        "The phone by the bed, the shoes by the door, the bowl on the bench: each is a decision already made.",
+        "Leave the room as it is, and it keeps choosing for you. Design it so your new habits become the easy choice.",
+        "On Day 1 you pictured the space to THRIVE. Today you start building it, one object at a time."
+      ],
+      "affirmation": "I design my space, and my space carries me.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d09.q1",
+          "type": "select_one",
+          "prompt": "Which space shapes your habit most?",
+          "options": [
+            "Bedroom",
+            "Kitchen",
+            "Desk",
+            "Car",
+            "Phone",
+            "Living room"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d09.q2",
+          "type": "select_all",
+          "prompt": "Which moves will you make?",
+          "options": [
+            "Put it in sight",
+            "Put it within reach",
+            "Move a distraction out of sight",
+            "Set it out the night before",
+            "Phone in another room"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d09.q3",
+          "type": "journal",
+          "prompt": "The one change you'll make, in one line."
+        }
+      ],
+      "action": "Pics or it didn't happen. Tonight, take a before of every space in your sanctuary, make your change, then take at least one after as evidence for tomorrow's habit.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {
+        "flags": [
+          "Content line 4 says “On Day 1 you pictured the space to THRIVE”. After the swap that picture is on Day 2. Suggested: “On Day 2 you pictured…”."
+        ]
+      }
+    },
+    {
+      "day": 10,
+      "week": 2,
+      "copy_id": "foundation.d10",
+      "type": "content",
+      "status": "unchanged",
+      "role": "the lesson as ally",
+      "title": "learn from every day",
+      "anchor_type": "sharyn",
+      "quote": "Success leaves clues.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "Ten days in, every day has left you something: the days you kept show you what works, and any that slipped show you exactly where to build.",
+        "A missed day becomes a lesson the moment you review it to find why you avoided it.",
+        "How you respond is yours to choose. Read your days, and the road gets clearer with every one."
+      ],
+      "affirmation": "When I learn, I build. What I build, I keep.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d10.q1",
+          "type": "select_all",
+          "prompt": "What helped on your best days?",
+          "options": [
+            "Did it early",
+            "Had it ready",
+            "Knew my why",
+            "Someone checked in",
+            "Kept it small"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d10.q2",
+          "type": "select_all",
+          "prompt": "What got in the way on the harder days?",
+          "options": [
+            "Too tired",
+            "No time",
+            "Forgot",
+            "Plans changed",
+            "Lost my why"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d10.q3",
+          "type": "journal",
+          "prompt": "Your lesson, in one line: next time I will…"
+        }
+      ],
+      "action": "Write your lesson where you'll see it, and use it on tomorrow's habit, whatever today held.",
+      "action_proof": {
+        "text": "In a study of new habits, missing one day made no real difference to how they formed.",
+        "source": "Lally et al., European Journal of Social Psychology, 2010"
+      },
+      "pending_approval": [],
+      "review_notes": {
+        "flags": [
+          "“Success leaves clues” is a common saying with no verified original (most often credited to Jim Rohn, popularised by Tony Robbins), so it shouldn't carry your name as an anchor. Option: “Life by design.” leads, and the saying moves into the content."
+        ]
+      }
+    },
+    {
+      "day": 11,
+      "week": 2,
+      "copy_id": "foundation.d11",
+      "type": "content",
+      "status": "unchanged",
+      "role": "the rhythm",
+      "title": "momentum over motivation",
+      "anchor_type": "quote",
+      "quote": "If I only ran on the days I felt motivated to run, I wouldn't run very much.",
+      "quote_attribution": "Nedd Brockmann, interview, Daily Advertiser (2026)",
+      "quote_note": "Australian ultramarathon runner and 2026 Young Australian of the Year, who ran 3,952 km across Australia in 47 days. Born 1999.",
+      "content": [
+        "Momentum over motivation: you build momentum, and momentum drives motivation.",
+        "Motivation arrives when it likes. Your system arrives every day: one habit, one cue, one tick.",
+        "Routine is built on the days you least feel like it, and rhythm grows from routine.",
+        "Keep the system running, and motivation catches up with you."
+      ],
+      "affirmation": "I keep the system, and the system keeps me.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d11.q1",
+          "type": "scale_1_10",
+          "prompt": "How steady has your system been this week?"
+        },
+        {
+          "id": "foundation.d11.q2",
+          "type": "select_one",
+          "prompt": "What will your habit follow each day?",
+          "options": [
+            "After I wake",
+            "After coffee",
+            "After the school run",
+            "After work",
+            "After dinner",
+            "Before bed"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d11.q3",
+          "type": "journal",
+          "prompt": "Your cue, in one line: After I ___, I will ___."
+        }
+      ],
+      "action": "Do your habit today straight after your cue, and tick it off the moment it's done.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {}
+    },
+    {
+      "day": 12,
+      "week": 2,
+      "copy_id": "foundation.d12",
+      "type": "content",
+      "status": "unchanged",
+      "role": "the if-then plan",
+      "title": "decide it in advance",
+      "anchor_type": "quote",
+      "quote": "It is in your moments of decision that your destiny is shaped.",
+      "quote_attribution": "Tony Robbins, Awaken the Giant Within (1991)",
+      "quote_note": null,
+      "content": [
+        "The hardest moment to decide is the moment you're in it: tired, rushed, tempted.",
+        "So decide now, while you're clear. When the obstacle comes, your answer is already waiting.",
+        "An excuse needs a gap to grow in. A plan made in advance leaves it no room.",
+        "On Day 5 you named your excuses. Today you give each one its answer, before it speaks."
+      ],
+      "affirmation": "I decide before the moment decides for me.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d12.q1",
+          "type": "select_one",
+          "prompt": "Which moment is most likely to stop you?",
+          "options": [
+            "Running late",
+            "Too tired",
+            "Plans change",
+            "Low mood",
+            "Away from home"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d12.q2",
+          "type": "journal",
+          "prompt": "Your plan, in one line: If ___, then I will ___."
+        },
+        {
+          "id": "foundation.d12.q3",
+          "type": "select_one",
+          "prompt": "Where will your plan live?",
+          "options": [
+            "Phone lock screen",
+            "On the fridge",
+            "Beside my habit",
+            "Here in the app"
+          ],
+          "allow_custom": false
+        }
+      ],
+      "action": "Put your plan in place today, and read it aloud twice before bed tonight.",
+      "action_proof": {
+        "text": "Across 94 studies, people who made if-then plans reached their goals more often.",
+        "source": "Gollwitzer & Sheeran, Advances in Experimental Social Psychology, 2006"
+      },
+      "pending_approval": [],
+      "review_notes": {}
+    },
+    {
+      "day": 13,
+      "week": 2,
+      "copy_id": "foundation.d13",
+      "type": "content",
+      "status": "unchanged",
+      "role": "momentum",
+      "title": "one notch up",
+      "anchor_type": "quote",
+      "quote": "Life is like riding a bicycle. To keep your balance you must keep moving.",
+      "quote_attribution": "Albert Einstein, letter to his son Eduard (1930)",
+      "quote_note": null,
+      "content": [
+        "Twelve days of showing up have built something that carries you now: momentum.",
+        "Balance comes from moving. Every tick keeps you steady, and every kept promise makes the next one believable.",
+        "Today you add one notch to what you already do.",
+        "Tomorrow you look back at the road. Today you give it something worth looking at."
+      ],
+      "affirmation": "I do better, I do more, I'm better than yesterday.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d13.q1",
+          "type": "scale_1_10",
+          "prompt": "Rate each of these today.",
+          "items": [
+            "Energy",
+            "Consistency",
+            "Self-belief"
+          ]
+        },
+        {
+          "id": "foundation.d13.q2",
+          "type": "select_one",
+          "prompt": "Your notch up today:",
+          "options": [
+            "Two more minutes",
+            "Start earlier",
+            "The harder version",
+            "Bring someone with you"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d13.q3",
+          "type": "journal",
+          "prompt": "One thing from these two weeks the Day 1 you would be proud of."
+        }
+      ],
+      "action": "Do your notched-up habit today, and tick it off before dinner.",
+      "action_proof": null,
+      "pending_approval": [
+        "Einstein as a new voice",
+        "First-person rewording of Sharyn's signature in the affirmation"
+      ],
+      "review_notes": {}
+    },
+    {
+      "day": 14,
+      "week": 2,
+      "copy_id": "foundation.d14",
+      "type": "reflection",
+      "status": "changed",
+      "title": "reflection",
+      "framing": [
+        "Fourteen days in, and your witness checks in today.",
+        "Tell them what you promised and what you did, plainly.",
+        "Every part of the system you built this week is still in your hands."
+      ],
+      "show_day2_vision": true,
+      "vision_source": "foundation.d02.q2",
+      "panels": [
+        {
+          "kind": "growth_pulse",
+          "prompt": "Your focus area today",
+          "area_source": "focus_area",
+          "type": "scale_1_10",
+          "shows_beside": "day 1 score for the focus area",
+          "saves": "wheel_snapshot(kind=pulse)"
+        },
+        {
+          "kind": "said_and_did",
+          "shows": "this week's actions set beside actions ticked done",
+          "source": "action_log"
+        },
+        {
+          "kind": "witness_check",
+          "type": "select_one",
+          "prompt": "Did your witness check in?",
+          "options": [
+            "They checked in",
+            "Not yet"
+          ],
+          "saves": "promise.checked_in"
+        }
+      ],
+      "fields": [
+        {
+          "id": "foundation.d14.q1",
+          "type": "journal",
+          "prompt": "What did I learn?"
+        },
+        {
+          "id": "foundation.d14.q2",
+          "type": "journal",
+          "prompt": "What did I love?"
+        },
+        {
+          "id": "foundation.d14.q3",
+          "type": "journal",
+          "prompt": "What can I do better?"
+        }
+      ],
+      "pending_approval": [],
+      "review_notes": {
+        "changed": [
+          "Framing line 3: “Every tool you picked up this week…” becomes “Every part of the system you built this week…”.",
+          "Growth pulse, said and did, and a one-tap record of whether the Day 6 witness checked in.",
+          "The vision shown is now the three words from Day 2."
+        ]
+      }
+    },
+    {
+      "day": 15,
+      "week": 3,
+      "copy_id": "foundation.d15",
+      "type": "content",
+      "status": "new",
+      "role": "the deep water",
+      "title": "the work you've been avoiding",
+      "anchor_type": "quote",
+      "quote": "When we are no longer able to change a situation, we are challenged to change ourselves.",
+      "quote_attribution": "Viktor Frankl, Man's Search for Meaning (1946)",
+      "quote_note": "Austrian psychiatrist and Holocaust survivor. 1905–1997.",
+      "content": [
+        "Two weeks of showing up have built your footing. Today you step into deeper water.",
+        "Everything you want sits on the other side of one task you keep moving to tomorrow.",
+        "Avoidance feels like rest. It costs more than the task ever would.",
+        "The task stays the same size. You are the one who grows."
+      ],
+      "affirmation": "I move toward the work I've been avoiding.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d15.q1",
+          "type": "select_one",
+          "prompt": "Which area holds the work you've been avoiding?",
+          "options": [
+            "Health",
+            "Mindset",
+            "Relationships",
+            "Family & friends",
+            "Work",
+            "Money",
+            "Space",
+            "Joy & fun"
+          ],
+          "allow_custom": false,
+          "default_from": "focus_area"
+        },
+        {
+          "id": "foundation.d15.q2",
+          "type": "journal",
+          "prompt": "The task you keep moving to tomorrow, in one line.",
+          "saves": "evidence"
+        },
+        {
+          "id": "foundation.d15.q3",
+          "type": "select_all",
+          "prompt": "What has avoiding it cost you?",
+          "options": [
+            "Time",
+            "Energy",
+            "Peace of mind",
+            "Confidence",
+            "Opportunity"
+          ],
+          "allow_custom": true
+        }
+      ],
+      "action": "Do the first ten minutes of it today, before midday, and tick it off here.",
+      "action_proof": null,
+      "pending_approval": [
+        "Viktor Frankl as a new voice"
+      ],
+      "review_notes": {
+        "why": [
+          "Week three opens the deep water. The focus area is offered first, so the avoided work connects back to the Day 1 benchmark.",
+          "Question 3 asks what avoiding it has cost, so the action arrives with a reason. The action decides what they do."
+        ],
+        "flags": [
+          "Frankl is a new voice. A classic voice: a modern athlete's line can replace him once verified."
+        ]
+      }
+    },
+    {
+      "day": 16,
+      "week": 3,
+      "copy_id": "foundation.d16",
+      "type": "content",
+      "status": "new",
+      "role": "the story",
+      "title": "the story you tell",
+      "anchor_type": "sharyn",
+      "quote": "Self-sabotage is not moral failure; it's a safety strategy.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "Every time you step back from that task, a story steps in to explain it.",
+        "I'm too busy. I'm not ready. It won't make a difference anyway.",
+        "The story keeps you safe, and it keeps you exactly where you are.",
+        "Today you write it down, word for word, so you can see it clearly."
+      ],
+      "affirmation": "I see my story clearly, and I choose what happens next.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d16.q1",
+          "type": "select_all",
+          "prompt": "Which stories sound familiar?",
+          "options": [
+            "I'm not ready",
+            "I don't have time",
+            "It won't work for me",
+            "I'll start Monday",
+            "People like me don't"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d16.q2",
+          "type": "journal",
+          "prompt": "Your story, word for word, the way it sounds in your head.",
+          "saves": "evidence"
+        },
+        {
+          "id": "foundation.d16.q3",
+          "type": "scale_1_10",
+          "prompt": "How true is it, really?"
+        }
+      ],
+      "action": "Read your story aloud once tonight, then leave it on the page.",
+      "action_proof": {
+        "text": "People who wrote about difficult experiences for 15 minutes on four days made fewer health-centre visits in the months that followed.",
+        "source": "Pennebaker & Beall, Journal of Abnormal Psychology, 1986"
+      },
+      "pending_approval": [],
+      "review_notes": {
+        "why": [
+          "Your verbatim manuscript line. Naming the story sets up Day 17, where its opposite is set beside it."
+        ]
+      }
+    },
+    {
+      "day": 17,
+      "week": 3,
+      "copy_id": "foundation.d17",
+      "type": "content",
+      "status": "new",
+      "role": "the opposite story",
+      "title": "the opposite story",
+      "anchor_type": "sharyn",
+      "quote": "For all the stories you tell yourself about what is not possible for you, the opposite is equally as true.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "Yesterday you wrote the story down. Today you set its opposite beside it.",
+        "Both stories fit the same facts. Only one of them moves you forward.",
+        "You already hold sixteen days of evidence for the second one: ticks, lessons, kept promises.",
+        "The story you repeat becomes the one you live."
+      ],
+      "affirmation": "The opposite is equally as true, and I choose it.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d17.q1",
+          "type": "journal",
+          "prompt": "Your opposite story, in one line.",
+          "saves": "evidence"
+        },
+        {
+          "id": "foundation.d17.q2",
+          "type": "select_all",
+          "prompt": "Which evidence backs it?",
+          "options": [
+            "My ticks in the Progress tab",
+            "A lesson from Day 10",
+            "A promise I kept",
+            "Someone who believes in me"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d17.q3",
+          "type": "select_one",
+          "prompt": "Where will your opposite story live?",
+          "options": [
+            "Phone lock screen",
+            "On the mirror",
+            "Beside my habit",
+            "Here in the app"
+          ],
+          "allow_custom": false
+        }
+      ],
+      "action": "Put your opposite story where you'll see it first thing tomorrow, before you sleep tonight.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {
+        "why": [
+          "Day 5 echoes this line ahead of time; here it leads.",
+          "The evidence comes from the Thriver's own growth record."
+        ]
+      }
+    },
+    {
+      "day": 18,
+      "week": 3,
+      "copy_id": "foundation.d18",
+      "type": "content",
+      "status": "new",
+      "role": "the courage step",
+      "title": "the courage step",
+      "anchor_type": "quote",
+      "quote": "Vulnerability is the birthplace of innovation, creativity and change.",
+      "quote_attribution": "Brené Brown, TED, Listening to Shame (2012)",
+      "quote_note": "American researcher and author on courage and vulnerability. Born 1965.",
+      "content": [
+        "Courage is a decision made while the doubt is still talking.",
+        "Change asks you to be seen trying before you are sure it will work.",
+        "Every area you want to move into the thrive zone asks for a step that feels exposed.",
+        "Today you take yours, one size bigger than comfortable."
+      ],
+      "affirmation": "I take the step while the doubt is still talking.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d18.q1",
+          "type": "select_one",
+          "prompt": "Your courage step today:",
+          "options": [
+            "Say the hard thing",
+            "Ask for what I want",
+            "Share my goal",
+            "Try where I could fail"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d18.q2",
+          "type": "journal",
+          "prompt": "Your step, in one line, and who it involves."
+        },
+        {
+          "id": "foundation.d18.q3",
+          "type": "scale_1_10",
+          "prompt": "How uncomfortable does it feel?"
+        }
+      ],
+      "action": "Take your step before the end of today, then record what happened here.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {
+        "why": [
+          "Approved voice, verified wording. The thrive-zone line ties the courage step to the wheel."
+        ]
+      }
+    },
+    {
+      "day": 19,
+      "week": 3,
+      "copy_id": "foundation.d19",
+      "type": "content",
+      "status": "new",
+      "role": "kindness",
+      "title": "kindness keeps you going",
+      "anchor_type": "sharyn",
+      "quote": "Worthy of greatness, capable of greatness and deserving of greatness.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "Eighteen days in, some steps landed and some slipped. Both belong to you.",
+        "How you speak to yourself after a slip decides whether you take the next step.",
+        "Kindness keeps the standard high and the voice warm.",
+        "You hold the standard because you are worth it."
+      ],
+      "affirmation": "I am worthy, capable and deserving, and I speak to myself that way.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d19.q1",
+          "type": "select_one",
+          "prompt": "When something slips, my first words to myself are usually…",
+          "options": [
+            "Harsh",
+            "Disappointed",
+            "Fair",
+            "Kind"
+          ],
+          "allow_custom": false
+        },
+        {
+          "id": "foundation.d19.q2",
+          "type": "journal",
+          "prompt": "What would you say to a friend who had your week? Write it to yourself."
+        },
+        {
+          "id": "foundation.d19.q3",
+          "type": "select_one",
+          "prompt": "Your kindness in action today:",
+          "options": [
+            "Rest without guilt",
+            "Celebrate a small win",
+            "Forgive one slip",
+            "Ask for support"
+          ],
+          "allow_custom": false
+        }
+      ],
+      "action": "Read your note to yourself before bed tonight, and take tomorrow's step anyway.",
+      "action_proof": {
+        "text": "People who met a setback with self-compassion were more motivated to improve afterwards.",
+        "source": "Breines & Chen, Personality and Social Psychology Bulletin, 2012"
+      },
+      "pending_approval": [],
+      "review_notes": {
+        "why": [
+          "Your raw-recording phrase. Kindness arrives after the courage step, so a slip on Day 18 lands somewhere safe."
+        ]
+      }
+    },
+    {
+      "day": 20,
+      "week": 3,
+      "copy_id": "foundation.d20",
+      "type": "content",
+      "status": "new",
+      "role": "the breakthrough",
+      "title": "the breakthrough",
+      "anchor_type": "quote",
+      "quote": "If we have our own why of life, we shall get along with almost any how.",
+      "quote_attribution": "Friedrich Nietzsche, Twilight of the Idols (1889), trans. Walter Kaufmann",
+      "quote_note": "German philosopher. 1844–1900.",
+      "content": [
+        "A breakthrough looks sudden from outside. From inside, it is the day the work finally shows.",
+        "Your why has carried you through twenty days.",
+        "Every how you found since then came from that why: the system, the space, the plan.",
+        "Today you put all of it on the one area you chose to own."
+      ],
+      "affirmation": "My why finds the how, every time.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [
+        {
+          "kind": "replay",
+          "position": "after_content",
+          "label": "On Day 4 you wrote your why:",
+          "source": "foundation.d04.q2",
+          "use": "latest version (a pivot replaces it)"
+        }
+      ],
+      "fields": [
+        {
+          "id": "foundation.d20.q1",
+          "type": "select_one",
+          "prompt": "Is it still true?",
+          "options": [
+            "Yes, still true",
+            "It has grown"
+          ],
+          "allow_custom": false
+        },
+        {
+          "id": "foundation.d20.q2",
+          "type": "journal",
+          "prompt": "Your why, as it stands today.",
+          "show_if": {
+            "field": "foundation.d20.q1",
+            "equals": "It has grown"
+          },
+          "saves": "pivot(source=foundation.d04.q2)"
+        },
+        {
+          "id": "foundation.d20.q3",
+          "type": "select_one",
+          "prompt": "Your breakthrough move today:",
+          "options": [
+            "The bigger version of my habit",
+            "The conversation",
+            "The decision I've delayed",
+            "The ask"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d20.q4",
+          "type": "select_one",
+          "prompt": "When will you make it?",
+          "options": [
+            "Morning",
+            "Midday",
+            "Afternoon",
+            "Evening"
+          ],
+          "allow_custom": false
+        }
+      ],
+      "action": "Make your move at the time you named, and add it to the Wins tab once it's done.",
+      "action_proof": null,
+      "pending_approval": [
+        "Friedrich Nietzsche as a new voice"
+      ],
+      "review_notes": {
+        "changed": [
+          "The Day 4 why shows in place, in the Thriver's own words. “It has grown” opens a journal field; the new why becomes the current one, and the Day 4 answer is kept, dated, as a pivot. Pivots matter as much as the starting point."
+        ],
+        "flags": [
+          "Nietzsche is a new voice. A classic voice: a modern athlete on breakthroughs would suit the arc better once verified."
+        ]
+      }
+    },
+    {
+      "day": 21,
+      "week": 3,
+      "copy_id": "foundation.d21",
+      "type": "reflection",
+      "status": "new",
+      "title": "reflection",
+      "framing": [
+        "Three weeks in, and you went into the deep water.",
+        "Read the story you wrote on Day 16, and the one you chose on Day 17.",
+        "Both are yours. Only one of them is in charge now."
+      ],
+      "show_day2_vision": true,
+      "vision_source": "foundation.d02.q2",
+      "panels": [
+        {
+          "kind": "growth_pulse",
+          "prompt": "Your focus area today",
+          "area_source": "focus_area",
+          "type": "scale_1_10",
+          "shows_beside": "day 1 score for the focus area",
+          "saves": "wheel_snapshot(kind=pulse)"
+        },
+        {
+          "kind": "said_and_did",
+          "shows": "this week's actions set beside actions ticked done",
+          "source": "action_log"
+        }
+      ],
+      "fields": [
+        {
+          "id": "foundation.d21.q1",
+          "type": "journal",
+          "prompt": "What did I learn?"
+        },
+        {
+          "id": "foundation.d21.q2",
+          "type": "journal",
+          "prompt": "What did I love?"
+        },
+        {
+          "id": "foundation.d21.q3",
+          "type": "journal",
+          "prompt": "What can I do better?"
+        }
+      ],
+      "pending_approval": [],
+      "review_notes": {}
+    },
+    {
+      "day": 22,
+      "week": 4,
+      "copy_id": "foundation.d22",
+      "type": "content",
+      "status": "new",
+      "role": "the evidence",
+      "title": "count the votes",
+      "anchor_type": "quote",
+      "quote": "Every action you take is a vote for the type of person you wish to become.",
+      "quote_attribution": "James Clear, Atomic Habits (2018)",
+      "quote_note": "American writer on habits and author of Atomic Habits. Born 1986.",
+      "content": [
+        "Your Progress tab holds twenty-one days of votes.",
+        "Each tick, lesson and kept promise counts toward the person you are becoming.",
+        "Evidence settles the argument your doubts keep starting.",
+        "Today you count the votes."
+      ],
+      "affirmation": "Every tick is a vote for who I'm becoming.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d22.q1",
+          "type": "select_all",
+          "prompt": "Which votes have you cast?",
+          "options": [
+            "Kept my habit",
+            "Changed my space",
+            "Made a plan",
+            "Took a courage step",
+            "Kept a promise",
+            "Was kind after a slip"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d22.q2",
+          "type": "journal",
+          "prompt": "The proof you'd show the Day 1 you, in one line.",
+          "saves": "evidence"
+        },
+        {
+          "id": "foundation.d22.q3",
+          "type": "select_one",
+          "prompt": "Which area has the most votes so far?",
+          "options": [
+            "Health",
+            "Mindset",
+            "Relationships",
+            "Family & friends",
+            "Work",
+            "Money",
+            "Space",
+            "Joy & fun"
+          ],
+          "allow_custom": false
+        }
+      ],
+      "action": "Open Growth in your Progress tab, read your record from Day 1, and add today's tick.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {
+        "why": [
+          "Week four is the transformation. It opens on evidence the Thriver can see, from the growth record.",
+          "Clear's second and final use this month (Day 9 is the first)."
+        ]
+      }
+    },
+    {
+      "day": 23,
+      "week": 4,
+      "copy_id": "foundation.d23",
+      "type": "content",
+      "status": "new",
+      "role": "the new standard",
+      "title": "raise the standard",
+      "anchor_type": "quote",
+      "quote": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+      "quote_attribution": "Will Durant, The Story of Philosophy (1926)",
+      "quote_note": "American historian and philosopher, summarising Aristotle. 1885–1981.",
+      "content": [
+        "A standard is the line you hold on the days nobody is watching.",
+        "Your Day 1 standard got you here. The person you're becoming asks for a higher one.",
+        "Raise it one notch in one area, and hold it for the rest of the month.",
+        "What you repeat from today becomes who you are."
+      ],
+      "affirmation": "I hold the new standard, every day.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d23.q1",
+          "type": "select_one",
+          "prompt": "Where will you raise the standard?",
+          "options": [
+            "Health",
+            "Mindset",
+            "Relationships",
+            "Family & friends",
+            "Work",
+            "Money",
+            "Space",
+            "Joy & fun"
+          ],
+          "allow_custom": false
+        },
+        {
+          "id": "foundation.d23.q2",
+          "type": "journal",
+          "prompt": "Your new standard, in one line: From today, I…",
+          "saves": "evidence"
+        },
+        {
+          "id": "foundation.d23.q3",
+          "type": "select_one",
+          "prompt": "How will you hold it?",
+          "options": [
+            "Add it to my tracker",
+            "Tell my witness",
+            "Set the cue",
+            "Write it where I'll see it"
+          ],
+          "allow_custom": false
+        }
+      ],
+      "action": "Add your new standard to the tracker in the Progress tab today, and tick it before bed.",
+      "action_proof": null,
+      "pending_approval": [
+        "Will Durant as a new voice"
+      ],
+      "review_notes": {
+        "flags": [
+          "Durant is a new voice. Correct byline: this line is Durant summarising Aristotle, never Aristotle."
+        ]
+      }
+    },
+    {
+      "day": 24,
+      "week": 4,
+      "copy_id": "foundation.d24",
+      "type": "content",
+      "status": "new",
+      "role": "looking back, leaving a trail",
+      "title": "the trail you leave",
+      "anchor_type": "sharyn",
+      "quote": "You're not behind. You're right on time.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "Success leaves clues, and twenty-three days of yours are now on the record.",
+        "The you who started on Day 1 had no map. You have one now.",
+        "Hand back what you've learned, from where you stand today.",
+        "Then leave a trail for the next person standing where you stood."
+      ],
+      "affirmation": "I honour how far I've come, and I keep going.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d24.q1",
+          "type": "journal",
+          "prompt": "What would you tell the you of Day 1? One line.",
+          "saves": "evidence(kind=note_to_day1)"
+        },
+        {
+          "id": "foundation.d24.q2",
+          "type": "select_one",
+          "prompt": "Where will your trail be seen?",
+          "options": [
+            "A review in the App Store",
+            "Share my progress",
+            "Tell someone close",
+            "Keep it in my Wins"
+          ],
+          "allow_custom": false,
+          "option_actions": {
+            "A review in the App Store": "native in-app review prompt; if not shown, open the store page",
+            "Share my progress": "share sheet with a progress card (days completed, habit streak)",
+            "Tell someone close": "no app action",
+            "Keep it in my Wins": "save the q1 note to the Wins tab"
+          }
+        }
+      ],
+      "action": "Write your note to Day 1 tonight, then leave your trail where you chose.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {
+        "changed": [
+          "Andrew's note: twenty-three days is a beginning, so mentoring others comes out. The Thriver speaks back to their Day 1 self, then leaves a trail.",
+          "“Success leaves clues” moves into the content as a common saying. It has no verified original; it is most often credited to Jim Rohn and was popularised by Tony Robbins.",
+          "Anchor: your approved manuscript line, “You're not behind. You're right on time.”"
+        ],
+        "flags": [
+          "Overlap with Day 30, question 2. Offered: Day 30 shows this note beside the wheel, and question 2 becomes a note to the you who starts Level 2."
+        ]
+      }
+    },
+    {
+      "day": 25,
+      "week": 4,
+      "copy_id": "foundation.d25",
+      "type": "content",
+      "status": "new",
+      "role": "giving",
+      "title": "give it forward",
+      "anchor_type": "quote",
+      "quote": "How wonderful it is that nobody need wait a single moment before starting to improve the world.",
+      "quote_attribution": "Anne Frank, “Give!”, 26 March 1944",
+      "quote_note": "Diarist, writing in hiding during the Second World War. 1929–1945.",
+      "content": [
+        "Growth that stays inside you goes only so far. Giving takes it further.",
+        "A small act, given freely, lifts the person receiving it and the person giving it.",
+        "You can give from exactly where you stand today.",
+        "Today you give one thing, with nothing asked back."
+      ],
+      "affirmation": "I give freely, and I grow by giving.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d25.q1",
+          "type": "select_one",
+          "prompt": "What will you give?",
+          "options": [
+            "Time",
+            "Help",
+            "Encouragement",
+            "Something I've made",
+            "Something I own"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d25.q2",
+          "type": "select_one",
+          "prompt": "Who to?",
+          "options": [
+            "Someone close",
+            "A colleague",
+            "A stranger",
+            "My community"
+          ],
+          "allow_custom": false
+        },
+        {
+          "id": "foundation.d25.q3",
+          "type": "journal",
+          "prompt": "How did it feel? Write it after you give."
+        }
+      ],
+      "action": "Give it today, then come back and answer the last question.",
+      "action_proof": {
+        "text": "People who spent money on others reported more happiness than people who spent it on themselves.",
+        "source": "Dunn, Aknin & Norton, Science, 2008"
+      },
+      "pending_approval": [
+        "Anne Frank as a new voice",
+        "Quote wording to verify against the published translation"
+      ],
+      "review_notes": {
+        "flags": [
+          "Anne Frank is a new voice, and the wording needs checking against the published translation. The line comes from her short piece titled “Give!”."
+        ]
+      }
+    },
+    {
+      "day": 26,
+      "week": 4,
+      "copy_id": "foundation.d26",
+      "type": "content",
+      "status": "new",
+      "role": "the inner voice",
+      "title": "the inner voice",
+      "anchor_type": "sharyn",
+      "quote": "You will never speak to anyone more than you speak to yourself in your own head. Be kind, always.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "Your inner voice has narrated all twenty-six days. Today you listen to what it says.",
+        "The words you repeat to yourself become the voice you trust.",
+        "Choose them the way you'd choose words for someone you love.",
+        "Your carry-lines have been rehearsing this voice since Day 1."
+      ],
+      "affirmation": "My inner voice speaks like my Next Best Self.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d26.q1",
+          "type": "select_three",
+          "prompt": "Which carry-lines from this month will you keep?",
+          "options": [
+            "I own where I stand, and I own where I go.",
+            "Every rep makes me stronger.",
+            "My why is bigger than my excuses.",
+            "I keep the system, and the system keeps me.",
+            "The opposite is equally as true, and I choose it.",
+            "I take the step while the doubt is still talking."
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d26.q2",
+          "type": "journal",
+          "prompt": "One line your inner voice says now that it didn't on Day 1."
+        },
+        {
+          "id": "foundation.d26.q3",
+          "type": "select_one",
+          "prompt": "When will you say your three lines?",
+          "options": [
+            "When I wake",
+            "Before my habit",
+            "Before bed"
+          ],
+          "allow_custom": false
+        }
+      ],
+      "action": "Say your three lines aloud tonight, twice each.",
+      "action_proof": null,
+      "pending_approval": [
+        "Sharyn to confirm the line is hers (Be Inspired: Bondi, unattributed)"
+      ],
+      "review_notes": {}
+    },
+    {
+      "day": 27,
+      "week": 4,
+      "copy_id": "foundation.d27",
+      "type": "content",
+      "status": "new",
+      "role": "what stays",
+      "title": "what stays",
+      "anchor_type": "sharyn",
+      "quote": "The best version of yourself already exists within.",
+      "quote_attribution": "Sharyn Brown, Be Inspired: Bondi (2021)",
+      "quote_note": null,
+      "content": [
+        "Twenty-five days ago you wrote three words for your Next Best Self.",
+        "Some of what you built this month will fade. Some of it is already part of you.",
+        "Choose what stays on purpose: one habit, one standard, one line.",
+        "They were within you all along. Now they're yours by design."
+      ],
+      "affirmation": "I choose what stays, and it stays.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d27.q1",
+          "type": "select_one",
+          "prompt": "The habit that stays:",
+          "options": [],
+          "allow_custom": true,
+          "options_source": "tracker_habits"
+        },
+        {
+          "id": "foundation.d27.q2",
+          "type": "select_one",
+          "prompt": "The standard that stays:",
+          "options": [],
+          "allow_custom": true,
+          "options_source": "foundation.d23.q2"
+        },
+        {
+          "id": "foundation.d27.q3",
+          "type": "journal",
+          "prompt": "The line that stays, in your own words."
+        }
+      ],
+      "action": "Set your habit to carry on past Day 30 in the Progress tab today.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {
+        "why": [
+          "Day 2 opens with the idea in this line; Day 27 proves it. “By design” draws on your life-by-design language."
+        ]
+      }
+    },
+    {
+      "day": 28,
+      "week": 4,
+      "copy_id": "foundation.d28",
+      "type": "reflection",
+      "status": "new",
+      "title": "reflection",
+      "framing": [
+        "Twenty-eight days of record, every tick and every slip.",
+        "Look at the standard you raised, and at how you held it.",
+        "Tomorrow you meet the Day 1 you again."
+      ],
+      "show_day2_vision": true,
+      "vision_source": "foundation.d02.q2",
+      "panels": [
+        {
+          "kind": "growth_pulse",
+          "prompt": "Your focus area today",
+          "area_source": "focus_area",
+          "type": "scale_1_10",
+          "shows_beside": "day 1 score for the focus area",
+          "saves": "wheel_snapshot(kind=pulse)"
+        },
+        {
+          "kind": "said_and_did",
+          "shows": "this week's actions set beside actions ticked done",
+          "source": "action_log"
+        }
+      ],
+      "fields": [
+        {
+          "id": "foundation.d28.q1",
+          "type": "journal",
+          "prompt": "What did I learn?"
+        },
+        {
+          "id": "foundation.d28.q2",
+          "type": "journal",
+          "prompt": "What did I love?"
+        },
+        {
+          "id": "foundation.d28.q3",
+          "type": "journal",
+          "prompt": "What can I do better?"
+        }
+      ],
+      "pending_approval": [],
+      "review_notes": {}
+    },
+    {
+      "day": 29,
+      "week": 5,
+      "copy_id": "foundation.d29",
+      "type": "content",
+      "status": "new",
+      "role": "the return",
+      "title": "the return",
+      "anchor_type": "sharyn",
+      "quote": "You get what you focus on to the exclusion of everything else.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "Twenty-eight days ago you rated your life honestly and chose one area to own.",
+        "Today you rate it again, with everything this month has taught you.",
+        "Look at what you focused on, and at what moved.",
+        "Then bring home what you're keeping."
+      ],
+      "affirmation": "I see how far I've come, and I own every step.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [],
+      "fields": [
+        {
+          "id": "foundation.d29.q1",
+          "type": "life_wheel",
+          "prompt": "Rate each area of your life as it stands today.",
+          "areas": "life_areas",
+          "hide_previous": true,
+          "saves": "wheel_snapshot(kind=return)"
+        },
+        {
+          "id": "foundation.d29.q2",
+          "type": "second_look",
+          "prompt": "Knowing what you know now, where were you really on Day 1? Leave any area as it is, or move it.",
+          "source": "wheel_snapshot(kind=benchmark)",
+          "optional": true,
+          "saves": "wheel_snapshot(kind=second_look) + pivot"
+        },
+        {
+          "id": "foundation.d29.q3",
+          "type": "journal",
+          "prompt": "What do you bring home from this month?"
+        }
+      ],
+      "action": "Save your wheel tonight. Tomorrow you see the whole journey.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {
+        "why": [
+          "Re-rate today, reveal tomorrow, so Day 30 stays the peak moment.",
+          "The second look lets the Thriver correct a Day 1 score with what they now understand. People often overrate themselves before they know what better looks like. The original is never overwritten."
+        ]
+      }
+    },
+    {
+      "day": 30,
+      "week": 5,
+      "copy_id": "foundation.d30",
+      "type": "content",
+      "status": "new",
+      "role": "the celebration",
+      "title": "you, thirty days on",
+      "anchor_type": "sharyn",
+      "quote": "Live as if all things are possible, because they are.",
+      "quote_attribution": "Sharyn Brown",
+      "quote_note": null,
+      "content": [
+        "Thirty days. You showed up, slipped, chose again and kept going.",
+        "Your wheel shows where you started and where you stand now.",
+        "Every ring you moved, you moved.",
+        "This is the first chapter. The next one starts tomorrow."
+      ],
+      "affirmation": "I live as if all things are possible.",
+      "affirmation_prompt": "~ say that again…",
+      "panels": [
+        {
+          "kind": "wheel_reveal",
+          "position": "after_content",
+          "title": "your wheel · day 1 and day 29",
+          "shows": [
+            "Day 1 benchmark (dashed)",
+            "Day 29 return (solid)"
+          ],
+          "summary": "You moved {moved} of 8 areas forward. {to_growth} crossed from comfort into growth. {to_thrive} crossed into thrive.",
+          "rules": "Compares the Thriver only with themselves. No averages, rankings or other Thrivers."
+        }
+      ],
+      "fields": [
+        {
+          "id": "foundation.d30.q1",
+          "type": "journal",
+          "prompt": "The moment this month I'm proudest of."
+        },
+        {
+          "id": "foundation.d30.q2",
+          "type": "journal",
+          "prompt": "A note from my Next Best Self to the me who started on Day 1."
+        },
+        {
+          "id": "foundation.d30.q3",
+          "type": "select_all",
+          "prompt": "Where I'm sharing my win:",
+          "options": [
+            "The Wins tab",
+            "Someone I love",
+            "Somewhere permanent"
+          ],
+          "allow_custom": false
+        },
+        {
+          "id": "foundation.d30.q4",
+          "type": "select_one",
+          "prompt": "How I'm celebrating today:",
+          "options": [
+            "A meal out",
+            "Time outdoors",
+            "Something just for me",
+            "Time with my people"
+          ],
+          "allow_custom": true
+        },
+        {
+          "id": "foundation.d30.q5",
+          "type": "journal",
+          "prompt": "The next chapter I'm choosing."
+        }
+      ],
+      "action": "Share your proudest moment with your witness today, then celebrate the way you chose.",
+      "action_proof": null,
+      "pending_approval": [],
+      "review_notes": {
+        "why": [
+          "The reveal sets the Day 29 wheel over the Day 1 benchmark and names moves between zones, nothing else.",
+          "The worksheet follows the challenge's Day 30 base exactly."
+        ]
+      }
+    }
+  ]
+}

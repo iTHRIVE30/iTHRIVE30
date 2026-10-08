@@ -7,11 +7,13 @@ import type {
   LevelProgress,
   TodayChallengeInfo,
 } from './types';
-import { LEVEL_1_DAYS } from './level1-foundation';
+import { LEVEL_1_DAYS } from './foundationContent';
+import { isTesterAllDays } from '../settingsStore';
 import { LEVEL_2_DAYS } from './level2-awareness';
 import { LEVEL_3_DAYS } from './level3-discovery';
 
 export * from './types';
+export { FIELD_INDEX } from './foundationContent';
 
 // ---------- Storage keys ----------
 
@@ -169,6 +171,9 @@ export async function getLevelProgramDay(levelNumber: number): Promise<number> {
   const unlocked = await isLevelUnlocked(levelNumber);
   if (!unlocked) return 0;
   const startDate = await getOrCreateLevelStartDate(levelNumber);
+  // Tester switch (Settings, development builds only): every day open at once, so a whole
+  // challenge can be walked through in one sitting. Normal users never see it.
+  if (await isTesterAllDays()) return 30;
   return Math.min(Math.max(daysSince(startDate), 1), 30);
 }
 
@@ -296,6 +301,16 @@ export async function getCurrentLevelNumber(): Promise<number> {
     if (await getLevelStartDate(level.number)) current = level.number;
   }
   return current;
+}
+
+/**
+ * Tester only (Settings, development builds): forgets every challenge answer and every
+ * level's start date, so the challenge can be walked through again from Day 1. Habits,
+ * notes, goals and photos are untouched. The caller also clears foundations.
+ */
+export async function resetChallengesForTesting(): Promise<void> {
+  const keys = [RESPONSES_KEY, START_DATE_KEY, ...LEVELS.map((l) => LEVEL_START_KEY_PREFIX + l.number)];
+  await AsyncStorage.multiRemove(keys);
 }
 
 /** Starts a level's 30-day clock (a no-op if it has already started). */

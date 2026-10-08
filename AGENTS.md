@@ -85,7 +85,8 @@ day after it shipped).
   acknowledgements and their shareable branded tile
 - `lib/habitStore.tsx` — daily habit/mood/notes/detail data
 - `lib/challengeStore/` — folder module: `index.ts` (logic), `types.ts`,
-  `level1-foundation.ts`, `level2-awareness.ts`, `level3-discovery.ts`
+  `foundationContent.ts` + `content/foundation-challenge.json` (Level 1), `level2-awareness.ts`,
+  `level3-discovery.ts`
 - `lib/achievements/` — folder module: the 357-badge engine, including the encouragement
   copy (see its own section below). No points — that system was removed.
 - `lib/rewardEvents.ts` — small AsyncStorage record of things badges can't derive after
@@ -111,25 +112,39 @@ day after it shipped).
   instead of extending it)
 
 ## Levels & challenge content
-- Level 1 ("Your Next Best Self Awaits") is **the foundation challenge, arc A**, being written
-  a week at a time. Week one (Days 1-7, revision 22) and week two (Days 8-14, draft 4,
-  generated word for word from `handoff/foundation-week2.json`) are in; **Days 15-30 are
-  deliberately absent and show "Coming soon"** until weeks three and four arrive. New weeks
-  arrive from Chat as JSON in `/handoff`: load the strings exactly, never retype or edit copy,
-  and log any copy question in `handoff/CHANGES.md` (see the Handoff section).
-  **`quoteNote`** (who the person is) sits only on the **first day a person is quoted** —
-  later quotes from them carry none (Andrew's rule); `check-content` warns either way.
-  Bylines are always the full attribution ("James Clear, Atomic Habits (2018)").
-  The old v5 cycle-based days were removed entirely. Each day: lower-case `title`, `quote`
-  (the anchor; empty when the anchor is plain logic, e.g. Day 5), `lesson` (the content
-  block, line breaks kept), `affirmation` (the carry-line; the UI adds "~ say that again…"),
-  `fields`, then `doThis` (the action, always last) with an optional `actionCheck` tick and
-  an `actionProof` + `actionProofSource` ("Why it works"). Reflection days use `echoes` to
-  show an earlier answer live (Day 7 shows the Day 1 three words). Question tags map to
-  types: JOURNAL `textarea`, SELECT ONE `dropdown`, SELECT THREE `multiselect` + `max: 3`,
-  SELECT ALL `multiselect`, SCALE 1 TO 10 `scale10` + `items`; "+ add your own" is
-  `allowCustom: true`, never an option. Internal roles and source notes never go in the app.
-  **The day ids stay `l1-d1`...`l1-d30`.**
+- Level 1 ("Your Next Best Self Awaits") is **the foundation challenge, arc A, all 30 days**,
+  loaded straight from Chat's JSON: `lib/challengeStore/content/foundation-challenge.json`
+  (consolidated, 8 Oct 2026), mapped at load by `foundationContent.ts`. **Never retype or
+  edit its copy** — a new version from Chat replaces the file; copy questions go in
+  `handoff/CHANGES.md`. `npm run check-content` validates it (types, ids, every cross-day
+  source, show_if targets) and lists pending approvals. The hand-written
+  `level1-foundation.ts` is gone. Day ids stay `l1-d1`...`l1-d30`; answers stay stored by
+  position per day, and `FIELD_INDEX` resolves the JSON's copy ids (`foundation.d02.q2`)
+  to day + position, so days refer to each other by copy id.
+  - **`quoteNote`** only on a person's **first** quote (Andrew's rule), enforced in the
+    mapper; missing first notes use `DRAFT_NOTES` there until Sharyn confirms. Bylines are
+    the full attribution. "A review in the App Store" is hidden until the app is live.
+  - **Every content day's action has a Done tick** (`answers[fields.length]`); reflection
+    days list the week's ticked actions — **what you did, never a missed count**.
+  - New types: `wheel` (life wheel), `second_look`, `pulse` (reflection-day focus-area
+    score, saved as `[area, score]`). Panels (`ChallengePanel`) show earlier answers, and
+    **every panel has an empty state**, because nothing blocks a day from opening first.
+  - `defaultFrom` and `second_look` are **display-only until touched** — an untouched day
+    must never save an answer, or opening Day 30 and closing it would finish the level.
+  - Working words Code had to supply (empty states, labels) live in `lib/challengeCopy.ts`,
+    keyed, as drafts for Chat. Nothing else hardcodes them.
+- **Foundations (`lib/foundations.ts`, Andrew's model, 8 Oct).** The answers people build on
+  (Day 1 wheel and focus area, Day 2 words, Day 4 why, promise, story, opposite story,
+  standard, note to Day 1, lines that stay...) each have **one home day**. Every change is a
+  dated version; nothing is overwritten. A later day that calls one up (Day 20 "it has
+  grown", Day 29 second look) or My Journey's "it has grown" **saves back into the home
+  day's answer**, so the home day always shows the current version — no hopping between
+  days. Same-day edits replace the latest version; a later date adds one. Writing back
+  never creates a response on an unanswered home day. Ordinary answers have no history.
+- **The life wheel (`lib/lifeWheel.ts`)**: eight areas and three zones (comfort 1-4, growth
+  5-7, thrive 8-10), read from the JSON. Only ever the Thriver against themselves — no
+  averages, no other Thrivers. Day 30's reveal compares Day 29 with the Day 1 wheel's
+  current version (the second look when there is one).
 - **A level is complete only when all 30 days are written and answered** (`finalDayOf()` is
   Day 30 itself, `isLevelComplete()`). An earlier "last written day" rule would have
   celebrated and unlocked Awareness after Day 7 of a part-written level. Growth Tree, badges,
@@ -239,7 +254,10 @@ day after it shipped).
   and its Cancel button are gone.
 
 ## Progress tab
-Four segments: **Table** (default) / **Graph** / **Goals** / **Milestones**.
+Two rows (Andrew, 8 Oct): **Table** (default) and **Wheel** in the top selector; **Graph**,
+**Goals** and **Milestones** in a smaller row beneath. One view at a time.
+- **Wheel** (`components/WheelView.tsx`): the life wheel (Day 1, second look, Day 29), area by
+  area with zones, the focus-area pulse from each reflection day, and ticked actions by week.
 - **Calendar**, inside Table, under the table (`components/HabitCalendar.tsx`): every
   tracked day, month by month, back to the first. Each challenge's 30 days are shaded as a
   block in its `levelColors` colour with D-numbers. Challenge chips switch **the table
@@ -256,6 +274,16 @@ Four segments: **Table** (default) / **Graph** / **Goals** / **Milestones**.
   This view is always visible, no lock (an earlier lock-until-Level-1
   version was explicitly reverted at Sharyn's request).
 - **Goals** and **Milestones** both read/write `lib/goalsStore.ts`.
+
+## My Journey (`app/(tabs)/account.tsx`)
+- **Foundations first** (`components/FoundationsSection.tsx`): the safe space. Each
+  foundation's current version, when it last changed, and every earlier version, dated. The
+  ones meant to evolve (why, story, opposite story, standard, what stays) offer **"it has
+  grown"**, which adds a version to the same home record. The wheel is only re-rated on its
+  own days (Day 1, Day 29).
+- **Goal areas are the wheel's eight** (Andrew, 8 Oct), replacing Life / Professionally /
+  Personally / Relationships, each showing its latest wheel score and zone. The eight always
+  come from code; only areas someone added are kept from storage.
 
 ## Wins tab
 Only things that actually mattered, in this order: the four streak quadrants, **In Your
@@ -289,7 +317,7 @@ tiers it says so plainly. Self-validation, not currency.
 - `PAYOFF_ASSUMPTIONS` holds every number behind those claims ($100/week on alcohol, 8km
   per 10k steps, 250 pages a book...). Deliberately conservative — it should never read as
   an inflated claim. Tune them there, in one place.
-- **Voice: match `level1-foundation.ts`, not a scoreboard.** Short declaratives, nothing
+- **Voice: match the foundation challenge copy, not a scoreboard.** Short declaratives, nothing
   over ~12 words, two sentences max. State the fact then the truth; never stack praise.
   Contrast constructions and imperative closers are on-brand ("Discipline is power, not
   punishment", "Lean in"). No "Bravo", no exclamation marks. The header comment in
@@ -380,10 +408,16 @@ credentials, which is investment-gated.
   never read as "probably a minor". Withholding anything by age would make it supervision
   imposed on a minor rather than something anyone can choose. Minimum age is **16**.
 - Settings has these cards: Your details, Appearance, Share your progress, Habit tracker
-  only (shown only while tracker-only is on), Reminders, Your data, Privacy, About.
+  only (shown only while tracker-only is on), Reminders, Your data, Privacy, Tester
+  (development builds only - see below), About.
   Every one of its controls does something — **don't add a switch for a feature that
   isn't built**, which is the thing we fixed on Teams. Where a feature exists but can't
   run in the current environment (reminders in Expo Go), the row explains why instead.
+- **Tester card** (`__DEV__` only, so Expo Go yes, released app never): "Open every challenge
+  day" (`settings.testerAllDays`, also ignored outside `__DEV__` by `isTesterAllDays()`),
+  "Start the challenge again" (clears challenge answers, start dates, foundations and the
+  Day 24 Wins link; habits, notes, goals and photos stay) and "Show onboarding again" (next
+  launch). For walking Sharyn through a whole challenge in one sitting.
 - **`lib/backupStore.ts`** — the only way data leaves the device. Every key the app owns
   starts `ithrive30_`, which is what makes a one-pass export possible; **keep that prefix
   for any new key or it silently drops out of backups.** Restore is a *replace*, not a

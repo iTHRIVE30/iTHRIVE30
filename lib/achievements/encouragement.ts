@@ -3,7 +3,7 @@
 // This is the whole reward now that points and rewards are gone: not "you scored 240", but
 // the fact of what you did, stated plainly.
 //
-// VOICE - match lib/challengeStore/level1-foundation.ts, not a scoreboard:
+// VOICE - match the foundation challenge (lib/challengeStore/content/foundation-challenge.json), not a scoreboard:
 //   - Short declaratives. Nothing over about twelve words. Two sentences at most.
 //   - State the fact, then the truth. Never stack praise on top of praise.
 //   - Contrast constructions are on-brand: "Discipline is power, not punishment."

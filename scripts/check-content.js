@@ -10,7 +10,9 @@ const fs = require('fs');
 const path = require('path');
 
 const LEVEL_DIR = path.join(__dirname, '..', 'lib', 'challengeStore');
-const FILES = ['level1-foundation.ts', 'level2-awareness.ts', 'level3-discovery.ts'];
+// Level 1 is the JSON below (checked by checkFoundationJson); these are the hand-written levels.
+const FILES = ['level2-awareness.ts', 'level3-discovery.ts'];
+const FOUNDATION_JSON = path.join(LEVEL_DIR, 'content', 'foundation-challenge.json');
 
 // Levels 2 and 3 are placeholder content awaiting a rewrite, and they produce pages of
 // style notes that bury the file actually being edited. Anything that would BREAK the app
@@ -205,6 +207,102 @@ for (const file of FILES) {
 
   const hidden = quiet && held.length ? ` — ${held.length} style notes hidden (placeholder level, use --all)` : '';
   console.log(`${file}: ${ids.length} days checked${hidden}`);
+}
+
+// ---------- Level 1: the foundation challenge JSON from Chat ----------
+// Everything the app needs to find in it. A mistake here is a blank question or a panel
+// pointing at nothing on someone's phone, so these are problems, not style notes.
+function checkFoundationJson() {
+  const file = 'content/foundation-challenge.json';
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(FOUNDATION_JSON, 'utf8'));
+  } catch (e) {
+    problems.push(`${file}: can't be read as JSON (${e.message}). A missing comma or quote is the usual cause.`);
+    return;
+  }
+  warnings = allWarnings;
+
+  const TYPES = ['journal', 'select_one', 'select_all', 'select_three', 'scale_1_10', 'life_wheel', 'second_look'];
+  const PANELS = ['after_save', 'wheel_contrast', 'growth_pulse', 'said_and_did', 'witness_check', 'replay', 'wheel_reveal'];
+  const SELECTS = ['select_one', 'select_all', 'select_three'];
+  const days = Array.isArray(data.days) ? data.days : [];
+  const allIds = new Set();
+  days.forEach((d) => (d.fields || []).forEach((f) => allIds.add(f.id)));
+  // Growth-record names the app derives itself, rather than questions.
+  const RECORDS = ['focus_area', 'tracker_habits', 'action_log'];
+  const known = (id) => allIds.has(id) || RECORDS.includes(id) || String(id).startsWith('wheel_snapshot(');
+
+  if (days.length !== 30) problems.push(`${file}: has ${days.length} days, not 30.`);
+  const seenDays = new Set();
+  const seenIds = new Set();
+  const pending = [];
+
+  for (const d of days) {
+    const at = `${file}, Day ${d.day}`;
+    if (seenDays.has(d.day)) problems.push(`${at}: this day number appears twice.`);
+    seenDays.add(d.day);
+    if (!d.title) problems.push(`${at}: no title.`);
+    if (d.type === 'content' && !(d.content || []).length) problems.push(`${at}: no content lines.`);
+    if (d.type === 'reflection' && !(d.framing || []).length) problems.push(`${at}: no framing lines.`);
+    if (d.vision_source && !known(d.vision_source)) problems.push(`${at}: vision_source "${d.vision_source}" isn't a question that exists.`);
+    if ((d.pending_approval || []).length) pending.push(`Day ${d.day}: ${d.pending_approval.join('; ')}`);
+
+    for (const p of d.panels || []) {
+      if (!PANELS.includes(p.kind)) problems.push(`${at}: panel "${p.kind}" isn't one the app knows, so it won't show.`);
+      if (p.source && !known(p.source)) problems.push(`${at}: the ${p.kind} panel reads "${p.source}", which doesn't exist.`);
+      const tags = (p.summary || '').match(/\{[^}]*\}/g) || [];
+      for (const tag of tags) {
+        if (!['{moved}', '{to_growth}', '{to_thrive}'].includes(tag)) problems.push(`${at}: "${tag}" in the reveal summary isn't filled in by the app.`);
+      }
+    }
+
+    for (const f of d.fields || []) {
+      const fat = `${at}, ${f.id}`;
+      if (seenIds.has(f.id)) problems.push(`${fat}: this question id is used twice.`);
+      seenIds.add(f.id);
+      if (!TYPES.includes(f.type)) problems.push(`${fat}: "${f.type}" isn't a question type the app knows, so no answer box will show.`);
+      if (!f.prompt) problems.push(`${fat}: no prompt.`);
+      if (SELECTS.includes(f.type) && !(f.options || []).length && !f.options_source) {
+        problems.push(`${fat}: a select with no options and no options_source.`);
+      }
+      if ((f.options || []).some((o) => /add your own/i.test(o))) {
+        problems.push(`${fat}: "+ add your own" is in the options. Use "allow_custom": true instead.`);
+      }
+      if (f.options_source && !known(f.options_source)) problems.push(`${fat}: options_source "${f.options_source}" doesn't exist.`);
+      if (f.source && !known(f.source)) problems.push(`${fat}: source "${f.source}" doesn't exist.`);
+      if (f.show_if) {
+        const target = (d.fields || []).find((g) => g.id === f.show_if.field);
+        if (!target) problems.push(`${fat}: show_if points at "${f.show_if.field}", which isn't on this day.`);
+        else if (!(target.options || []).includes(f.show_if.equals)) {
+          problems.push(`${fat}: show_if waits for "${f.show_if.equals}", which isn't one of that question's options - it would never appear.`);
+        }
+      }
+    }
+
+    const strings = JSON.stringify(d);
+    for (const tag of strings.match(/\{[a-z_]+\}/g) || []) {
+      if (!['{name}', '{moved}', '{to_growth}', '{to_thrive}'].includes(tag)) {
+        problems.push(`${at}: "${tag}" isn't a tag the app knows, so it will show on screen as typed.`);
+      }
+    }
+  }
+
+  console.log(`${file}: ${days.length} days checked`);
+  if (pending.length) {
+    console.log(`\nAwaiting Sharyn's approval (builds and shows, but check before release):`);
+    pending.forEach((p) => console.log('  · ' + p));
+  }
+}
+
+checkFoundationJson();
+
+// Working words Code wrote while Chat's copy is pending (lib/challengeCopy.ts).
+try {
+  const draftCount = (fs.readFileSync(path.join(__dirname, '..', 'lib', 'challengeCopy.ts'), 'utf8').match(/^\s+'[a-z_.]+':/gm) || []).length;
+  console.log(`\n${draftCount} working lines in lib/challengeCopy.ts are drafts awaiting Chat (handoff/CHANGES.md).`);
+} catch {
+  // Not fatal - the file is optional to this check.
 }
 
 console.log('');

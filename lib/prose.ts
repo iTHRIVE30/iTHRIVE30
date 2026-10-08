@@ -79,7 +79,7 @@ export function splitSentences(text: string): string[] {
  *
  * That rule is what makes the content files editable without touching this code: type the
  * lines where you want them and you get them, leave it as a paragraph and the app lays it
- * out sensibly. See the editing guide at the top of level1-foundation.ts.
+ * out sensibly. (Level 1 now comes line by line from its JSON, so this matters for Levels 2-3.)
  */
 export function toReadableLines(text: string | undefined | null): string[] {
   if (!text) return [];

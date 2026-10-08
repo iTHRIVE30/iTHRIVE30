@@ -5,7 +5,8 @@ import { eraseAllData } from './backupStore';
 /**
  * A one-time fresh start for every device, run before the app draws anything.
  *
- * The foundation challenge was replaced wholesale (week one, revision 22). Its day ids are
+ * The foundation challenge was replaced wholesale: week one (revision 22), then all 30 days
+ * from the consolidated JSON (8 Oct 2026, Days 1 and 2 swapped, most questions changed). Its day ids are
  * the same as before but the questions are not, and answers are stored by position - an
  * old Day 1 answer would land in the wrong box. So every tester starts again: all app data
  * is erased once, and the app opens on onboarding as if newly installed.
@@ -18,7 +19,7 @@ import { eraseAllData } from './backupStore';
  * survive all three: restoring a backup made before the reset, or deleting everything and
  * carrying on, must never trigger a second wipe on the next launch.
  */
-const RESET_ID = 'foundation-week1-r22';
+const RESET_ID = 'foundation-30day-2026-10-08';
 const MARKER_KEY = 'ithrive30-device:content-reset';
 
 let running: Promise<void> | null = null;

@@ -56,6 +56,12 @@ export type Settings = {
    */
   trackerOnly: boolean;
   /**
+   * Tester switch: every challenge day open at once, for walking a whole challenge through
+   * in one sitting. Shown in Settings only in development builds (Expo Go), and ignored
+   * outside them, so a normal user can never have it on.
+   */
+  testerAllDays: boolean;
+  /**
    * Anonymous, device-generated, never leaves the device except inside the user's own
    * backup file. Contains nothing derived from the person. If cloud sync ever ships this
    * is the key existing data migrates onto, instead of asking users to start over.
@@ -76,8 +82,19 @@ const DEFAULTS: Omit<Settings, 'installId'> = {
   onboardedAt: '',
   crashReports: true,
   trackerOnly: false,
+  testerAllDays: false,
   schemaVersion: SCHEMA_VERSION,
 };
+
+/** The tester switch, honoured only in development builds. Never throws. */
+export async function isTesterAllDays(): Promise<boolean> {
+  if (!__DEV__) return false;
+  try {
+    return (await getSettings()).testerAllDays;
+  } catch {
+    return false;
+  }
+}
 
 function generateInstallId(): string {
   const a = Date.now().toString(36);

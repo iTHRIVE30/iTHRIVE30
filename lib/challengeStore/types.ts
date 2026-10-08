@@ -23,11 +23,38 @@ export type ChallengeFieldType =
   | 'rating10'
   | 'scale10'
   | 'multiselect'
-  | 'dropdown';
+  | 'dropdown'
+  /** The life wheel: one 1-10 per life area. Answer: string[] in area order. */
+  | 'wheel'
+  /** The Day 1 wheel shown again, each score adjustable. Untouched saves nothing. */
+  | 'second_look'
+  /** A reflection day's one score for the focus area. Answer: [areaName, score]. */
+  | 'pulse';
+
+/** What tapping an option does besides selecting it (Day 24). */
+export type OptionAction = 'share_progress' | 'save_to_wins';
 
 export type ChallengeField = {
+  /** The copy id from the JSON, e.g. 'foundation.d02.q2'. Other days refer to it by this. */
+  id?: string;
   prompt: string;
   type: ChallengeFieldType;
+  /**
+   * Opens on this value without saving it: shown as chosen, but only stored once touched,
+   * so opening and closing a day never fakes an answer. 'focus_area' = the Day 1 choice.
+   */
+  defaultFrom?: 'focus_area';
+  /** 'lowest_score_first': life-area options sorted by this day's own wheel scores. */
+  optionsOrder?: 'lowest_score_first';
+  /** Options read live: 'tracker_habits', or another field's id (its current answer). */
+  optionsSource?: string;
+  optionActions?: Record<string, OptionAction>;
+  /** Hidden until another field on the same day has this answer. */
+  showIf?: { field: string; equals: string };
+  /** The JSON's `saves`: this answer is (part of) a foundation - see lib/foundations.ts. */
+  saves?: string;
+  /** second_look / pulse: the field id whose answer it reads from. */
+  source?: string;
   placeholder?: string;
   options?: string[]; // for multiselect / dropdown
   /** multiselect only: the most that can be picked at once (SELECT THREE is 3). */
@@ -54,8 +81,34 @@ export type ChallengeEcho = {
   empty: string;
 };
 
+/**
+ * Display blocks that aren't questions. They read other days' answers live, and every one
+ * has an empty state, because nothing ever blocks: a day can be opened before the day it
+ * draws from has been done.
+ */
+export type ChallengePanel =
+  /** Day 1: a line under the wheel once it has scores. */
+  | { kind: 'after_save'; text: string; afterField: number }
+  /** Day 2: the Day 1 wheel beside this day's three words. */
+  | { kind: 'wheel_contrast'; title: string; text: string; wordsField: number }
+  /** Reflection days: the Day 2 three words. */
+  | { kind: 'vision'; source: string }
+  /** Reflection days: this week's actions that were ticked done. Never a missed count. */
+  | { kind: 'said_and_did' }
+  /** Day 20: an earlier answer (the why), its current version, shown in place. */
+  | { kind: 'replay'; label: string; source: string }
+  /** Day 30: the Day 29 wheel over the starting wheel. */
+  | { kind: 'wheel_reveal'; title: string; summary: string };
+
 export type ChallengeDayDef = {
   id: string;
+  /** The copy id from the JSON, e.g. 'foundation.d01'. */
+  copyId?: string;
+  /** 'reflection' days open on their framing lines and have no quote or action. */
+  kind?: 'content' | 'reflection';
+  /** Shown on the same line as the affirmation. Absent: "~ say that again…". */
+  affirmationPrompt?: string;
+  panels?: ChallengePanel[];
   day: number; // 1-30, position within its level
   title: string;
   theme: string;

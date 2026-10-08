@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { LIFE_AREAS } from './lifeWheel';
+
 export type JourneyCategory = { id: string; name: string; isDefault: boolean };
 
 export type JourneyGoal = {
@@ -26,12 +28,13 @@ export type JourneyGoal = {
 const CATEGORIES_KEY = 'ithrive30_journey_categories';
 const GOALS_KEY = 'ithrive30_journey_goals';
 
-const DEFAULT_CATEGORIES: JourneyCategory[] = [
-  { id: 'life', name: 'Life', isDefault: true },
-  { id: 'professionally', name: 'Professionally', isDefault: true },
-  { id: 'personally', name: 'Personally', isDefault: true },
-  { id: 'relationships', name: 'Relationships', isDefault: true },
-];
+/**
+ * The life wheel's eight areas (Andrew, 8 Oct 2026), so a goal sits beside that area's
+ * wheel score. Replaced Life / Professionally / Personally / Relationships. Ids match the
+ * wheel's area ids. The goal badges only count how many areas hold goals, so they are
+ * unaffected by the names.
+ */
+const DEFAULT_CATEGORIES: JourneyCategory[] = LIFE_AREAS.map((a) => ({ id: a.id, name: a.name, isDefault: true }));
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -44,7 +47,11 @@ export async function getCategories(): Promise<JourneyCategory[]> {
   if (!raw) return DEFAULT_CATEGORIES;
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_CATEGORIES;
+    if (!Array.isArray(parsed)) return DEFAULT_CATEGORIES;
+    // The defaults always come from code, so a list saved under the old four areas can't
+    // bring them back; only the areas someone added themselves are kept from storage.
+    const custom = (parsed as JourneyCategory[]).filter((c) => !c.isDefault);
+    return [...DEFAULT_CATEGORIES, ...custom];
   } catch {
     return DEFAULT_CATEGORIES;
   }
@@ -57,7 +64,7 @@ export async function addCategory(name: string): Promise<JourneyCategory[]> {
   return updated;
 }
 
-/** Default categories (Life/Professionally/Personally/Relationships) can't be deleted. */
+/** The eight wheel areas can't be deleted; areas someone added can. */
 export async function deleteCategory(id: string): Promise<{ categories: JourneyCategory[]; goals: JourneyGoal[] }> {
   const categories = await getCategories();
   const updatedCategories = categories.filter((c) => c.id !== id || c.isDefault);

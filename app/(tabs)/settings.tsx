@@ -35,6 +35,9 @@ import {
 import { monitoringStatus, setCrashReportingEnabled } from '../../lib/monitoring';
 import { reminderStatus, requestReminderPermission, syncReminders } from '../../lib/reminders';
 import { shareProgressSummary } from '../../lib/shareProgress';
+import { resetChallengesForTesting } from '../../lib/challengeStore';
+import { clearFoundations } from '../../lib/foundations';
+import { clearChallengeWins } from '../../lib/challengeActions';
 import KeyboardAwareScrollView from '../../components/KeyboardAwareScrollView';
 import { useAppearance, useTheme, useThemedStyles } from '../../hooks/useTheme';
 import type { Theme } from '../../constants/theme';
@@ -97,6 +100,33 @@ export default function SettingsScreen() {
     const updated = await saveSettings(change);
     setSettings(updated);
     return updated;
+  };
+
+  /** Tester: every challenge answer, foundation and start date gone. Habits etc. stay. */
+  const handleRestartChallenge = () => {
+    Alert.alert(
+      'Start the challenge again?',
+      'Every challenge answer, your wheel and your foundations are cleared, and Day 1 starts today. Habits, notes, goals and photos stay.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Start again',
+          style: 'destructive',
+          onPress: async () => {
+            await resetChallengesForTesting();
+            await clearFoundations();
+            await clearChallengeWins();
+            Alert.alert('Done', 'The challenge starts again from Day 1.');
+          },
+        },
+      ]
+    );
+  };
+
+  /** Tester: onboarding shows on the next launch (close and reopen the app). */
+  const handleReplayOnboarding = async () => {
+    await patch({ onboardedAt: '' });
+    Alert.alert('Onboarding reset', 'Close the app fully and open it again to see onboarding.');
   };
 
   const handleName = (text: string) => {
@@ -509,6 +539,44 @@ export default function SettingsScreen() {
 
         <Text style={styles.statusLine}>{monitoringStatus.reason}</Text>
       </View>
+
+      {/* ---------- Tester ----------
+          Development builds only (Expo Go): never shown to a normal user, and the switch is
+          ignored outside development anyway. For walking a whole challenge through in one
+          sitting, and starting it again. */}
+      {__DEV__ && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Tester</Text>
+          <Text style={styles.cardNote}>
+            Only visible while testing. None of this appears in the released app.
+          </Text>
+
+          <View style={styles.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.switchLabel}>Open every challenge day</Text>
+              <Text style={styles.fieldHint}>All 30 days at once, instead of one a day.</Text>
+            </View>
+            <Switch
+              value={settings.testerAllDays}
+              onValueChange={(v) => {
+                patch({ testerAllDays: v });
+              }}
+              trackColor={{ false: t.borderMuted, true: t.primaryDim }}
+              thumbColor={settings.testerAllDays ? t.primary : t.muted}
+            />
+          </View>
+
+          <Pressable style={styles.outlineButton} onPress={handleRestartChallenge}>
+            <Ionicons name="refresh-outline" size={16} color={t.primary} />
+            <Text style={styles.outlineButtonText}>Start the challenge again</Text>
+          </Pressable>
+
+          <Pressable style={styles.outlineButton} onPress={handleReplayOnboarding}>
+            <Ionicons name="play-outline" size={16} color={t.primary} />
+            <Text style={styles.outlineButtonText}>Show onboarding again</Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* ---------- About ---------- */}
       <View style={styles.card}>
