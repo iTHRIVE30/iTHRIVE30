@@ -3,8 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 /**
  * Device-local preferences and the two forward-compatibility fields.
  *
- * Nothing here is an account. There is no email, no password and no login - adding one
- * would mean a server holding credentials, which is explicitly deferred (see AGENTS.md).
+ * Nothing here is an account. Sign-in is Supabase's (lib/supabase.ts), and its session is
+ * kept apart from these settings so a backup never carries it.
  *
  * Note there is deliberately no step or water target here: the 13 habits are a baseline,
  * not a threshold. Personal targets live in My Journey and the three editable habits.

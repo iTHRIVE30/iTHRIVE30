@@ -16,11 +16,14 @@ import 'react-native-reanimated';
 import SplashLoader from '@/components/SplashLoader';
 import DailyHero from '@/components/DailyHero';
 import Onboarding from '@/components/Onboarding';
+import SignIn from '@/components/SignIn';
 import { AppThemeProvider, useTheme } from '@/hooks/useTheme';
 import { runContentResetOnce } from '@/lib/contentReset';
+import { markSeen } from '@/lib/lifecycle';
 import { initMonitoring } from '@/lib/monitoring';
 import { syncReminders } from '@/lib/reminders';
 import { getSettings, saveSettings } from '@/lib/settingsStore';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import {
   DailyHeroContent,
   getDailyHeroContent,
@@ -37,10 +40,10 @@ export const unstable_settings = {
 // native splash hides on its own schedule.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-type Phase = 'loading' | 'onboarding' | 'hero' | 'ready';
+type Phase = 'loading' | 'signin' | 'onboarding' | 'hero' | 'ready';
 
 /** What the loading ring is actually waiting on: which opening screen, if any, comes next. */
-type Opening = { hero: DailyHeroContent | null; needsOnboarding: boolean; firstName: string };
+type Opening = { hero: DailyHeroContent | null; needsOnboarding: boolean; needsSignIn: boolean; firstName: string };
 
 export default function RootLayout() {
   // The one-time fresh start (lib/contentReset.ts) has to finish before anything reads
@@ -64,7 +67,7 @@ export default function RootLayout() {
 function RootLayoutInner() {
   const theme = useTheme();
   const [phase, setPhase] = useState<Phase>('loading');
-  const [opening, setOpening] = useState<Opening>({ hero: null, needsOnboarding: false, firstName: '' });
+  const [opening, setOpening] = useState<Opening>({ hero: null, needsOnboarding: false, needsSignIn: false, firstName: '' });
 
   // Decide what follows the loading ring while it is still sweeping, and hand the promise
   // to SplashLoader so the ring hitting 100% means genuinely ready. Each read is guarded
@@ -74,6 +77,18 @@ function RootLayoutInner() {
       let needsOnboarding = false;
       let hero: DailyHeroContent | null = null;
       let firstName = '';
+      // Sign-in is required (lib/supabase.ts). The session is read from the phone, so an
+      // already signed-in Thriver opens offline as before. If .env isn't filled in yet there
+      // is nothing to sign in to, so the gate stays open rather than locking everyone out.
+      let needsSignIn = false;
+      try {
+        if (isSupabaseConfigured && supabase) {
+          const { data } = await supabase.auth.getSession();
+          needsSignIn = !data.session;
+        }
+      } catch {
+        needsSignIn = isSupabaseConfigured;
+      }
 
       try {
         const settings = await getSettings();
@@ -89,7 +104,7 @@ function RootLayoutInner() {
         hero = null;
       }
 
-      return { hero, needsOnboarding, firstName };
+      return { hero, needsOnboarding, needsSignIn, firstName };
     })()
   );
 
@@ -107,6 +122,9 @@ function RootLayoutInner() {
     // Bring the phone's scheduled reminders back in line with the stored settings - they
     // can drift if the app was reinstalled or notifications were revoked in system settings.
     syncReminders();
+    // Keeps profiles.last_seen_at current for the inactive_5d job and sends queued
+    // lifecycle events. No-op when signed out. Never throws.
+    markSeen();
   }, []);
 
   // Reads the resolved promise, not `opening` state, so it never acts on a stale default
@@ -116,11 +134,15 @@ function RootLayoutInner() {
     Promise.race([
       prepare,
       new Promise<Opening>((resolve) =>
-        setTimeout(() => resolve({ hero: null, needsOnboarding: false, firstName: '' }), 100)
+        setTimeout(
+          () => resolve({ hero: null, needsOnboarding: false, needsSignIn: isSupabaseConfigured, firstName: '' }),
+          100
+        )
       ),
     ])
       .then((o) => {
-        if (o.needsOnboarding) setPhase('onboarding');
+        if (o.needsSignIn) setPhase('signin');
+        else if (o.needsOnboarding) setPhase('onboarding');
         else setPhase(o.hero ? 'hero' : 'ready');
       })
       .catch(() => setPhase('ready'));
@@ -140,6 +162,17 @@ function RootLayoutInner() {
     markDailyHeroSeen();
     setPhase('ready');
   }, []);
+
+  // After signing in, carry on exactly where the opening sequence would have gone.
+  const handleSignedIn = useCallback(() => {
+    markSeen();
+    prepare
+      .then((o) => {
+        if (o.needsOnboarding) setPhase('onboarding');
+        else setPhase(o.hero ? 'hero' : 'ready');
+      })
+      .catch(() => setPhase('ready'));
+  }, [prepare]);
 
   const handleHeroDismiss = useCallback(() => {
     markDailyHeroSeen();
@@ -171,6 +204,7 @@ function RootLayoutInner() {
       </Stack>
 
       {phase === 'loading' && <SplashLoader onDone={handleLoaderDone} holdUntil={prepare} />}
+      {phase === 'signin' && <SignIn onDone={handleSignedIn} />}
       {phase === 'onboarding' && <Onboarding onDone={handleOnboardingDone} />}
       {phase === 'hero' && opening.hero && (
         <DailyHero content={opening.hero} firstName={opening.firstName} onDismiss={handleHeroDismiss} />
