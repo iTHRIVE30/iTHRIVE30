@@ -8,6 +8,16 @@
 > read by an Australian lawyer. It is written to
 > the Australian Privacy Principles and to GDPR/CCPA expectations, and it describes the app
 > accurately as built — but a privacy policy is a legal instrument, and I am not your lawyer.
+>
+> **OUT OF DATE since 24 Oct 2026 — must be rewritten before release.** The app now has
+> required email sign-in through **Supabase**, and sends lifecycle events (sign-up, which
+> challenge day and level were completed, purchases, and a 5-day-inactive marker) plus
+> app version and platform. Daily logs, moods, notes, reflections, answers and photos still
+> stay on the device. Sections now wrong: 2 (no accounts/login/server), 5 (collects
+> nothing), 6 ("the only circumstance" data leaves Australia — depends on the Supabase
+> region chosen), 10 (breach), 11 (retains nothing), 12 (no sign-up), and the user-rights
+> section (account and event deletion now needs us). Supabase must be added as a
+> processor. `privacy-policy.html` needs the same changes. For Sharyn's and a lawyer's review.
 
 ---
 

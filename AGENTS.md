@@ -20,17 +20,22 @@ day after it shipped).
 
 ## Tech stack
 - React Native + Expo SDK 57, expo-router, TypeScript (`strict: true`)
-- AsyncStorage for all data persistence — **there is no backend**
+- AsyncStorage for all daily data (habits, moods, notes, answers, photos)
+- Supabase (`@supabase/supabase-js`) for email sign-in and lifecycle events only —
+  see the **Supabase** section
 - expo-sensors (Pedometer), expo-image-picker + expo-media-library (selfies),
   expo-web-browser, expo-sharing + expo-asset (Archive downloads),
   react-native-svg (charts)
 - Windows dev machine, Expo Go for live device testing
 
 ## Architecture principles — do not violate without explicit sign-off
-- **Local-only, no backend.** Teams, subscriptions, and multi-user
-  accountability features are explicitly deferred and investment-gated. Don't
-  wire these up speculatively. See the **Teams tab** section for the model
-  they must follow when they do arrive.
+- **Daily logs stay on the phone; only structure goes to Supabase.** Since 24 Oct 2026
+  (Sharyn's direction, via Andrew) Thrivers sign in and lifecycle events are shared so
+  Bondi Project Global can see how people move through the challenges. "Nothing leaves the
+  phone" is retired — but moods, notes, gratitude, intentions, challenge answers and photos
+  still never leave it without a new, explicit decision. Teams and multi-user
+  accountability are still deferred and investment-gated; don't wire them up
+  speculatively. See the **Teams tab** section for the model they must follow.
 - **Never-blocking, calendar-based progression.** Days and challenges unlock
   on schedule regardless of whether earlier ones got done. Nothing should
   ever block a user from progressing.
@@ -71,6 +76,8 @@ day after it shipped).
 - `lib/settingsStore.ts` / `lib/backupStore.ts` / `lib/monitoring.ts` /
   `lib/reminders.ts` — Settings, data export/restore/erase, crash reporting, and
   daily notifications (see their own sections below)
+- `lib/supabase.ts` / `lib/lifecycle.ts` / `components/SignIn.tsx` / `supabase/` —
+  sign-in and lifecycle events (see the **Supabase** section)
 - `lib/entitlements.ts` — what the user has paid for. No purchasing yet; it marks where the
   in-app purchase checks go (tracker-only here, Levels in `isLevelUnlocked()`)
 - `constants/theme.ts` / `hooks/useTheme.tsx` — the theme token layer.
@@ -383,10 +390,44 @@ Expo Go picks it up on a Metro reload during dev).
   the three sources above. Current categories: Purpose Designed, Environmental
   Setters (grid), Quote Tiles (grid, 61 items), Gallery.
 
+## Supabase — sign-in and lifecycle events
+Linked through Supabase's GitHub integration (directory `supabase/`, branch `main`):
+migrations in `supabase/migrations/` apply when they land on `main`.
+- **App config:** `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` in `.env`
+  (gitignored; `.env.example` shows the shape). **Never put the service role key in the app.**
+  With `.env` empty, `isSupabaseConfigured` is false and the sign-in gate stays open.
+- **Sign-in is required** (`components/SignIn.tsx`, an overlay from `app/_layout.tsx`,
+  shown after the splash and before onboarding). Email + 6-digit code (`signInWithOtp` /
+  `verifyOtp`), no password, no magic link. **If Google sign-in is added, Sign in with
+  Apple must be added too.** The session lives under `ithrive30-device:supabase-auth`,
+  deliberately outside the `ithrive30_` prefix so backups never carry a token.
+- **Tables** (RLS on both: a Thriver can only insert and read their own rows):
+  - `profiles` — `id` (= auth user), `created_at`, `last_seen_at`, `app_version`,
+    `platform`. Also updatable by its owner, for `last_seen_at`.
+  - `lifecycle_events` — `user_id`, `event`, `level`, `day`, `data` (jsonb, structure
+    only), `occurred_at`, `received_at`, `client_event_id` (unique per user; retries are
+    ignored).
+- **Event names:**
+  - `signup_completed` — first sign-in, when the profile is created (`ensureProfile`).
+  - `day_completed` — first save of a challenge day (`submitChallengeResponse`), with
+    `level` and `day`. Never on later edits.
+  - `level_completed` — the save that makes all 30 days of a level answered.
+  - `purchase_completed` — `recordPurchaseCompleted(sku)` in `lib/entitlements.ts` for
+    in-app purchases; Stripe purchases are to be written server side by the webhook.
+  - `inactive_5d` — written only by the nightly pg_cron job `record-inactive-5d`
+    (02:00 UTC, `public.record_inactive_5d()`): `last_seen_at` older than 5 days, one row
+    per quiet spell. RLS stops the app writing it.
+- `lib/lifecycle.ts` queues events in AsyncStorage (`ithrive30_lifecycle_queue_v1`, max
+  500) and uploads when signed in and online. Never throws, never blocks a save.
+  `markSeen()` on every app open updates `last_seen_at` at most once a local day.
+- **`data` must never carry what someone wrote** — same rule as `shareProgress.ts`.
+- Not built yet: the delivery functions (`stripe-webhook`, `deliver`, `download`) and
+  their deploy workflow, waiting on `digital-delivery-code.md`; in-app sign-out and
+  **account deletion** (Apple requires deletion in-app for any app with sign-up).
+
 ## Settings, backup & crash reporting
-`app/(tabs)/settings.tsx`, reached from the header menu. **It is Settings, never an
-Account** — no email, no password, no login. Adding one means a server holding
-credentials, which is investment-gated.
+`app/(tabs)/settings.tsx`, reached from the header menu. Sign-in lives in its own screen
+(see **Supabase**); Settings still holds no email or password fields.
 
 - **`lib/settingsStore.ts`** — first name, date of birth, appearance, reminder times,
   `onboardedAt`, crash-report opt-out, plus `installId` and `SCHEMA_VERSION`. Those last
@@ -550,9 +591,8 @@ programme, it does not judge whether someone has started properly.
 Teams is for rather than just that it is absent. **Keep it in the header menu** — an
 earlier suggestion to hide it until Teams ships was rejected. It is a statement of intent,
 not an unfinished stub.
-- **No email capture, no waitlist, no "notify me".** That would collect an address with
-  nowhere to keep it, in an app whose whole privacy position is that nothing leaves the
-  device.
+- **No waitlist, no "notify me".** Teams is still not built, and a sign-up for it would
+  promise something with no date.
 
 **The model is real-life connection, not virtual.** You start solo, then team up with
 someone you already know in actual life and grow together. The app supports a

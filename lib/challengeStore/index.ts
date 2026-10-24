@@ -9,6 +9,7 @@ import type {
 } from './types';
 import { LEVEL_1_DAYS } from './foundationContent';
 import { isTesterAllDays } from '../settingsStore';
+import { recordLifecycleEvent } from '../lifecycle';
 import { LEVEL_2_DAYS } from './level2-awareness';
 import { LEVEL_3_DAYS } from './level3-discovery';
 
@@ -211,6 +212,17 @@ export async function submitChallengeResponse(
   };
 
   await AsyncStorage.setItem(RESPONSES_KEY, JSON.stringify(responses));
+
+  // Lifecycle events (lib/lifecycle.ts) on the FIRST save only - this runs on every exit
+  // from the day. Which day and level, never the answers. Fire-and-forget.
+  if (!existing) {
+    const level = LEVELS.find((l) => getLevelDays(l.number).some((d) => d.id === id));
+    const day = level && getLevelDays(level.number).find((d) => d.id === id);
+    if (level && day) {
+      recordLifecycleEvent('day_completed', { level: level.number, day: day.day });
+      if (isLevelComplete(level.number, responses)) recordLifecycleEvent('level_completed', { level: level.number });
+    }
+  }
   return responses;
 }
 

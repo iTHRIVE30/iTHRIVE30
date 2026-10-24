@@ -1,0 +1,10 @@
+# Supabase project config. The GitHub integration (directory: supabase, branch: main)
+# applies everything in migrations/ to the linked project when it lands on main.
+project_id = "ithrive30"
+
+[auth.email]
+enable_signup = true
+# Thrivers sign in with a 6-digit code typed into the app, not a magic link: a link would
+# need deep linking back into the app, which Expo Go can't do reliably.
+otp_length = 6
+otp_expiry = 3600
